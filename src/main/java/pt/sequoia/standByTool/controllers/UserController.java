@@ -1,4 +1,4 @@
 package pt.sequoia.standByTool.controllers;
 
-public class TestController {
+public class UserController {
 }

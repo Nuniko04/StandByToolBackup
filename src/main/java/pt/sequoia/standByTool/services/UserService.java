@@ -1,4 +1,4 @@
 package pt.sequoia.standByTool.services;
 
-public class TestService {
+public class UserService {
 }
