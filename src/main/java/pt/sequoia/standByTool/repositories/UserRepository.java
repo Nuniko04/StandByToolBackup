@@ -1,14 +1,13 @@
 package pt.sequoia.standByTool.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 import pt.sequoia.standByTool.models.User;
+import java.util.List;
 import java.util.UUID;
 
-@Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    // Spring will automatically know how to query this just by reading the method name!
-    User findByEmail(String email);
-
+    @Query("SELECT u FROM User u WHERE u.status = 'ACTIVE' AND u.isEmployee = true")
+    List<User> findAllActiveEmployees();
 }

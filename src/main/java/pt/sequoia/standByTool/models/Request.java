@@ -1,6 +1,8 @@
 package pt.sequoia.standByTool.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.models.enums.RequestType;
 
@@ -9,6 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "requests")
+@Getter
+@Setter
 public class Request {
 
     @Id
@@ -65,88 +69,4 @@ public class Request {
         updatedAt = OffsetDateTime.now();
     }
 
-    // --- Getters & Setters ---
-    public UUID getId() {
-        return id;
-    }
-
-    public RequestType getRequestType() {
-        return requestType;
-    }
-
-    public void setRequestType(RequestType requestType) {
-        this.requestType = requestType;
-    }
-
-    public User getRequester() {
-        return requester;
-    }
-
-    public void setRequester(User requester) {
-        this.requester = requester;
-    }
-
-    public Turn getTurn() {
-        return turn;
-    }
-
-    public void setTurn(Turn turn) {
-        this.turn = turn;
-    }
-
-    public OffsetDateTime getTimeOffStart() {
-        return timeOffStart;
-    }
-
-    public void setTimeOffStart(OffsetDateTime timeOffStart) {
-        this.timeOffStart = timeOffStart;
-    }
-
-    public OffsetDateTime getTimeOffEnd() {
-        return timeOffEnd;
-    }
-
-    public void setTimeOffEnd(OffsetDateTime timeOffEnd) {
-        this.timeOffEnd = timeOffEnd;
-    }
-
-    public RequestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RequestStatus status) {
-        this.status = status;
-    }
-
-    public String getRequesterNote() {
-        return requesterNote;
-    }
-
-    public void setRequesterNote(String requesterNote) {
-        this.requesterNote = requesterNote;
-    }
-
-    public String getAssignerNote() {
-        return assignerNote;
-    }
-
-    public void setAssignerNote(String assignerNote) {
-        this.assignerNote = assignerNote;
-    }
-
-    public User getProcessedBy() {
-        return processedBy;
-    }
-
-    public void setProcessedBy(User processedBy) {
-        this.processedBy = processedBy;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }

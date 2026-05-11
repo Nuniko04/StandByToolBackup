@@ -1,0 +1,46 @@
+package pt.sequoia.standByTool.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import pt.sequoia.standByTool.models.Turn;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+public interface TurnRepository extends JpaRepository<Turn, UUID> {
+
+    // Verifica se o utilizador já tem um turno na data
+    @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.assignee.id = :userId " +
+            "AND t.startTime <= :end AND t.endTime >= :start")
+    boolean existsByAssigneeAndDates(@Param("userId") UUID userId,
+                                     @Param("start") OffsetDateTime start,
+                                     @Param("end") OffsetDateTime end);
+
+    // Conta semanas desde o último turno para o cálculo da cadência
+    @Query(value = "SELECT EXTRACT(WEEK FROM (:now - MAX(start_time))) FROM turns " +
+            "WHERE assignee_id = :userId", nativeQuery = true)
+    Integer getWeeksSinceLastTurn(@Param("userId") UUID userId, @Param("now") OffsetDateTime now);
+
+    // Contagem para equidade de feriados e fechos de mês
+    @Query("SELECT COUNT(t) FROM Turn t WHERE t.assignee.id = :userId " +
+            "AND t.startTime >= :yearStart AND t.endTime <= :yearEnd")
+    int countTurnsInYear(@Param("userId") UUID userId,
+                         @Param("yearStart") OffsetDateTime yearStart,
+                         @Param("yearEnd") OffsetDateTime yearEnd);
+
+    // 1. Conta quantos feriados o utilizador já apanhou durante os seus turnos num ano específico
+    @Query(value = "SELECT COUNT(f.id) FROM turns t " +
+            "JOIN feriados f ON f.data >= CAST(t.start_time AS DATE) AND f.data <= CAST(t.end_time AS DATE) " +
+            "WHERE t.assignee_id = :userId AND EXTRACT(YEAR FROM t.start_time) = :year",
+            nativeQuery = true)
+    int countFeriadosTrabalhados(@Param("userId") UUID userId, @Param("year") int year);
+
+    // 2. Conta quantos Fechos de Mês o utilizador já fez num ano específico
+    // (Fecho de mês = A semana acaba num dia 28 ou superior, OU a semana atravessa dois meses diferentes)
+    @Query(value = "SELECT COUNT(id) FROM turns " +
+            "WHERE assignee_id = :userId AND EXTRACT(YEAR FROM start_time) = :year " +
+            "AND (EXTRACT(MONTH FROM start_time) != EXTRACT(MONTH FROM end_time) " +
+            "     OR EXTRACT(DAY FROM end_time) >= 28)",
+            nativeQuery = true)
+    int countFechosMesTrabalhados(@Param("userId") UUID userId, @Param("year") int year);
+}

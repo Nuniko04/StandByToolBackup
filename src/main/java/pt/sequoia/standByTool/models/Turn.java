@@ -1,6 +1,8 @@
 package pt.sequoia.standByTool.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pt.sequoia.standByTool.models.enums.PaymentStatus;
@@ -8,10 +10,13 @@ import pt.sequoia.standByTool.models.enums.TurnStatus;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "turns")
+@Getter
+@Setter
 public class Turn {
 
     @Id
@@ -51,6 +56,18 @@ public class Turn {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    // A ligação Mágica: Uma escala pode ter vários serviços associados (Ex: Itaú + MG)
+    @ManyToMany
+    @JoinTable(
+            name = "turno_servicos",
+            joinColumns = @JoinColumn(name = "turn_id"),
+            inverseJoinColumns = @JoinColumn(name = "servico_id")
+    )
+    private List<ServicoCliente> servicosAlocados;
+
+    // Novo campo para o Calendário (ID do evento no Google/Outlook, gerado automaticamente)
+    private String calendarEventId;
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
@@ -69,88 +86,4 @@ public class Turn {
         updatedAt = OffsetDateTime.now();
     }
 
-    // --- Getters & Setters ---
-    public UUID getId() {
-        return id;
-    }
-
-    public User getAssignee() {
-        return assignee;
-    }
-
-    public void setAssignee(User assignee) {
-        this.assignee = assignee;
-    }
-
-    public TurnType getTurnType() {
-        return turnType;
-    }
-
-    public void setTurnType(TurnType turnType) {
-        this.turnType = turnType;
-    }
-
-    public OffsetDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(OffsetDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public OffsetDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(OffsetDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public BigDecimal getTurnValue() {
-        return turnValue;
-    }
-
-    public void setTurnValue(BigDecimal turnValue) {
-        this.turnValue = turnValue;
-    }
-
-    public TurnStatus getTurnStatus() {
-        return turnStatus;
-    }
-
-    public void setTurnStatus(TurnStatus turnStatus) {
-        this.turnStatus = turnStatus;
-    }
-
-    public PaymentStatus getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
-    public String getOneOffPayment() {
-        return oneOffPayment;
-    }
-
-    public void setOneOffPayment(String oneOffPayment) {
-        this.oneOffPayment = oneOffPayment;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }

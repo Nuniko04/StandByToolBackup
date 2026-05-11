@@ -1,15 +1,20 @@
 package pt.sequoia.standByTool.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pt.sequoia.standByTool.models.enums.UserStatus;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class User {
 
     @Id
@@ -39,6 +44,10 @@ public class User {
     @Column(name = "default_payment_method", columnDefinition = "jsonb")
     private String defaultPaymentMethod;
 
+    // Opcional, para ajudar nas queries de bloqueio de férias:
+    @OneToMany(mappedBy = "requester")
+    private List<Request> pedidos;
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
@@ -57,72 +66,4 @@ public class User {
         updatedAt = OffsetDateTime.now();
     }
 
-    // --- Getters & Setters ---
-    public UUID getId() {
-        return id;
-    }
-
-    public String getGoogleOauthId() {
-        return googleOauthId;
-    }
-
-    public void setGoogleOauthId(String googleOauthId) {
-        this.googleOauthId = googleOauthId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public boolean isAssigner() {
-        return isAssigner;
-    }
-
-    public void setAssigner(boolean assigner) {
-        isAssigner = assigner;
-    }
-
-    public boolean isEmployee() {
-        return isEmployee;
-    }
-
-    public void setEmployee(boolean employee) {
-        isEmployee = employee;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
-
-    public String getDefaultPaymentMethod() {
-        return defaultPaymentMethod;
-    }
-
-    public void setDefaultPaymentMethod(String defaultPaymentMethod) {
-        this.defaultPaymentMethod = defaultPaymentMethod;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }
