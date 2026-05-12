@@ -4,20 +4,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-// TODO: O Interno 1/2 vai ter de criar o FinanceService e importá-lo aqui
-// import pt.sequoia.standByTool.services.FinanceService;
+import pt.sequoia.standByTool.services.FinanceService;
 
 @RestController
 @RequestMapping("/api/finance")
 public class FinanceController {
 
-    // TODO: Descomentar isto quando o FinanceService for criado
-    // private final FinanceService financeService;
+    private final FinanceService financeService;
 
-    // public FinanceController(FinanceService financeService) {
-    //     this.financeService = financeService;
-    // }
+    public FinanceController(FinanceService financeService) {
+        this.financeService = financeService;
+    }
 
     /**
      * Endpoint chamado pelo Google Cloud Scheduler no dia 1 de cada mês.

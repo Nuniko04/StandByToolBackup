@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.sequoia.standByTool.models.Turn;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface TurnRepository extends JpaRepository<Turn, UUID> {
@@ -43,4 +44,11 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
             "     OR EXTRACT(DAY FROM end_time) >= 28)",
             nativeQuery = true)
     int countFechosMesTrabalhados(@Param("userId") UUID userId, @Param("year") int year);
+
+    // Vai buscar os turnos da semana anterior que foram feitos mas ainda não foram pagos
+    @Query("SELECT t FROM Turn t WHERE t.turnStatus IN ('ACCEPTED', 'COMPLETED') " +
+            "AND t.paymentStatus = 'UNPAID' " +
+            "AND t.startTime >= :start AND t.endTime <= :end")
+    List<Turn> findUnpaidTurnsInPeriod(@Param("start") OffsetDateTime start,
+                                       @Param("end") OffsetDateTime end);
 }
