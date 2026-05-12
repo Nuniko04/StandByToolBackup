@@ -23,7 +23,7 @@ public class ScheduleGeneratorService {
     private final TurnRepository turnRepository;
     private final RequestRepository requestRepository;
     private final FeriadoRepository feriadoRepository;
-    private final TurnTypeRepository turnTypeRepository; // Adicionado para ir buscar o tipo de turno
+    private final TurnTypeRepository turnTypeRepository;
 
     public ScheduleGeneratorService(UserRepository userRepository,
                                     TurnRepository turnRepository,
