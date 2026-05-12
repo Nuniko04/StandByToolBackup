@@ -108,11 +108,10 @@ public class ScheduleGeneratorService {
             }
 
             // 3. ORDENAÇÃO E ATRIBUIÇÃO NA BASE DE DADOS
-            // Verifica se a semana cai no Horário de Verão (Daylight Saving Time) de Portugal Continental
+
             ZoneId zoneLisboa = ZoneId.of("Europe/Lisbon");
             boolean isHoraDeVerao = zoneLisboa.getRules().isDaylightSavings(inicioComHora.toInstant());
 
-            // Se for hora de verão, precisamos de 3 pessoas. Se for inverno, bastam 2.
             int recursosNecessarios = isHoraDeVerao ? 3 : 2;
 
             if (candidatos.size() >= recursosNecessarios) {
@@ -121,46 +120,59 @@ public class ScheduleGeneratorService {
 
                 User melhorParaStandBy = candidatos.get(0).user;
                 User melhorParaBackup = candidatos.get(1).user;
+                User melhorParaShift = null;
 
-                // --- Gravar o StandBy ---
-                Turn turnoStandBy = new Turn();
-                turnoStandBy.setAssignee(melhorParaStandBy);
-                turnoStandBy.setTurnType(tipoStandBy);
-                turnoStandBy.setStartTime(inicioComHora);
-                turnoStandBy.setEndTime(fimComHora);
-                turnoStandBy.setTurnValue(BigDecimal.ZERO);
-                turnoStandBy.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
-                turnRepository.save(turnoStandBy);
-
-                // --- Gravar o Backup ---
-                Turn turnoBackup = new Turn();
-                turnoBackup.setAssignee(melhorParaBackup);
-                turnoBackup.setTurnType(tipoBackup);
-                turnoBackup.setStartTime(inicioComHora);
-                turnoBackup.setEndTime(fimComHora);
-                turnoBackup.setTurnValue(BigDecimal.ZERO);
-                turnoBackup.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
-                turnRepository.save(turnoBackup);
-
-                // --- Gravar o Finastra Shift (SE FOR HORA DE VERÃO) ---
+                // Se for Hora de Verão, vamos procurar o melhor candidato ELEGÍVEL para o Finastra
                 if (isHoraDeVerao) {
-                    User melhorParaShift = candidatos.get(2).user; // O terceiro da lista
+                    for (int i = 2; i < candidatos.size(); i++) {
+                        if (candidatos.get(i).user.isFinastraEligible()) {
+                            melhorParaShift = candidatos.get(i).user;
+                            break; // Encontrámos! Pára a procura.
+                        }
+                    }
+                }
 
-                    Turn turnoShift = new Turn();
-                    turnoShift.setAssignee(melhorParaShift);
-                    turnoShift.setTurnType(tipoFinastraShift);
-                    turnoShift.setStartTime(inicioComHora);
-                    turnoShift.setEndTime(fimComHora);
-                    turnoShift.setTurnValue(BigDecimal.ZERO);
-                    turnoShift.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
-                    turnRepository.save(turnoShift);
+                // VALIDAÇÃO FINAL: Se for hora de verão mas ninguém na lista podia fazer Finastra
+                if (isHoraDeVerao && melhorParaShift == null) {
+                    String aviso = "⚠️ Semana de " + inicioSemana + ": Existem pessoas disponíveis, mas NENHUMA tem a permissão 'Finastra Shift'. Intervenção manual necessária!";
+                    alertasGerados.add(aviso);
+                } else {
+                    // --- Gravar o StandBy ---
+                    Turn turnoStandBy = new Turn();
+                    turnoStandBy.setAssignee(melhorParaStandBy);
+                    turnoStandBy.setTurnType(tipoStandBy);
+                    turnoStandBy.setStartTime(inicioComHora);
+                    turnoStandBy.setEndTime(fimComHora);
+                    turnoStandBy.setTurnValue(BigDecimal.ZERO);
+                    turnoStandBy.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
+                    turnRepository.save(turnoStandBy);
+
+                    // --- Gravar o Backup ---
+                    Turn turnoBackup = new Turn();
+                    turnoBackup.setAssignee(melhorParaBackup);
+                    turnoBackup.setTurnType(tipoBackup);
+                    turnoBackup.setStartTime(inicioComHora);
+                    turnoBackup.setEndTime(fimComHora);
+                    turnoBackup.setTurnValue(BigDecimal.ZERO);
+                    turnoBackup.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
+                    turnRepository.save(turnoBackup);
+
+                    // --- Gravar o Finastra Shift ---
+                    if (isHoraDeVerao) {
+                        Turn turnoShift = new Turn();
+                        turnoShift.setAssignee(melhorParaShift);
+                        turnoShift.setTurnType(tipoFinastraShift);
+                        turnoShift.setStartTime(inicioComHora);
+                        turnoShift.setEndTime(fimComHora);
+                        turnoShift.setTurnValue(BigDecimal.ZERO);
+                        turnoShift.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
+                        turnRepository.save(turnoShift);
+                    }
                 }
 
             } else {
-                // ALERTA PARA O FRONTEND
-                String aviso = "⚠️ Semana de " + inicioSemana + " até " + fimSemana +
-                        ": Recursos insuficientes (Precisava de " + recursosNecessarios + ", mas só há " + candidatos.size() +
-                        " disponíveis). Necessária intervenção manual!";
+                // Alerta de recursos insuficientes em número absoluto
+                String aviso = "⚠️ Semana de " + inicioSemana + ": Recursos insuficientes (Precisava de " + recursosNecessarios + ", mas só há " + candidatos.size() + " disponíveis).";
                 alertasGerados.add(aviso);
             }
 

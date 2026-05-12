@@ -48,6 +48,9 @@ public class User {
     @OneToMany(mappedBy = "requester")
     private List<Request> pedidos;
 
+    @Column(name = "is_finastra_eligible")
+    private boolean isFinastraEligible = false; // Por defeito, ninguém pode fazer até o Admin autorizar
+
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
