@@ -6,6 +6,7 @@ import lombok.Setter;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.models.enums.RequestType;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -32,10 +33,10 @@ public class Request {
     private Turn turn;
 
     @Column(name = "time_off_start")
-    private OffsetDateTime timeOffStart;
+    private LocalDate timeOffStart;
 
     @Column(name = "time_off_end")
-    private OffsetDateTime timeOffEnd;
+    private LocalDate timeOffEnd;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50)

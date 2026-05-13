@@ -41,7 +41,7 @@ public class User {
     private UserStatus status = UserStatus.ACTIVE;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "default_payment_method", columnDefinition = "jsonb")
+    @Column(name = "default_payment_method", columnDefinition = "json") // Mudar jsonb para json
     private String defaultPaymentMethod;
 
     // Opcional, para ajudar nas queries de bloqueio de férias:

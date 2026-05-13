@@ -17,10 +17,12 @@ public class TurnService {
 
     private final TurnRepository turnRepository;
     private final RequestRepository requestRepository;
+    private final CalendarService calendarService;
 
-    public TurnService(TurnRepository turnRepository, RequestRepository requestRepository) {
+    public TurnService(TurnRepository turnRepository, CalendarService calendarService, RequestRepository requestRepository) {
         this.turnRepository = turnRepository;
         this.requestRepository = requestRepository;
+        this.calendarService = calendarService;
     }
 
     /**
@@ -36,6 +38,14 @@ public class TurnService {
         }
 
         turn.setTurnStatus(TurnStatus.ACCEPTED);
+
+        // Sincroniza com a Google
+        String eventId = calendarService.addTurnToCalendar(turn);
+        if (eventId != null) {
+            turn.setCalendarEventId(eventId);
+            System.out.println("✅ Evento adicionado ao Calendário: " + eventId);
+        }
+
         turnRepository.save(turn);
     }
 

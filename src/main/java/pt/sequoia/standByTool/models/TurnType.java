@@ -20,6 +20,9 @@ public class TurnType {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "google_calendar_id", nullable = false)
+    private String googleCalendarId;
+
     @Column(name = "default_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal defaultValue = BigDecimal.ZERO;
 

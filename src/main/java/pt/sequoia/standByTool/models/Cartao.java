@@ -16,12 +16,11 @@ public class Cartao {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String identificacaoCartao; // O número ou código do cartão físico
+    private String identificacaoCartao; // O código do cartão físico
 
-    // Se estiver null, o cartão está livre na gaveta
-    @OneToOne
-    @JoinColumn(name = "colaborador_atual_id")
-    private User colaboradorAtual;
+    @Column(name = "data_validade", nullable = false)
+    private LocalDate dataValidade; // A validade do cartão que referiste
 
-    private LocalDate dataEntrega;
+    @Column(nullable = false)
+    private boolean ativo = true; // Para desativar quando caducar ou for perdido
 }

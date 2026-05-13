@@ -50,120 +50,129 @@ public class ScheduleGeneratorService {
         List<String> alertasGerados = new ArrayList<>();
         LocalDate semanaAtual = dataInicio;
 
-        // Vai buscar os tipos de turno à BD (Assumindo que os nomes são "StandBy" e "Backup")
         TurnType tipoStandBy = turnTypeRepository.findByName("StandBy");
         TurnType tipoBackup = turnTypeRepository.findByName("Backup");
         TurnType tipoFinastraShift = turnTypeRepository.findByName("Finastra Shift");
+        ZoneId zoneLisboa = ZoneId.of("Europe/Lisbon");
 
         while (semanaAtual.isBefore(dataFim)) {
             LocalDate inicioSemana = semanaAtual;
             LocalDate fimSemana = semanaAtual.plusDays(6);
 
-            // =====================================================================
-            // CONVERSÃO MÁGICA: De LocalDate (Sem hora) para OffsetDateTime (Com hora)
-            // Começa à meia-noite de Segunda, acaba às 23:59:59 de Domingo
-            // =====================================================================
-            OffsetDateTime inicioComHora = inicioSemana.atStartOfDay().atOffset(ZoneOffset.UTC);
-            OffsetDateTime fimComHora = fimSemana.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
+            // 1. VERIFICAÇÃO INTELIGENTE DE "BURACOS"
+            boolean isHoraDeVerao = zoneLisboa.getRules().isDaylightSavings(
+                    inicioSemana.atStartOfDay().toInstant(ZoneOffset.UTC)
+            );
 
-            OffsetDateTime proxSemanaInicio = inicioComHora.plusDays(7);
-            OffsetDateTime proxSemanaFim = fimComHora.plusDays(7);
+            boolean faltaStandBy = !turnRepository.existsTurnOfTypeInWeek("StandBy", inicioSemana);
+            boolean faltaBackup = !turnRepository.existsTurnOfTypeInWeek("Backup", inicioSemana);
+            boolean faltaFinastra = isHoraDeVerao && !turnRepository.existsTurnOfTypeInWeek("Finastra Shift", inicioSemana);
+
+            int recursosNecessarios = 0;
+            if (faltaStandBy) recursosNecessarios++;
+            if (faltaBackup) recursosNecessarios++;
+            if (faltaFinastra) recursosNecessarios++;
+
+            // Se não faltar nenhum turno, salta para a próxima semana!
+            if (recursosNecessarios == 0) {
+                alertasGerados.add("ℹ️ Semana de " + inicioSemana + " ignorada: Todas as escalas necessárias já estavam preenchidas.");
+                semanaAtual = semanaAtual.plusDays(7);
+                continue;
+            }
+
+            // Referências para a semana seguinte (usadas na verificação de férias)
+            LocalDate proxSemanaInicio = inicioSemana.plusDays(7);
+            LocalDate proxSemanaFim = fimSemana.plusDays(7);
 
             List<User> todosColaboradores = userRepository.findAllActiveEmployees();
             List<ColaboradorScore> candidatos = new ArrayList<>();
 
-            // 1. FASE DE EXCLUSÃO (Regras Rígidas)
+            // 2. FASE DE EXCLUSÃO
             for (User user : todosColaboradores) {
-                boolean feriasNaSemana = requestRepository.hasApprovedVacation(user.getId(), inicioComHora, fimComHora);
+                boolean feriasNaSemana = requestRepository.hasApprovedVacation(user.getId(), inicioSemana, fimSemana);
                 boolean feriasProximaSemana = requestRepository.hasApprovedVacation(user.getId(), proxSemanaInicio, proxSemanaFim);
-                boolean temTurno = turnRepository.existsByAssigneeAndDates(user.getId(), inicioComHora, fimComHora);
+                boolean temTurno = turnRepository.existsByAssigneeAndDates(user.getId(), inicioSemana, fimSemana);
 
                 if (!feriasNaSemana && !feriasProximaSemana && !temTurno) {
                     candidatos.add(new ColaboradorScore(user));
                 }
             }
 
-            // 2. FASE DE SCORING (Equidade e Cadência)
+            // 3. FASE DE SCORING (Equidade e Cadência)
             boolean isSemanaComFeriado = feriadoRepository.existsFeriadoInPeriod(inicioSemana, fimSemana);
             boolean isSemanaFechoMes = checkFechoDeMes(inicioSemana, fimSemana);
 
             for (ColaboradorScore candidato : candidatos) {
-
-                // Regra: Cadência
-                Integer semanasDb = turnRepository.getWeeksSinceLastTurn(candidato.user.getId(), inicioComHora);
+                Integer semanasDb = turnRepository.getWeeksSinceLastTurn(candidato.user.getId(), inicioSemana);
                 int semanasDesdeUltimoTurno = (semanasDb != null) ? semanasDb : 10;
                 candidato.pontos += (semanasDesdeUltimoTurno * 10) - 40;
 
-                // Regra: Feriados
                 if (isSemanaComFeriado) {
                     int feriadosTrabalhados = turnRepository.countFeriadosTrabalhados(candidato.user.getId(), inicioSemana.getYear());
                     candidato.pontos -= (feriadosTrabalhados * 50);
                 }
 
-                // Regra: Fecho de Mês
                 if (isSemanaFechoMes) {
                     int fechosTrabalhados = turnRepository.countFechosMesTrabalhados(candidato.user.getId(), inicioSemana.getYear());
                     candidato.pontos -= (fechosTrabalhados * 30);
                 }
             }
 
-            // 3. ORDENAÇÃO E ATRIBUIÇÃO NA BASE DE DADOS
-
-            ZoneId zoneLisboa = ZoneId.of("Europe/Lisbon");
-            boolean isHoraDeVerao = zoneLisboa.getRules().isDaylightSavings(inicioComHora.toInstant());
-
-            int recursosNecessarios = isHoraDeVerao ? 3 : 2;
-
+            // 4. ORDENAÇÃO E PREENCHIMENTO DOS BURACOS
             if (candidatos.size() >= recursosNecessarios) {
-                // Ordena os candidatos: Quem tem MAIOR pontuação fica em primeiro
+                // Ordena os candidatos do maior score para o menor
                 candidatos.sort((a, b) -> Integer.compare(b.pontos, a.pontos));
 
-                User melhorParaStandBy = candidatos.get(0).user;
-                User melhorParaBackup = candidatos.get(1).user;
-                User melhorParaShift = null;
+                int indiceAtual = 0; // Vai avançando na lista conforme gastamos pessoas
 
-                // Se for Hora de Verão, vamos procurar o melhor candidato ELEGÍVEL para o Finastra
-                if (isHoraDeVerao) {
-                    for (int i = 2; i < candidatos.size(); i++) {
-                        if (candidatos.get(i).user.isFinastraEligible()) {
-                            melhorParaShift = candidatos.get(i).user;
-                            break; // Encontrámos! Pára a procura.
-                        }
-                    }
-                }
+                if (faltaStandBy) {
+                    User melhorParaStandBy = candidatos.get(indiceAtual).user;
 
-                // VALIDAÇÃO FINAL: Se for hora de verão mas ninguém na lista podia fazer Finastra
-                if (isHoraDeVerao && melhorParaShift == null) {
-                    String aviso = "⚠️ Semana de " + inicioSemana + ": Existem pessoas disponíveis, mas NENHUMA tem a permissão 'Finastra Shift'. Intervenção manual necessária!";
-                    alertasGerados.add(aviso);
-                } else {
-                    // --- Gravar o StandBy ---
                     Turn turnoStandBy = new Turn();
                     turnoStandBy.setAssignee(melhorParaStandBy);
                     turnoStandBy.setTurnType(tipoStandBy);
-                    turnoStandBy.setStartTime(inicioComHora);
-                    turnoStandBy.setEndTime(fimComHora);
+                    turnoStandBy.setStartTime(inicioSemana);
+                    turnoStandBy.setEndTime(inicioSemana.plusDays(6));
                     turnoStandBy.setTurnValue(BigDecimal.ZERO);
                     turnoStandBy.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                     turnRepository.save(turnoStandBy);
 
-                    // --- Gravar o Backup ---
+                    indiceAtual++; // Gastámos um candidato, passa ao próximo
+                }
+
+                if (faltaBackup) {
+                    User melhorParaBackup = candidatos.get(indiceAtual).user;
+
                     Turn turnoBackup = new Turn();
                     turnoBackup.setAssignee(melhorParaBackup);
                     turnoBackup.setTurnType(tipoBackup);
-                    turnoBackup.setStartTime(inicioComHora);
-                    turnoBackup.setEndTime(fimComHora);
+                    turnoBackup.setStartTime(inicioSemana);
+                    turnoBackup.setEndTime(inicioSemana.plusDays(6));
                     turnoBackup.setTurnValue(BigDecimal.ZERO);
                     turnoBackup.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                     turnRepository.save(turnoBackup);
 
-                    // --- Gravar o Finastra Shift ---
-                    if (isHoraDeVerao) {
+                    indiceAtual++;
+                }
+
+                if (faltaFinastra) {
+                    User melhorParaShift = null;
+                    // Procura o melhor para Finastra APENAS entre os candidatos que sobraram
+                    for (int i = indiceAtual; i < candidatos.size(); i++) {
+                        if (candidatos.get(i).user.isFinastraEligible()) {
+                            melhorParaShift = candidatos.get(i).user;
+                            break;
+                        }
+                    }
+
+                    if (melhorParaShift == null) {
+                        alertasGerados.add("⚠️ Semana de " + inicioSemana + ": Ninguém com permissão 'Finastra Shift' disponível para preencher o turno em falta!");
+                    } else {
                         Turn turnoShift = new Turn();
                         turnoShift.setAssignee(melhorParaShift);
                         turnoShift.setTurnType(tipoFinastraShift);
-                        turnoShift.setStartTime(inicioComHora);
-                        turnoShift.setEndTime(fimComHora);
+                        turnoShift.setStartTime(inicioSemana);
+                        turnoShift.setEndTime(inicioSemana.plusDays(4)); // Sexta-feira
                         turnoShift.setTurnValue(BigDecimal.ZERO);
                         turnoShift.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                         turnRepository.save(turnoShift);
@@ -171,9 +180,7 @@ public class ScheduleGeneratorService {
                 }
 
             } else {
-                // Alerta de recursos insuficientes em número absoluto
-                String aviso = "⚠️ Semana de " + inicioSemana + ": Recursos insuficientes (Precisava de " + recursosNecessarios + ", mas só há " + candidatos.size() + " disponíveis).";
-                alertasGerados.add(aviso);
+                alertasGerados.add("⚠️ Semana de " + inicioSemana + ": Recursos insuficientes (Precisava de " + recursosNecessarios + " colaboradores novos, mas só há " + candidatos.size() + ").");
             }
 
             // Avança para a próxima semana
