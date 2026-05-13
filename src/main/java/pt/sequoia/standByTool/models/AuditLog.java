@@ -32,7 +32,7 @@ public class AuditLog {
     private UUID targetId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column
     private String changes;
 
     @Column(updatable = false)

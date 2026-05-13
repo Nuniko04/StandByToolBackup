@@ -9,6 +9,7 @@ import pt.sequoia.standByTool.models.enums.PaymentStatus;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -32,10 +33,10 @@ public class Turn {
     private TurnType turnType;
 
     @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime;
+    private LocalDate startTime;
 
     @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;
+    private LocalDate endTime;
 
     @Column(name = "turn_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal turnValue;

@@ -17,45 +17,58 @@ public class TurnService {
 
     private final TurnRepository turnRepository;
     private final RequestRepository requestRepository;
+    private final CalendarService calendarService;
 
-    public TurnService(TurnRepository turnRepository, RequestRepository requestRepository) {
+    public TurnService(TurnRepository turnRepository, CalendarService calendarService, RequestRepository requestRepository) {
         this.turnRepository = turnRepository;
         this.requestRepository = requestRepository;
+        this.calendarService = calendarService;
     }
 
+    /**
+     * Altera o estado do turno para ACCEPTED.
+     */
     @Transactional
-    public Turn acceptTurn(UUID turnId) {
-        // Vai buscar o turno à BD
+    public void acceptTurn(UUID turnId) {
         Turn turn = turnRepository.findById(turnId)
-                .orElseThrow(() -> new RuntimeException("Turno não encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Turno não encontrado."));
 
-        // Valida se o turno está pendente
         if (turn.getTurnStatus() != TurnStatus.PENDING_ACCEPTANCE) {
-            throw new RuntimeException("Este turno não está pendente de aceitação.");
+            throw new IllegalStateException("Apenas turnos pendentes podem ser aceites.");
         }
 
-        // Muda o estado para ACCEPTED
         turn.setTurnStatus(TurnStatus.ACCEPTED);
-        return turnRepository.save(turn);
+
+        // Sincroniza com a Google
+        String eventId = calendarService.addTurnToCalendar(turn);
+        if (eventId != null) {
+            turn.setCalendarEventId(eventId);
+            System.out.println("✅ Evento adicionado ao Calendário: " + eventId);
+        }
+
+        turnRepository.save(turn);
     }
 
+    /**
+     * Cria um pedido de troca (TURN_SWAP) e marca o turno como SWAP_REQUESTED.
+     */
     @Transactional
-    public Request requestSwap(UUID turnId, String reason) {
+    public void requestSwap(UUID turnId, String note) {
         Turn turn = turnRepository.findById(turnId)
-                .orElseThrow(() -> new RuntimeException("Turno não encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Turno não encontrado."));
 
-        // Muda o estado do turno
-        turn.setTurnStatus(TurnStatus.SWAP_REQUESTED);
-        turnRepository.save(turn);
-
-        // Cria o pedido de troca (Request)
+        // Cria o novo pedido de troca
         Request swapRequest = new Request();
-        swapRequest.setRequestType(RequestType.TURN_SWAP);
-        swapRequest.setRequester(turn.getAssignee()); // O dono do turno é quem pede a troca
+        swapRequest.setRequestType(RequestType.TURN_SWAP); //
+        swapRequest.setRequester(turn.getAssignee()); // O atual dono do turno é quem pede a troca
         swapRequest.setTurn(turn);
-        swapRequest.setStatus(RequestStatus.PENDING);
-        swapRequest.setRequesterNote(reason);
+        swapRequest.setStatus(RequestStatus.PENDING); //
+        swapRequest.setRequesterNote(note);
 
-        return requestRepository.save(swapRequest);
+        requestRepository.save(swapRequest);
+
+        // Atualiza o estado do turno para indicar que há uma troca em curso
+        turn.setTurnStatus(TurnStatus.SWAP_REQUESTED); //
+        turnRepository.save(turn);
     }
 }

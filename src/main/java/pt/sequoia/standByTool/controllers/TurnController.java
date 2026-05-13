@@ -1,3 +1,4 @@
+
 package pt.sequoia.standByTool.controllers;
 
 import org.springframework.http.ResponseEntity;
@@ -17,26 +18,35 @@ public class TurnController {
         this.turnService = turnService;
     }
 
-    // Endpoint para aceitar turno
+    /**
+     * Endpoint para aceitar um turno: POST /api/turns/{id}/accept
+     */
     @PostMapping("/{id}/accept")
-    public ResponseEntity<?> acceptTurn(@PathVariable UUID id) {
+    public ResponseEntity<Void> acceptTurn(@PathVariable UUID id) {
         try {
             turnService.acceptTurn(id);
-            return ResponseEntity.ok(Map.of("message", "Turno aceite com sucesso."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    // Endpoint para pedir troca de turno
+    /**
+     * Endpoint para pedir troca: POST /api/turns/{id}/swap
+     */
     @PostMapping("/{id}/swap")
-    public ResponseEntity<?> requestSwap(@PathVariable UUID id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<Void> requestSwap(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String note) {
         try {
-            String reason = payload.get("reason"); // Motivo da troca (opcional)
-            turnService.requestSwap(id, reason);
-            return ResponseEntity.ok(Map.of("message", "Pedido de troca submetido com sucesso."));
+            turnService.requestSwap(id, note);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
