@@ -9,6 +9,7 @@ import pt.sequoia.standByTool.models.enums.PaymentStatus;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -32,10 +33,10 @@ public class Turn {
     private TurnType turnType;
 
     @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime;
+    private LocalDate startTime;
 
     @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;
+    private LocalDate endTime;
 
     @Column(name = "turn_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal turnValue;
@@ -49,12 +50,20 @@ public class Turn {
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "one_off_payment", columnDefinition = "jsonb")
+    @Column(name = "one_off_payment")
     private String oneOffPayment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    // Adicionar esta ligação no Turn.java
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cartao_id")
+    private Cartao cartao; // O cartão físico atribuído a este turno específico
+
+    @Column(name = "cartao_data_entrega")
+    private LocalDate dataEntregaCartao; // O dia em que lhe deram o cartão para a mão
 
     // A ligação Mágica: Uma escala pode ter vários serviços associados (Ex: Itaú + MG)
     @ManyToMany

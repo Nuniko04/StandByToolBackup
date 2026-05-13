@@ -2,37 +2,29 @@ package pt.sequoia.standByTool.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.sequoia.standByTool.models.Turn;
-import pt.sequoia.standByTool.models.enums.TurnStatus;
-import pt.sequoia.standByTool.repositories.TurnRepository;
+import pt.sequoia.standByTool.services.TurnService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/turns")
 public class TurnController {
 
-    private final TurnRepository turnRepository;
+    private final TurnService turnService;
 
-    public TurnController(TurnRepository turnRepository) {
-        this.turnRepository = turnRepository;
+    public TurnController(TurnService turnService) {
+        this.turnService = turnService;
     }
 
-    // Endpoint para o botão "Accept Shift"
     @PostMapping("/{id}/accept")
     public ResponseEntity<String> acceptTurn(@PathVariable UUID id) {
-        Optional<Turn> turnOpt = turnRepository.findById(id);
 
-        if (turnOpt.isPresent()) {
-            Turn turn = turnOpt.get();
-            turn.setTurnStatus(TurnStatus.ACCEPTED); // Muda de PENDING_ACCEPTANCE para ACCEPTED
-            turnRepository.save(turn);
+        boolean sucesso = turnService.acceptTurn(id);
 
-            // TODO: Aqui vamos adicionar a Sincronização do Google Calendar no futuro!
-
-            return ResponseEntity.ok("Turno aceite com sucesso!");
+        if (sucesso) {
+            return ResponseEntity.ok("Turno aceite e sincronizado com o calendário!");
+        } else {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
     }
 }

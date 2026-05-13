@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StandByTool | Unified Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
@@ -44,10 +45,15 @@
             </a>
         </nav>
     </div>
-    <div class="p-4 border-t border-gray-100">
+    <div class="p-4 border-t border-gray-100 flex flex-col gap-4">
+        <form action="/logout" method="post" class="w-full m-0">
+            <button type="submit" class="w-full flex items-center px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg font-medium transition-colors">
+                <i class="ph ph-sign-out text-xl mr-3"></i> Terminar Sessão
+            </button>
+        </form>
+
         <div class="flex items-center gap-3">
-            <div
-                    class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold">
+            <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold">
                 ID
             </div>
             <div>
@@ -122,9 +128,10 @@
                             <button
                                     class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Decline
                                 / Swap</button>
-                            <button
-                                    class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-medium shadow-sm hover:bg-brand-700 transition-colors">Accept
-                                Shift</button>
+                            <button onclick="acceptTurn(this, 'c7ce7965-6c35-4b73-86e7-439ea834401b')"
+                                    class="px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-medium shadow-sm hover:bg-brand-700 transition-colors flex items-center justify-center">
+                                Accept Shift
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -279,6 +286,36 @@
             // Inactive State for List Button
             btnList.classList.add('text-gray-500');
             btnList.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+        }
+    }
+
+    // Função para chamar a API e Aceitar o Turno
+    async function acceptTurn(buttonElement, turnId) {
+        // Dá feedback visual de carregamento
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="ph ph-spinner animate-spin mr-2"></i> Syncing...';
+        buttonElement.disabled = true;
+
+        try {
+            // Faz a chamada ao endpoint que criámos no TurnController
+            const response = await fetch(`/api/turns/${turnId}/accept`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                // Sucesso: Muda o botão para verde e confirma a sincronização
+                buttonElement.innerHTML = '<i class="ph-fill ph-check-circle mr-2"></i> Accepted & Synced';
+                buttonElement.classList.replace('bg-brand-600', 'bg-green-600');
+                buttonElement.classList.replace('hover:bg-brand-700', 'hover:bg-green-700');
+            } else {
+                alert("Erro ao aceitar o turno. Verifica se o ID é válido.");
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            }
+        } catch (error) {
+            console.error("Erro na ligação:", error);
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
         }
     }
 </script>
