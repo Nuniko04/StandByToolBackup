@@ -1,44 +1,61 @@
 package pt.sequoia.standByTool.controllers;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import pt.sequoia.standByTool.services.FinanceService;
 
-// TODO: O Interno 1/2 vai ter de criar o FinanceService e importá-lo aqui
-// import pt.sequoia.standByTool.services.FinanceService;
+import java.math.BigDecimal;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/finance")
 public class FinanceController {
 
-    // TODO: Descomentar isto quando o FinanceService for criado
-    // private final FinanceService financeService;
+    private final FinanceService financeService;
 
-    // public FinanceController(FinanceService financeService) {
-    //     this.financeService = financeService;
-    // }
+    // Injeção de dependência do serviço financeiro
+    public FinanceController(FinanceService financeService) {
+        this.financeService = financeService;
+    }
 
     /**
-     * Endpoint chamado pelo Google Cloud Scheduler no dia 1 de cada mês.
-     * Não recebe parâmetros porque o serviço vai processar sempre o mês anterior.
+     * Endpoint para recalcular e atualizar o valor de um turno específico.
+     * Pode ser acionado remotamente via POST.
      */
-    @PostMapping("/process-monthly-billing")
-    public ResponseEntity<String> processMonthlyBilling() {
-
+    @PostMapping("/calculate/{turnId}")
+    public ResponseEntity<BigDecimal> calculateTurnValue(@PathVariable UUID turnId) {
         try {
-            System.out.println("🚀 A iniciar o processamento financeiro mensal...");
-
-            // TODO: Internos 1 e 2 - Chamar aqui o método do vosso serviço!
-            // Exemplo: financeService.calcularEAtualizarValoresDoMesAnterior();
-
-            System.out.println("✅ Processamento financeiro concluído com sucesso.");
-            return ResponseEntity.ok("Processamento financeiro concluído com sucesso!");
-
+            BigDecimal valorFinal = financeService.calculateAndUpdateTurnValue(turnId);
+            return ResponseEntity.ok(valorFinal);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            System.err.println("❌ Erro ao processar billing: " + e.getMessage());
-            // Devolve erro 500 para o Google Cloud Scheduler saber que falhou e tentar novamente
-            return ResponseEntity.internalServerError().body("Erro interno ao processar pagamentos: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Endpoint para consultar os ganhos mensais de um colaborador.
+     */
+    @GetMapping("/earnings/{userId}")
+    public ResponseEntity<BigDecimal> getMonthlyEarnings(
+            @PathVariable UUID userId,
+            @RequestParam int month,
+            @RequestParam int year) {
+
+        BigDecimal ganhos = financeService.calculateMonthlyEarnings(userId, month, year);
+        return ResponseEntity.ok(ganhos);
+    }
+    /**
+     * Endpoint para processar os turnos ACCEPTED do mês anterior.
+     */
+    @PostMapping("/calculate/previous-month")
+    public ResponseEntity<String> processPreviousMonth() {
+        try {
+            int turnosProcessados = financeService.processPreviousMonthAcceptedTurns();
+            return ResponseEntity.ok("Fecho de mês concluído. Turnos atualizados: " + turnosProcessados);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erro ao processar o mês anterior: " + e.getMessage());
         }
     }
 }
