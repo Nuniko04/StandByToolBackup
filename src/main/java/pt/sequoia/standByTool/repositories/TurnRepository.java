@@ -1,5 +1,9 @@
 package pt.sequoia.standByTool.repositories;
 
+// Importar as classes necessárias se não estiverem
+import pt.sequoia.standByTool.models.enums.TurnStatus;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +47,7 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
             "     OR EXTRACT(DAY FROM end_time) >= 28)",
             nativeQuery = true)
     int countFechosMesTrabalhados(@Param("userId") UUID userId, @Param("year") int year);
+
+    // Adicionar dentro da interface TurnRepository:
+    List<Turn> findByTurnStatusAndStartTimeBetween(TurnStatus status, OffsetDateTime start, OffsetDateTime end);
 }
