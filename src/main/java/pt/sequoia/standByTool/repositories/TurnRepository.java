@@ -55,8 +55,8 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
     int countFechosMesTrabalhados(@Param("userId") UUID userId, @Param("year") int year);
 
     // Adicionar dentro da interface TurnRepository:
-    List<Turn> findByTurnStatusAndStartTimeBetween(TurnStatus status, OffsetDateTime start, OffsetDateTime end);
-}
+    List<Turn> findByTurnStatusAndStartTimeBetween(TurnStatus status, LocalDate start, LocalDate end);
+
     // Verifica se já existe um tipo de turno específico nesta data
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.turnType.name = :typeName AND t.startTime = :start")
     boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDate start);
