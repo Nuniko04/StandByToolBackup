@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.sequoia.standByTool.services.TurnService;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController

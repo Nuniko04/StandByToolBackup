@@ -1,6 +1,11 @@
 package pt.sequoia.standByTool.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import pt.sequoia.standByTool.services.FinanceService;
+
 import org.springframework.web.bind.annotation.*;
 import pt.sequoia.standByTool.services.FinanceService;
 
@@ -18,6 +23,17 @@ public class FinanceController {
         this.financeService = financeService;
     }
 
+    // O Google Cloud Scheduler vai chamar este endpoint via POST
+    @PostMapping("/trigger-monthly-calc")
+    public ResponseEntity<String> fecharMesFinanceiro() {
+        try {
+            financeService.calcularEAtualizarValoresDoMesAnterior();
+            return ResponseEntity.ok("Sucesso: Processamento financeiro do mês anterior concluído.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erro ao processar as finanças: " + e.getMessage());
+        }
+    }
+  
     /**
      * Endpoint para recalcular e atualizar o valor de um turno específico.
      * Pode ser acionado remotamente via POST.

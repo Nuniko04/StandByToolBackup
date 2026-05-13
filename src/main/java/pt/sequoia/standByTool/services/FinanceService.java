@@ -8,6 +8,8 @@ import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.repositories.TurnRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -21,9 +23,6 @@ public class FinanceService {
     public FinanceService(TurnRepository turnRepository) {
         this.turnRepository = turnRepository;
     }
-
-
-
 
     /**
      * Calcula e atualiza o valor de um turno com base nos serviços de cliente ATIVOS alocados.

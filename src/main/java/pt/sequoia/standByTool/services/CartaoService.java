@@ -27,35 +27,23 @@ public class CartaoService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Associa um cartão a um colaborador e cria o registo no histórico.
-     */
     @Transactional
-    public void atribuirCartao(Long cartaoId, UUID userId) {
+    public Cartao atribuirCartao(Long cartaoId, UUID userId) {
         Cartao cartao = cartaoRepository.findById(cartaoId)
-                .orElseThrow(() -> new IllegalArgumentException("Cartão não encontrado."));
+                .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+
+        User utilizador = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilizador não encontrado"));
 
         if (cartao.getColaboradorAtual() != null) {
-            throw new IllegalStateException("Este cartão já está atribuído a outro colaborador.");
+            throw new RuntimeException("Este cartão já está atribuído a outra pessoa. Tem de ser devolvido primeiro.");
         }
 
-        User colaborador = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Colaborador não encontrado."));
+        // Atribui o cartão
+        cartao.setColaboradorAtual(utilizador);
+        cartao.setDataEntrega(LocalDate.now());
 
-        LocalDate dataHoje = LocalDate.now();
-
-        // 1. Atualizar o Cartão
-        cartao.setColaboradorAtual(colaborador);
-        cartao.setDataEntrega(dataHoje);
-        cartaoRepository.save(cartao);
-
-        // 2. Criar o registo no Histórico
-        HistoricoCartao historico = new HistoricoCartao();
-        historico.setCartao(cartao);
-        historico.setColaborador(colaborador);
-        historico.setDataEntrega(dataHoje);
-        historicoCartaoRepository.save(historico);
+        return cartaoRepository.save(cartao);
     }
-
 
 }
