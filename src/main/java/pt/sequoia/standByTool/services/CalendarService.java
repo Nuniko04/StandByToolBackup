@@ -97,4 +97,70 @@ public class CalendarService {
 
         return null;
     }
+
+    public void updateTurnInCalendar(Turn turn) {
+        // Se o turno nunca foi ao calendário, não há nada para atualizar
+        if (turn.getCalendarEventId() == null || turn.getCalendarEventId().isBlank()) {
+            System.out.println("⚠️ O turno não tem ID de calendário. Atualização ignorada.");
+            return;
+        }
+
+        try {
+            String calendarId = turn.getTurnType().getGoogleCalendarId();
+
+            if (calendarId == null || calendarId.isBlank()) {
+                calendarId = "primary";
+            }
+
+            // O URL agora aponta diretamente para a "matrícula" do evento
+            String url = "https://www.googleapis.com/calendar/v3/calendars/"
+                    + calendarId
+                    + "/events/"
+                    + turn.getCalendarEventId(); // <-- A MAGIA AQUI
+
+            String token = getServiceAccountToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // Reconstruímos o evento com o NOME DO NOVO COLABORADOR
+            Map<String, Object> event = new HashMap<>();
+
+            event.put(
+                    "summary",
+                    turn.getTurnType().getName() + ": " + turn.getAssignee().getName()
+            );
+
+            event.put(
+                    "description",
+                    "Turn updated via Swap Request. Now assigned to: "
+                            + turn.getAssignee().getName()
+            );
+
+            // As datas mantêm-se iguais, mas a Google obriga a enviá-las no PUT
+            Map<String, String> start = new HashMap<>();
+            start.put("date", turn.getStartTime().toString());
+            event.put("start", start);
+
+            Map<String, String> end = new HashMap<>();
+            end.put("date", turn.getEndTime().plusDays(1).toString());
+            event.put("end", end);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(event, headers);
+
+            // Usamos EXCHANGE com HttpMethod.PUT para substituir os dados do evento
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.PUT, request, Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("🔄 Evento atualizado com sucesso no Calendário!");
+            }
+
+        } catch (Exception e) {
+            System.err.println(
+                    "❌ Erro ao atualizar calendário na troca: "
+                            + e.getMessage()
+            );
+        }
+    }
 }
