@@ -57,28 +57,5 @@ public class CartaoService {
         historicoCartaoRepository.save(historico);
     }
 
-    /**
-     * Desassocia o cartão do colaborador e preenche a data de devolução no histórico.
-     */
-    @Transactional
-    public void devolverCartao(Long cartaoId) {
-        Cartao cartao = cartaoRepository.findById(cartaoId)
-                .orElseThrow(() -> new IllegalArgumentException("Cartão não encontrado."));
 
-        if (cartao.getColaboradorAtual() == null) {
-            throw new IllegalStateException("Este cartão já se encontra livre na gaveta.");
-        }
-
-        // 1. Fechar o registo no Histórico
-        HistoricoCartao registoAtivo = historicoCartaoRepository.findRegistoAtivoPorCartao(cartaoId)
-                .orElseThrow(() -> new IllegalStateException("Não foi encontrado um registo de histórico ativo para este cartão."));
-
-        registoAtivo.setDataDevolucao(LocalDate.now());
-        historicoCartaoRepository.save(registoAtivo);
-
-        // 2. Libertar o Cartão
-        cartao.setColaboradorAtual(null);
-        cartao.setDataEntrega(null);
-        cartaoRepository.save(cartao);
-    }
 }
