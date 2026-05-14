@@ -3,7 +3,6 @@ package pt.sequoia.standByTool.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.sequoia.standByTool.models.Cartao;
-import pt.sequoia.standByTool.models.HistoricoCartao;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.repositories.CartaoRepository;
 import pt.sequoia.standByTool.repositories.HistoricoCartaoRepository;

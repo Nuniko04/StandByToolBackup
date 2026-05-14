@@ -9,9 +9,9 @@ import pt.sequoia.standByTool.repositories.TurnRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,15 +34,13 @@ public class FinanceService {
 
         BigDecimal totalValue = BigDecimal.ZERO;
 
-        // Se não houver serviços alocados, usa o valor por defeito do tipo de turno
         if (turn.getServicosAlocados() == null || turn.getServicosAlocados().isEmpty()) {
             totalValue = turn.getTurnType().getDefaultValue();
         } else {
             String turnTypeName = turn.getTurnType().getName();
 
-            // Soma o valor de cada cliente alocado ao turno, MAS APENAS SE ESTIVER ATIVO
             for (ServicoCliente servico : turn.getServicosAlocados()) {
-                if (servico.isAtivo()) { // <-- VERIFICAÇÃO ADICIONADA AQUI
+                if (servico.isAtivo()) {
                     if ("StandBy".equalsIgnoreCase(turnTypeName)) {
                         totalValue = totalValue.add(servico.getValorStandby());
                     } else if ("Backup".equalsIgnoreCase(turnTypeName)) {
@@ -52,9 +50,6 @@ public class FinanceService {
             }
         }
 
-        // Se houver um pagamento único/extra (oneOffPayment) em formato JSON,
-        // a lógica para o extrair e somar entraria aqui.
-
         turn.setTurnValue(totalValue);
         turnRepository.save(turn);
 
@@ -63,17 +58,17 @@ public class FinanceService {
 
     /**
      * Calcula os ganhos estimados de um colaborador num mês e ano específicos.
-     * Útil para o ecrã de "Earnings" no Dashboard do Employee.
      */
     @Transactional(readOnly = true)
     public BigDecimal calculateMonthlyEarnings(UUID userId, int month, int year) {
-        // Define o início e o fim do mês usando LocalDate (igual ao Turn.java!)
-        LocalDate startOfMonth = LocalDate.of(year, month, 1);
-        LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
 
-        // Vai buscar todos os turnos do utilizador que começaram nesse mês
-        List<Turn> userTurns = turnRepository.findAll().stream() // NOTA: Idealmente criar uma query no TurnRepository para isto
+        // Mantemos tudo como LocalDate
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        List<Turn> userTurns = turnRepository.findAll().stream()
                 .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(userId))
+                // Comparamos LocalDate com LocalDate (usamos !isBefore e !isAfter para incluir o 1º e o último dia)
                 // Usamos !isBefore e !isAfter para incluir o primeiro e último dia do mês
                 .filter(t -> !t.getStartTime().isBefore(startOfMonth) && !t.getStartTime().isAfter(endOfMonth))
                 .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED)
@@ -83,6 +78,7 @@ public class FinanceService {
                 .map(Turn::getTurnValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
     /**
      * Vai à BD buscar os turnos ACCEPTED do mês anterior e atualiza o seu valor.
      */
@@ -96,12 +92,10 @@ public class FinanceService {
         // 2. Ir à BD buscar todos os turnos ACCEPTED desse período
         List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(inicioDoMesPassado, fimDoMesPassado);
 
-        // 3. Processar cada turno encontrado
         for (Turn turno : turnosParaProcessar) {
             calculateAndUpdateTurnValue(turno.getId());
         }
 
-        // Devolve a quantidade de turnos processados
         return turnosParaProcessar.size();
     }
 }

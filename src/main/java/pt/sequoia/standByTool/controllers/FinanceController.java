@@ -27,6 +27,10 @@ public class FinanceController {
         }
     }
 
+    /**
+     * Endpoint para recalcular e atualizar o valor de um turno específico.
+     * Pode ser acionado remotamente via POST.
+     */
     @PostMapping("/calculate/{turnId}")
     public ResponseEntity<BigDecimal> calculateTurnValue(@PathVariable UUID turnId) {
         try {
