@@ -31,8 +31,8 @@ public class AuditLog {
     @Column(name = "target_id", nullable = false)
     private UUID targetId;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column
+    // Removemos o @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "TEXT")
     private String changes;
 
     @Column(updatable = false)

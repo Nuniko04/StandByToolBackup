@@ -26,8 +26,7 @@ public class FinanceController {
         try {
             System.out.println("🚀 A iniciar o processamento financeiro mensal...");
 
-            // TODO: Internos 1 e 2 - Chamar aqui o método do vosso serviço!
-            // Exemplo: financeService.calcularEAtualizarValoresDoMesAnterior();
+            financeService.calcularEAtualizarValoresDaSemanaAnterior();
 
             System.out.println("✅ Processamento financeiro concluído com sucesso.");
             return ResponseEntity.ok("Processamento financeiro concluído com sucesso!");
