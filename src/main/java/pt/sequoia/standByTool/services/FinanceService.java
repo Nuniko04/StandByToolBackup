@@ -87,13 +87,13 @@ public class FinanceService {
      */
     @Transactional
     public int processPreviousMonthAcceptedTurns() {
-        // 1. Descobrir as datas do mês passado (Ex: se estamos em Maio, vai buscar 1 de Abril a 30 de Abril)
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        OffsetDateTime startOfLastMonth = now.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        OffsetDateTime endOfLastMonth = startOfLastMonth.plusMonths(1).minusNanos(1);
+        // 1. Descobrir as datas do mês passado usando LocalDate
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioDoMesPassado = hoje.minusMonths(1).withDayOfMonth(1);
+        LocalDate fimDoMesPassado = hoje.withDayOfMonth(1).minusDays(1);
 
         // 2. Ir à BD buscar todos os turnos ACCEPTED desse período
-        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(startOfLastMonth, endOfLastMonth);
+        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(inicioDoMesPassado, fimDoMesPassado);
 
         // 3. Processar cada turno encontrado
         for (Turn turno : turnosParaProcessar) {

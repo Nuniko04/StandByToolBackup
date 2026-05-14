@@ -61,5 +61,8 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.turnType.name = :typeName AND t.startTime = :start")
     boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDate start);
 
+    @Query("SELECT t FROM Turn t WHERE t.turnStatus = 'ACCEPTED' AND t.startTime >= :start AND t.startTime <= :end")
+    List<Turn> findAcceptedTurnsInPeriod(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
 }
 
