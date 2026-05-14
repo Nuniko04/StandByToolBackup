@@ -1,11 +1,6 @@
 package pt.sequoia.standByTool.controllers;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import pt.sequoia.standByTool.services.FinanceService;
-
 import org.springframework.web.bind.annotation.*;
 import pt.sequoia.standByTool.services.FinanceService;
 
@@ -23,17 +18,21 @@ public class FinanceController {
         this.financeService = financeService;
     }
 
-    // O Google Cloud Scheduler vai chamar este endpoint via POST
+    /**
+     * Endpoint para processar os turnos ACCEPTED do mês anterior.
+     * O Google Cloud Scheduler vai chamar este endpoint via POST no dia 1 de cada mês.
+     */
     @PostMapping("/trigger-monthly-calc")
-    public ResponseEntity<String> fecharMesFinanceiro() {
+    public ResponseEntity<String> processPreviousMonth() {
         try {
-            financeService.calcularEAtualizarValoresDoMesAnterior();
-            return ResponseEntity.ok("Sucesso: Processamento financeiro do mês anterior concluído.");
+            // Repara aqui: estamos a usar o nome correto do método que está no FinanceService
+            int turnosProcessados = financeService.processPreviousMonthAcceptedTurns();
+            return ResponseEntity.ok("Fecho de mês concluído com sucesso. Turnos atualizados: " + turnosProcessados);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao processar as finanças: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao processar o mês anterior: " + e.getMessage());
         }
     }
-  
+
     /**
      * Endpoint para recalcular e atualizar o valor de um turno específico.
      * Pode ser acionado remotamente via POST.
@@ -61,17 +60,5 @@ public class FinanceController {
 
         BigDecimal ganhos = financeService.calculateMonthlyEarnings(userId, month, year);
         return ResponseEntity.ok(ganhos);
-    }
-    /**
-     * Endpoint para processar os turnos ACCEPTED do mês anterior.
-     */
-    @PostMapping("/calculate/previous-month")
-    public ResponseEntity<String> processPreviousMonth() {
-        try {
-            int turnosProcessados = financeService.processPreviousMonthAcceptedTurns();
-            return ResponseEntity.ok("Fecho de mês concluído. Turnos atualizados: " + turnosProcessados);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao processar o mês anterior: " + e.getMessage());
-        }
     }
 }

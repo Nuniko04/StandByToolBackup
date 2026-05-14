@@ -1,5 +1,15 @@
 package pt.sequoia.standByTool.repositories;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import pt.sequoia.standByTool.models.Turn;
+
+// 1. GARANTE QUE ESTES DOIS IMPORTS ESTÃO AQUI:
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
 // Importar as classes necessárias se não estiverem
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 import java.util.List;
@@ -60,6 +70,10 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
     // Verifica se já existe um tipo de turno específico nesta data
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.turnType.name = :typeName AND t.startTime = :start")
     boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDate start);
+
+    // Podes colocar esta query dentro da interface TurnRepository
+    @Query("SELECT t FROM Turn t WHERE t.turnStatus = 'ACCEPTED' AND t.startTime >= :start AND t.startTime <= :end")
+    List<Turn> findAcceptedTurnsInPeriod(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
 
 }
 

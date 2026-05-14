@@ -16,11 +16,29 @@ public class Cartao {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String identificacaoCartao; // O código do cartão físico
+    private String identificacaoCartao;
 
-    @Column(name = "data_validade", nullable = false)
-    private LocalDate dataValidade; // A validade do cartão que referiste
+    @OneToOne
+    @JoinColumn(name = "colaborador_atual_id")
+    private User colaboradorAtual;
 
-    @Column(nullable = false)
-    private boolean ativo = true; // Para desativar quando caducar ou for perdido
+    private LocalDate dataEntrega;
+
+    // --- ADICIONA ISTO MANUALMENTE PARA O IDE PARAR DE RECLAMAR ---
+
+    public User getColaboradorAtual() {
+        return colaboradorAtual;
+    }
+
+    public void setColaboradorAtual(User colaboradorAtual) {
+        this.colaboradorAtual = colaboradorAtual;
+    }
+
+    public LocalDate getDataEntrega() {
+        return dataEntrega;
+    }
+
+    public void setDataEntrega(LocalDate dataEntrega) {
+        this.dataEntrega = dataEntrega;
+    }
 }
