@@ -67,14 +67,15 @@ public class FinanceService {
      */
     @Transactional(readOnly = true)
     public BigDecimal calculateMonthlyEarnings(UUID userId, int month, int year) {
-        // Define o início e o fim do mês
-        OffsetDateTime startOfMonth = OffsetDateTime.of(year, month, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-        OffsetDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+        // Define o início e o fim do mês usando LocalDate (igual ao Turn.java!)
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
 
         // Vai buscar todos os turnos do utilizador que começaram nesse mês
         List<Turn> userTurns = turnRepository.findAll().stream() // NOTA: Idealmente criar uma query no TurnRepository para isto
                 .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(userId))
-                .filter(t -> t.getStartTime().isAfter(startOfMonth) && t.getStartTime().isBefore(endOfMonth))
+                // Usamos !isBefore e !isAfter para incluir o primeiro e último dia do mês
+                .filter(t -> !t.getStartTime().isBefore(startOfMonth) && !t.getStartTime().isAfter(endOfMonth))
                 .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED)
                 .toList();
 
@@ -87,13 +88,13 @@ public class FinanceService {
      */
     @Transactional
     public int processPreviousMonthAcceptedTurns() {
-        // 1. Descobrir as datas do mês passado (Ex: se estamos em Maio, vai buscar 1 de Abril a 30 de Abril)
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        OffsetDateTime startOfLastMonth = now.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        OffsetDateTime endOfLastMonth = startOfLastMonth.plusMonths(1).minusNanos(1);
+        // 1. Descobrir as datas do mês passado usando LocalDate
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioDoMesPassado = hoje.minusMonths(1).withDayOfMonth(1);
+        LocalDate fimDoMesPassado = hoje.withDayOfMonth(1).minusDays(1);
 
         // 2. Ir à BD buscar todos os turnos ACCEPTED desse período
-        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(startOfLastMonth, endOfLastMonth);
+        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(inicioDoMesPassado, fimDoMesPassado);
 
         // 3. Processar cada turno encontrado
         for (Turn turno : turnosParaProcessar) {
