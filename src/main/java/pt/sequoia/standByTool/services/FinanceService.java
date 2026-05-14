@@ -69,6 +69,7 @@ public class FinanceService {
         List<Turn> userTurns = turnRepository.findAll().stream()
                 .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(userId))
                 // Comparamos LocalDate com LocalDate (usamos !isBefore e !isAfter para incluir o 1º e o último dia)
+                // Usamos !isBefore e !isAfter para incluir o primeiro e último dia do mês
                 .filter(t -> !t.getStartTime().isBefore(startOfMonth) && !t.getStartTime().isAfter(endOfMonth))
                 .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED)
                 .toList();
@@ -83,16 +84,13 @@ public class FinanceService {
      */
     @Transactional
     public int processPreviousMonthAcceptedTurns() {
+        // 1. Descobrir as datas do mês passado usando LocalDate
         LocalDate hoje = LocalDate.now();
-        LocalDate primeiroDiaMesAnterior = hoje.minusMonths(1).with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate inicioDoMesPassado = hoje.minusMonths(1).withDayOfMonth(1);
+        LocalDate fimDoMesPassado = hoje.withDayOfMonth(1).minusDays(1);
 
-        // O erro estava aqui! Faltava o sinal "=" a seguir à variável.
-        LocalDate ultimoDiaMesAnterior = hoje.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-
-        OffsetDateTime startOfLastMonth = primeiroDiaMesAnterior.atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime endOfLastMonth = ultimoDiaMesAnterior.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
-
-        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(startOfLastMonth, endOfLastMonth);
+        // 2. Ir à BD buscar todos os turnos ACCEPTED desse período
+        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(inicioDoMesPassado, fimDoMesPassado);
 
         for (Turn turno : turnosParaProcessar) {
             calculateAndUpdateTurnValue(turno.getId());

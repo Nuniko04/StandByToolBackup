@@ -13,21 +13,15 @@ public class FinanceController {
 
     private final FinanceService financeService;
 
-    // Injeção de dependência do serviço financeiro
     public FinanceController(FinanceService financeService) {
         this.financeService = financeService;
     }
 
-    /**
-     * Endpoint para processar os turnos ACCEPTED do mês anterior.
-     * O Google Cloud Scheduler vai chamar este endpoint via POST no dia 1 de cada mês.
-     */
-    @PostMapping("/trigger-monthly-calc")
+    @PostMapping("/calculate/previous-month")
     public ResponseEntity<String> processPreviousMonth() {
         try {
-            // Repara aqui: estamos a usar o nome correto do método que está no FinanceService
             int turnosProcessados = financeService.processPreviousMonthAcceptedTurns();
-            return ResponseEntity.ok("Fecho de mês concluído com sucesso. Turnos atualizados: " + turnosProcessados);
+            return ResponseEntity.ok("Fecho de mês concluído. Turnos atualizados: " + turnosProcessados);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Erro ao processar o mês anterior: " + e.getMessage());
         }
@@ -49,9 +43,6 @@ public class FinanceController {
         }
     }
 
-    /**
-     * Endpoint para consultar os ganhos mensais de um colaborador.
-     */
     @GetMapping("/earnings/{userId}")
     public ResponseEntity<BigDecimal> getMonthlyEarnings(
             @PathVariable UUID userId,
