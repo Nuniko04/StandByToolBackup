@@ -50,7 +50,7 @@ public class Turn {
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "one_off_payment", columnDefinition = "jsonb")
+    @Column(name = "one_off_payment", columnDefinition = "json")
     private String oneOffPayment;
 
     @ManyToOne(fetch = FetchType.LAZY)
