@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.sequoia.standByTool.models.Cartao;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.repositories.CartaoRepository;
-import pt.sequoia.standByTool.repositories.HistoricoCartaoRepository;
 import pt.sequoia.standByTool.repositories.UserRepository;
 
 import java.time.LocalDate;
@@ -15,14 +14,11 @@ import java.util.UUID;
 public class CartaoService {
 
     private final CartaoRepository cartaoRepository;
-    private final HistoricoCartaoRepository historicoCartaoRepository;
     private final UserRepository userRepository;
 
     public CartaoService(CartaoRepository cartaoRepository,
-                         HistoricoCartaoRepository historicoCartaoRepository,
                          UserRepository userRepository) {
         this.cartaoRepository = cartaoRepository;
-        this.historicoCartaoRepository = historicoCartaoRepository;
         this.userRepository = userRepository;
     }
 
