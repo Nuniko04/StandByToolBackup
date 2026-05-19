@@ -69,15 +69,14 @@ public class UserService extends OidcUserService {
     }
 
     @Transactional
-    public boolean updateUserPermissions(UUID userId, boolean isAssigner, boolean isFinastraEligible, User adminActor) {
+    public boolean updateUserPermissions(UUID userId, boolean isAssigner, User adminActor) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            String details = String.format("Permissions updated - isAssigner: %b -> %b, isFinastra: %b -> %b",
-                    user.isAssigner(), isAssigner, user.isFinastraEligible(), isFinastraEligible);
+            String details = String.format("Permissions updated - isAssigner: %b -> %b,",
+                    user.isAssigner(), isAssigner);
 
             user.setAssigner(isAssigner);
-            user.setFinastraEligible(isFinastraEligible);
             userRepository.save(user);
 
             auditLogService.log(adminActor, "UPDATE_USER_PERMISSIONS", "User", userId, details);

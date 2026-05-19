@@ -36,6 +36,16 @@ public class User {
     @Column(name = "is_employee")
     private boolean isEmployee = true;
 
+    // 💡 A VERDADEIRA MATRIZ DE ELEGIBILIDADE 💡
+    // Uma lista de tipos de turno que este utilizador está autorizado a fazer
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_turn_eligibility", // Nome da nova tabela de junção (Matriz)
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "turn_type_id")
+    )
+    private List<TurnType> eligibleTurnTypes;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private UserStatus status = UserStatus.ACTIVE;
@@ -47,9 +57,6 @@ public class User {
     // Opcional, para ajudar nas queries de bloqueio de férias:
     @OneToMany(mappedBy = "requester")
     private List<Request> pedidos;
-
-    @Column(name = "is_finastra_eligible")
-    private boolean isFinastraEligible = false; // Por defeito, ninguém pode fazer até o Admin autorizar
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;

@@ -32,6 +32,12 @@ public class Request {
     @JoinColumn(name = "turn_id")
     private Turn turn;
 
+    // --- ADICIONA ESTE NOVO CAMPO ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_user_id")
+    private User targetUser;
+    // --------------------------------
+
     @Column(name = "time_off_start")
     private LocalDate timeOffStart;
 

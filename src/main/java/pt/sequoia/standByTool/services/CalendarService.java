@@ -68,12 +68,14 @@ public class CalendarService {
 
             // Início
             Map<String, String> start = new HashMap<>();
-            start.put("date", turn.getStartTime().toString());
+            start.put("dateTime", turn.getStartTime().toString()); // Mudou para dateTime
+            start.put("timeZone", "Europe/Lisbon"); // Obrigatório!
             event.put("start", start);
 
-            // Fim
+// Fim
             Map<String, String> end = new HashMap<>();
-            end.put("date", turn.getEndTime().plusDays(1).toString());
+            end.put("dateTime", turn.getEndTime().toString()); // Sem o plusDays(1)
+            end.put("timeZone", "Europe/Lisbon");
             event.put("end", end);
 
             HttpEntity<Map<String, Object>> request =
@@ -138,13 +140,16 @@ public class CalendarService {
                             + turn.getAssignee().getName()
             );
 
-            // As datas mantêm-se iguais, mas a Google obriga a enviá-las no PUT
+            // Início
             Map<String, String> start = new HashMap<>();
-            start.put("date", turn.getStartTime().toString());
+            start.put("dateTime", turn.getStartTime().toString()); // Mudou para dateTime
+            start.put("timeZone", "Europe/Lisbon"); // Obrigatório!
             event.put("start", start);
 
+// Fim
             Map<String, String> end = new HashMap<>();
-            end.put("date", turn.getEndTime().plusDays(1).toString());
+            end.put("dateTime", turn.getEndTime().toString()); // Sem o plusDays(1)
+            end.put("timeZone", "Europe/Lisbon");
             event.put("end", end);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(event, headers);
@@ -161,6 +166,42 @@ public class CalendarService {
                     "❌ Erro ao atualizar calendário na troca: "
                             + e.getMessage()
             );
+        }
+    }
+
+    public void deleteTurnFromCalendar(Turn turn) {
+        if (turn.getCalendarEventId() == null || turn.getCalendarEventId().isBlank()) {
+            return; // Se não tem ID do Google, não há nada para apagar
+        }
+
+        try {
+            String calendarId = turn.getTurnType().getGoogleCalendarId();
+            if (calendarId == null || calendarId.isBlank()) {
+                calendarId = "primary";
+            }
+
+            // O URL para apagar usa o método DELETE e a matrícula do evento
+            String url = "https://www.googleapis.com/calendar/v3/calendars/"
+                    + calendarId
+                    + "/events/"
+                    + turn.getCalendarEventId();
+
+            String token = getServiceAccountToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            // Executa o pedido DELETE
+            ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("🗑️ Evento apagado com sucesso do Calendário!");
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao apagar evento do calendário: " + e.getMessage());
         }
     }
 }

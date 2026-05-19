@@ -1,19 +1,18 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import pt.sequoia.standByTool.models.Turn;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.TurnService;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/turns")
+@Controller
+@RequestMapping("/turns") // Removi o "/api", fica mais limpo para views
 public class TurnController {
 
     private final TurnService turnService;
@@ -22,67 +21,84 @@ public class TurnController {
         this.turnService = turnService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Turn>> getAllTurns() {
-        return ResponseEntity.ok(turnService.getAllTurns());
-    }
+    @PostMapping("/assign")
+    public String assignManualTurn(@RequestParam UUID assigneeId,
+                                   @RequestParam UUID turnTypeId,
+                                   @RequestParam String startDate,
+                                   @RequestParam String endDate,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
 
-    @GetMapping("/my-turns")
-    public ResponseEntity<List<Turn>> getMyTurns(HttpSession session) {
-        User loggedUser = (User) session.getAttribute("loggedUser");
-        if (loggedUser == null) return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(turnService.getMyTurns(loggedUser.getId()));
+        User assigner = (User) session.getAttribute("loggedUser");
+        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+
+        try {
+            turnService.createManualTurn(assigneeId, turnTypeId, LocalDateTime.parse(startDate), LocalDateTime.parse(endDate), assigner);
+            redirectAttributes.addFlashAttribute("successMsg", "Turno manual criado com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar turno: " + e.getMessage());
+        }
+
+        return "redirect:/dashboard"; // Recarrega a página principal via GET
     }
 
     @PostMapping("/{id}/accept")
-    public ResponseEntity<String> acceptTurn(@PathVariable UUID id, HttpSession session) {
+    public String acceptTurn(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
         User loggedUser = (User) session.getAttribute("loggedUser");
-        if (loggedUser == null) return ResponseEntity.status(401).build();
+
+        // Se não estiver logado, manda para o login
+        if (loggedUser == null) {
+            return "redirect:/login";
+        }
 
         boolean sucesso = turnService.acceptTurn(id, loggedUser);
+
         if (sucesso) {
-            return ResponseEntity.ok("Turno aceite e sincronizado!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turno aceite com sucesso e sincronizado no calendário!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao aceitar o turno. O turno pode já não estar pendente.");
         }
-        return ResponseEntity.notFound().build();
+
+        // Volta para o dashboard do utilizador
+        return "redirect:/dashboard";
     }
 
-    @PostMapping("/assign")
-    public ResponseEntity<?> assignManualTurn(@RequestBody Map<String, String> payload, HttpSession session) {
+    @PostMapping("/{id}/update")
+    public String updateTurn(@PathVariable UUID id,
+                             @RequestParam(required = false) UUID assigneeId,
+                             @RequestParam(required = false) String startDate,
+                             @RequestParam(required = false) String endDate,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+
         User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return ResponseEntity.status(403).build();
+        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
 
         try {
-            UUID assigneeId = UUID.fromString(payload.get("assigneeId"));
-            UUID turnTypeId = UUID.fromString(payload.get("turnTypeId"));
-            LocalDate start = LocalDate.parse(payload.get("startDate"));
-            LocalDate end = LocalDate.parse(payload.get("endDate"));
+            LocalDateTime start = (startDate != null && !startDate.isBlank()) ? LocalDateTime.parse(startDate) : null;
+            LocalDateTime end = (endDate != null && !endDate.isBlank()) ? LocalDateTime.parse(endDate) : null;
 
-            turnService.createManualTurn(assigneeId, turnTypeId, start, end, assigner);
-            return ResponseEntity.ok("Turno manual criado!");
+            turnService.updateTurn(id, assigneeId, start, end, assigner);
+            redirectAttributes.addFlashAttribute("successMsg", "Turno atualizado com sucesso!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar turno: " + e.getMessage());
         }
+
+        return "redirect:/dashboard";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<String> editTurn(@PathVariable UUID id, @RequestBody Map<String, String> payload, HttpSession session) {
+    @PostMapping("/{id}/delete")
+    public String deleteTurn(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
         User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return ResponseEntity.status(403).build();
-
-        LocalDate start = payload.containsKey("startDate") ? LocalDate.parse(payload.get("startDate")) : null;
-        LocalDate end = payload.containsKey("endDate") ? LocalDate.parse(payload.get("endDate")) : null;
-        Long cartaoId = payload.containsKey("cartaoId") ? Long.parseLong(payload.get("cartaoId")) : null;
-
-        boolean sucesso = turnService.updateTurn(id, start, end, cartaoId, assigner);
-        return sucesso ? ResponseEntity.ok("Atualizado!") : ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTurn(@PathVariable UUID id, HttpSession session) {
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return ResponseEntity.status(403).build();
+        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
 
         boolean sucesso = turnService.deleteTurn(id, assigner);
-        return sucesso ? ResponseEntity.ok("Apagado!") : ResponseEntity.notFound().build();
+        if (sucesso) {
+            redirectAttributes.addFlashAttribute("successMsg", "Turno apagado!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Turno não encontrado.");
+        }
+
+        return "redirect:/dashboard";
     }
 }

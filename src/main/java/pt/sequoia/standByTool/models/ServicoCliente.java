@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -30,4 +31,8 @@ public class ServicoCliente {
 
     @Column(nullable = false)
     private boolean ativo = true; // Para desativar quando perdem o cliente
+
+    // ADICIONA ISTO:
+    @Column(name = "data_fim")
+    private LocalDate dataFim;
 }

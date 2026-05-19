@@ -61,10 +61,9 @@ public class UserController {
         if (adminActor == null || !adminActor.isAssigner()) return ResponseEntity.status(403).build();
 
         boolean isAssigner = payload.getOrDefault("isAssigner", false);
-        boolean isFinastraEligible = payload.getOrDefault("isFinastraEligible", false);
 
         // Passamos o adminActor no final!
-        boolean sucesso = userService.updateUserPermissions(id, isAssigner, isFinastraEligible, adminActor);
+        boolean sucesso = userService.updateUserPermissions(id, isAssigner, adminActor);
         if (sucesso) {
             return ResponseEntity.ok("Permissões atualizadas com sucesso!");
         }

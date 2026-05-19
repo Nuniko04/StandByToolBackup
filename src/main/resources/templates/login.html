@@ -1,28 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>StandByTool | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb' } } } }
+        }
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center h-screen">
-<div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 w-full max-w-md text-center">
-    <i class="ph-fill ph-calendar-check text-blue-600 text-5xl mb-4"></i>
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Welcome to StandByTool</h1>
-    <div th:if="${param.logout}" class="bg-green-50 text-green-700 border border-green-200 p-3 rounded-xl mb-6 text-sm font-medium">
+<body class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center h-screen transition-colors duration-200">
+<div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-md text-center">
+    <i class="ph-fill ph-calendar-check text-blue-600 dark:text-blue-400 text-5xl mb-4"></i>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to StandByTool</h1>
+
+    <div th:if="${param.logout}" class="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 p-3 rounded-xl mb-6 text-sm font-medium">
         Sessão terminada com sucesso. Até breve! 👋
     </div>
-    <p class="text-gray-500 mb-8">Please sign in with your corporate account to continue.</p>
+
+    <p class="text-gray-500 dark:text-gray-400 mb-8">Please sign in with your corporate account to continue.</p>
 
     <a href="/oauth2/authorization/google"
-       class="flex items-center justify-center gap-3 w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-sm">
+       class="flex items-center justify-center gap-3 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-3 px-4 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm">
         <img src="https://docs.microsoft.com/en-us/azure/active-directory/develop/media/howto-add-branding-in-azure-ad-apps/google-logo.png" width="20">
         Sign in with Google
     </a>
 
-    <p class="mt-8 text-xs text-gray-400 font-medium uppercase tracking-widest">Sequoia Consulting © 2026</p>
+    <p class="mt-8 text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-widest">Sequoia Consulting © 2026</p>
 </div>
 </body>
 </html>

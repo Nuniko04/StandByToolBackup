@@ -9,11 +9,10 @@ import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.repositories.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.temporal.TemporalAdjusters;
 
 @Service
 public class ScheduleGeneratorService {
@@ -47,10 +46,12 @@ public class ScheduleGeneratorService {
     }
 
     @Transactional
-    public List<String> gerarEscalas(LocalDate dataInicio, LocalDate dataFim, User adminActor) { // <-- Recebe o adminActor
+    public List<String> gerarEscalas(LocalDate dataInicio, LocalDate dataFim, User adminActor) {
 
         List<String> alertasGerados = new ArrayList<>();
-        LocalDate semanaAtual = dataInicio;
+
+        // 🔒 GARANTIA: Se o Assigner escolher uma 4ª feira, o sistema ajusta automaticamente para a 2ª feira dessa semana!
+        LocalDate semanaAtual = dataInicio.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
         TurnType tipoStandBy = turnTypeRepository.findByName("StandBy");
         TurnType tipoBackup = turnTypeRepository.findByName("Backup");
@@ -66,9 +67,10 @@ public class ScheduleGeneratorService {
                     inicioSemana.atStartOfDay().toInstant(ZoneOffset.UTC)
             );
 
-            boolean faltaStandBy = !turnRepository.existsTurnOfTypeInWeek("StandBy", inicioSemana);
-            boolean faltaBackup = !turnRepository.existsTurnOfTypeInWeek("Backup", inicioSemana);
-            boolean faltaFinastra = isHoraDeVerao && !turnRepository.existsTurnOfTypeInWeek("Finastra Shift", inicioSemana);
+            // Substitui estas 3 linhas:
+            boolean faltaStandBy = !turnRepository.existsTurnOfTypeInWeek("StandBy", inicioSemana.atStartOfDay());
+            boolean faltaBackup = !turnRepository.existsTurnOfTypeInWeek("Backup", inicioSemana.atStartOfDay());
+            boolean faltaFinastra = isHoraDeVerao && !turnRepository.existsTurnOfTypeInWeek("Finastra Shift", inicioSemana.atStartOfDay());
 
             int recursosNecessarios = 0;
             if (faltaStandBy) recursosNecessarios++;
@@ -93,7 +95,8 @@ public class ScheduleGeneratorService {
             for (User user : todosColaboradores) {
                 boolean feriasNaSemana = requestRepository.hasApprovedVacation(user.getId(), inicioSemana, fimSemana);
                 boolean feriasProximaSemana = requestRepository.hasApprovedVacation(user.getId(), proxSemanaInicio, proxSemanaFim);
-                boolean temTurno = turnRepository.existsByAssigneeAndDates(user.getId(), inicioSemana, fimSemana);
+                // Substitui a linha de verificação de turnos do colaborador:
+                boolean temTurno = turnRepository.existsByAssigneeAndDates(user.getId(), inicioSemana.atStartOfDay(), fimSemana.atTime(23, 59, 59));
 
                 if (!feriasNaSemana && !feriasProximaSemana && !temTurno) {
                     candidatos.add(new ColaboradorScore(user));
@@ -105,7 +108,8 @@ public class ScheduleGeneratorService {
             boolean isSemanaFechoMes = checkFechoDeMes(inicioSemana, fimSemana);
 
             for (ColaboradorScore candidato : candidatos) {
-                Integer semanasDb = turnRepository.getWeeksSinceLastTurn(candidato.user.getId(), inicioSemana);
+                // Substitui a linha de verificar semanas desde o último turno:
+                Integer semanasDb = turnRepository.getWeeksSinceLastTurn(candidato.user.getId(), inicioSemana.atStartOfDay());
                 int semanasDesdeUltimoTurno = (semanasDb != null) ? semanasDb : 10;
                 candidato.pontos += (semanasDesdeUltimoTurno * 10) - 40;
 
@@ -133,8 +137,8 @@ public class ScheduleGeneratorService {
                     Turn turnoStandBy = new Turn();
                     turnoStandBy.setAssignee(melhorParaStandBy);
                     turnoStandBy.setTurnType(tipoStandBy);
-                    turnoStandBy.setStartTime(inicioSemana);
-                    turnoStandBy.setEndTime(inicioSemana.plusDays(6));
+                    turnoStandBy.setStartTime(inicioSemana.atStartOfDay()); // Segunda-feira às 00:00
+                    turnoStandBy.setEndTime(inicioSemana.plusDays(6).atTime(23, 59, 59)); // Domingo às 23:59:59
                     turnoStandBy.setTurnValue(BigDecimal.ZERO);
                     turnoStandBy.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                     turnRepository.save(turnoStandBy);
@@ -148,8 +152,8 @@ public class ScheduleGeneratorService {
                     Turn turnoBackup = new Turn();
                     turnoBackup.setAssignee(melhorParaBackup);
                     turnoBackup.setTurnType(tipoBackup);
-                    turnoBackup.setStartTime(inicioSemana);
-                    turnoBackup.setEndTime(inicioSemana.plusDays(6));
+                    turnoBackup.setStartTime(inicioSemana.atStartOfDay()); // Segunda-feira às 00:00
+                    turnoBackup.setEndTime(inicioSemana.plusDays(6).atTime(23, 59, 59)); // Domingo às 23:59:59
                     turnoBackup.setTurnValue(BigDecimal.ZERO);
                     turnoBackup.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                     turnRepository.save(turnoBackup);
@@ -160,12 +164,12 @@ public class ScheduleGeneratorService {
                 if (faltaFinastra) {
                     User melhorParaShift = null;
                     // Procura o melhor para Finastra APENAS entre os candidatos que sobraram
-                    for (int i = indiceAtual; i < candidatos.size(); i++) {
+                    /*for (int i = indiceAtual; i < candidatos.size(); i++) {
                         if (candidatos.get(i).user.isFinastraEligible()) {
                             melhorParaShift = candidatos.get(i).user;
                             break;
                         }
-                    }
+                    }*/
 
                     if (melhorParaShift == null) {
                         alertasGerados.add("⚠️ Semana de " + inicioSemana + ": Ninguém com permissão 'Finastra Shift' disponível para preencher o turno em falta!");
@@ -173,8 +177,9 @@ public class ScheduleGeneratorService {
                         Turn turnoShift = new Turn();
                         turnoShift.setAssignee(melhorParaShift);
                         turnoShift.setTurnType(tipoFinastraShift);
-                        turnoShift.setStartTime(inicioSemana);
-                        turnoShift.setEndTime(inicioSemana.plusDays(4)); // Sexta-feira
+                        // No turnoShift (Finastra):
+                        turnoShift.setStartTime(inicioSemana.atStartOfDay());
+                        turnoShift.setEndTime(inicioSemana.plusDays(4).atTime(23, 59, 59)); // Sexta-feira às 23:59:59
                         turnoShift.setTurnValue(BigDecimal.ZERO);
                         turnoShift.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                         turnRepository.save(turnoShift);
@@ -189,8 +194,8 @@ public class ScheduleGeneratorService {
             semanaAtual = semanaAtual.plusDays(7);
         }
 
-        // Registo da ação de auditoria no final do processo
-        auditLogService.log(adminActor, "GENERATE_SCHEDULE", "System", null,
+        // Registo da ação de auditoria no final do processo usando o ID do Assigner
+        auditLogService.log(adminActor, "GENERATE_SCHEDULE", "System", adminActor.getId(),
                 String.format("Automatic generation triggered for period %s to %s", dataInicio, dataFim));
 
         return alertasGerados;

@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import pt.sequoia.standByTool.models.Turn;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,24 +16,24 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.assignee.id = :userId " +
             "AND t.startTime <= :end AND t.endTime >= :start")
     boolean existsByAssigneeAndDates(@Param("userId") UUID userId,
-                                     @Param("start") LocalDate start,
-                                     @Param("end") LocalDate end);
+                                     @Param("start") LocalDateTime start,
+                                     @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT EXTRACT(WEEK FROM (:now - MAX(start_time))) FROM turns " +
             "WHERE assignee_id = :userId", nativeQuery = true)
-    Integer getWeeksSinceLastTurn(@Param("userId") UUID userId, @Param("now") LocalDate now);
+    Integer getWeeksSinceLastTurn(@Param("userId") UUID userId, @Param("now") LocalDateTime now);
 
     @Query("SELECT COUNT(t) FROM Turn t WHERE t.assignee.id = :userId " +
             "AND t.startTime >= :yearStart AND t.endTime <= :yearEnd")
     int countTurnsInYear(@Param("userId") UUID userId,
-                         @Param("yearStart") LocalDate yearStart,
-                         @Param("yearEnd") LocalDate yearEnd);
+                         @Param("yearStart") LocalDateTime yearStart,
+                         @Param("yearEnd") LocalDateTime yearEnd);
 
     @Query("SELECT t FROM Turn t WHERE t.turnStatus IN ('ACCEPTED', 'COMPLETED') " +
             "AND t.paymentStatus = 'UNPAID' " +
             "AND t.startTime >= :start AND t.endTime <= :end")
-    List<Turn> findUnpaidTurnsInPeriod(@Param("start") LocalDate start,
-                                       @Param("end") LocalDate end);
+    List<Turn> findUnpaidTurnsInPeriod(@Param("start") LocalDateTime start,
+                                       @Param("end") LocalDateTime end);
 
     // 1. Conta quantos feriados o utilizador já apanhou durante os seus turnos num ano específico
     @Query(value = "SELECT COUNT(f.id) FROM turns t " +
@@ -52,7 +53,9 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
 
     // Verifica se já existe um tipo de turno específico nesta data
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.turnType.name = :typeName AND t.startTime = :start")
-    boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDate start);
+    boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDateTime start);
 
+
+    List<Turn> findByEndTimeBetween(LocalDateTime inicioSemanaPassada, LocalDateTime fimSemanaPassada);
 }
 

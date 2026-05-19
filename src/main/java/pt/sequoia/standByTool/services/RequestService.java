@@ -64,13 +64,15 @@ public class RequestService {
 
     // 2. Colaborador pede para Trocar um Turno
     @Transactional
-    public Request createSwapRequest(UUID userId, UUID turnId, String note) {
+    public Request createSwapRequest(UUID userId, UUID turnId, UUID targetUserId, String note) {
         User requester = userRepository.findById(userId).orElseThrow();
         Turn turn = turnRepository.findById(turnId).orElseThrow();
+        User targetUser = userRepository.findById(targetUserId).orElseThrow(); // <-- NOVO: Buscar o alvo
 
         Request request = new Request();
         request.setRequestType(RequestType.TURN_SWAP);
         request.setRequester(requester);
+        request.setTargetUser(targetUser); // <-- NOVO: Guardar o alvo
         request.setTurn(turn);
         request.setRequesterNote(note);
 
@@ -93,10 +95,13 @@ public class RequestService {
 
             if (status == RequestStatus.APPROVED && request.getRequestType() == RequestType.TURN_SWAP) {
                 Turn turnoToSwap = request.getTurn();
-                User novoColaborador = userRepository.findById(newAssigneeId).orElseThrow();
+                User novoColaborador = request.getTargetUser(); // 💡 Busca diretamente o Alvo do pedido!
+
                 logDetails += ". Turn reassigned from " + turnoToSwap.getAssignee().getName() + " to " + novoColaborador.getName();
 
                 turnoToSwap.setAssignee(novoColaborador);
+                turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED); // Opção A: Fica logo confirmado!
+
                 calendarService.updateTurnInCalendar(turnoToSwap);
                 turnRepository.save(turnoToSwap);
             }
