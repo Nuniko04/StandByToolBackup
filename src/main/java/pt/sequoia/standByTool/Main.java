@@ -14,6 +14,7 @@ import pt.sequoia.standByTool.repositories.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootApplication
@@ -62,8 +63,8 @@ public class Main {
                     Turn turnoTeste = new Turn();
                     turnoTeste.setAssignee(oNuno);
                     turnoTeste.setTurnType(finastraType);
-                    turnoTeste.setStartTime(LocalDate.of(2026, 5, 18));
-                    turnoTeste.setEndTime(LocalDate.of(2026, 5, 22));
+                    turnoTeste.setStartTime(LocalDateTime.of(2026, 5, 18, 0, 0));
+                    turnoTeste.setEndTime(LocalDateTime.of(2026, 5, 22, 23, 59));
                     turnoTeste.setTurnValue(new BigDecimal("50.00"));
                     turnoTeste.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
 
