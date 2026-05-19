@@ -4,13 +4,11 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import pt.sequoia.standByTool.models.Notification;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
-import pt.sequoia.standByTool.services.RequestService;
-import pt.sequoia.standByTool.services.TurnService;
-import pt.sequoia.standByTool.services.TurnTypeService;
-import pt.sequoia.standByTool.services.UserService;
+import pt.sequoia.standByTool.services.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,12 +20,14 @@ public class IndexController {
     private final RequestService requestService;
     private final UserService userService;
     private final TurnTypeService turnTypeService;
+    private final NotificationService notificationService;
 
-    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService) {
+    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService) {
         this.turnService = turnService;
         this.requestService = requestService;
         this.userService = userService;
         this.turnTypeService = turnTypeService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/")
@@ -84,7 +84,47 @@ public class IndexController {
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("colleagues", colleagues); // Injeta os colegas para o Select do Modal de Swap
 
+        // 💡 BUSCAR NOTIFICAÇÕES
+        List<Notification> notificacoes = notificationService.obterNotificacoesDoUtilizador(loggedUser.getId());
+        long alertasNaoLidos = notificationService.contarNaoLidas(loggedUser.getId());
+
+        model.addAttribute("notificacoes", notificacoes);
+        model.addAttribute("alertasNaoLidos", alertasNaoLidos);
+
         return "dashboard";
+    }
+
+    @GetMapping("/employee-view")
+    public String employeeView(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("loggedUser");
+        if (user == null) return "redirect:/login";
+
+        List<Turn> myTurns = turnService.getMyTurns(user.getId());
+
+        long pendingCount = myTurns.stream()
+                .filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
+                .count();
+
+        // NOVO: Passar a lista de colegas (excluindo o próprio utilizador logado)
+        List<User> colleagues = userService.getAllUsers().stream()
+                .filter(u -> !u.getId().equals(u.getId()))
+                .collect(Collectors.toList());
+
+        model.addAttribute("user", user);
+        model.addAttribute("myTurns", myTurns);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("colleagues", colleagues); // Injeta os colegas para o Select do Modal de Swap
+
+        // 💡 BUSCAR NOTIFICAÇÕES
+        List<Notification> notificacoes = notificationService.obterNotificacoesDoUtilizador(user.getId());
+        long alertasNaoLidos = notificationService.contarNaoLidas(user.getId());
+
+        model.addAttribute("notificacoes", notificacoes);
+        model.addAttribute("alertasNaoLidos", alertasNaoLidos);
+
+        // Adiciona uma flag para o HTML saber que este administrador está em "Modo de Visualização"
+        model.addAttribute("isViewingAsEmployee", true);
+        return "dashboard"; // Abre o dashboard regular dos colaboradores
     }
 
     @GetMapping("/login")

@@ -2,11 +2,13 @@ package pt.sequoia.standByTool.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.sequoia.standByTool.models.Notification;
 import pt.sequoia.standByTool.models.Request;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.models.enums.RequestType;
+import pt.sequoia.standByTool.repositories.NotificationRepository;
 import pt.sequoia.standByTool.repositories.RequestRepository;
 import pt.sequoia.standByTool.repositories.TurnRepository;
 import pt.sequoia.standByTool.repositories.UserRepository;
@@ -24,14 +26,16 @@ public class RequestService {
     private final UserRepository userRepository;
     private final CalendarService calendarService;
     private final AuditLogService auditLogService;
+    public final NotificationService notificationService;
 
     public RequestService(RequestRepository requestRepository, TurnRepository turnRepository,
-                          UserRepository userRepository, CalendarService calendarService, AuditLogService auditLogService) {
+                          UserRepository userRepository, CalendarService calendarService, AuditLogService auditLogService, NotificationService notificationService) {
         this.requestRepository = requestRepository;
         this.turnRepository = turnRepository;
         this.userRepository = userRepository;
         this.calendarService = calendarService;
         this.auditLogService = auditLogService;
+        this.notificationService = notificationService;
     }
 
     public List<Request> getPendingRequests() {
@@ -104,6 +108,20 @@ public class RequestService {
 
                 calendarService.updateTurnInCalendar(turnoToSwap);
                 turnRepository.save(turnoToSwap);
+            }
+
+            // 💡 O NOVO SISTEMA DE NOTIFICAÇÕES PARA SWAPS
+            if (request.getRequestType() == pt.sequoia.standByTool.models.enums.RequestType.TURN_SWAP) {
+                String acao = status == RequestStatus.APPROVED ? "APROVADO ✅" : "REJEITADO ❌";
+                String dataTurno = request.getTurn().getStartTime().toLocalDate().toString();
+
+                // Avisa o Colaborador A (Quem pediu)
+                String msgA = "O teu pedido de troca de turno (" + dataTurno + ") com o/a " + request.getTargetUser().getName() + " foi " + acao + " pelos RH.";
+                notificationService.criarNotificacao(request.getRequester(), msgA);
+
+                // Avisa o Colaborador B (O Alvo da troca)
+                String msgB = "A troca de turno (" + dataTurno + ") pedida pelo/a " + request.getRequester().getName() + " para ti foi " + acao + " pelos RH.";
+                notificationService.criarNotificacao(request.getTargetUser(), msgB);
             }
 
             requestRepository.save(request);

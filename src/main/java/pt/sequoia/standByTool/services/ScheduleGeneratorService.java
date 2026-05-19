@@ -91,14 +91,23 @@ public class ScheduleGeneratorService {
             List<User> todosColaboradores = userRepository.findAllActiveEmployees();
             List<ColaboradorScore> candidatos = new ArrayList<>();
 
-            // 2. FASE DE EXCLUSÃO
+            // ---------------------------------------------------------
+            // 2. FASE DE EXCLUSÃO (A Inteligência das Férias)
+            // ---------------------------------------------------------
             for (User user : todosColaboradores) {
-                boolean feriasNaSemana = requestRepository.hasApprovedVacation(user.getId(), inicioSemana, fimSemana);
-                boolean feriasProximaSemana = requestRepository.hasApprovedVacation(user.getId(), proxSemanaInicio, proxSemanaFim);
-                // Substitui a linha de verificação de turnos do colaborador:
+
+                // A) Está de férias durante a semana atual? (Bloqueia sempre)
+                boolean feriasNestaSemana = requestRepository.hasApprovedVacationOverlapping(user.getId(), inicioSemana, fimSemana);
+
+                // B) A regra de Ouro: As férias começam na SEGUNDA-FEIRA da próxima semana?
+                // O 'proxSemanaInicio' já é garantidamente uma Segunda-feira através do teu 'TemporalAdjusters'
+                boolean feriasComecamProximaSegunda = requestRepository.hasApprovedVacationStartingOn(user.getId(), proxSemanaInicio);
+
+                // C) Já tem um turno atribuído nestas datas?
                 boolean temTurno = turnRepository.existsByAssigneeAndDates(user.getId(), inicioSemana.atStartOfDay(), fimSemana.atTime(23, 59, 59));
 
-                if (!feriasNaSemana && !feriasProximaSemana && !temTurno) {
+                // Se não esbarrar em nenhuma das restrições, é candidato!
+                if (!feriasNestaSemana && !feriasComecamProximaSegunda && !temTurno) {
                     candidatos.add(new ColaboradorScore(user));
                 }
             }
@@ -161,15 +170,25 @@ public class ScheduleGeneratorService {
                     indiceAtual++;
                 }
 
+                // ---------------------------------------------------------
+                // PREENCHIMENTO DO BURACO: FINASTRA SHIFT
+                // ---------------------------------------------------------
                 if (faltaFinastra) {
                     User melhorParaShift = null;
-                    // Procura o melhor para Finastra APENAS entre os candidatos que sobraram
-                    /*for (int i = indiceAtual; i < candidatos.size(); i++) {
-                        if (candidatos.get(i).user.isFinastraEligible()) {
-                            melhorParaShift = candidatos.get(i).user;
-                            break;
+
+                    // Procura o melhor APENAS entre os candidatos que sobraram E que têm a permissão na Matriz
+                    for (int i = indiceAtual; i < candidatos.size(); i++) {
+                        User candidatoAtual = candidatos.get(i).user;
+
+                        // Verifica na nossa tabela de elegibilidade se ele tem o tipo "Finastra"
+                        boolean isEligible = candidatoAtual.getEligibleTurnTypes().stream()
+                                .anyMatch(tt -> tt.getId().equals(tipoFinastraShift.getId()));
+
+                        if (isEligible) {
+                            melhorParaShift = candidatoAtual;
+                            break; // Encontrámos o nosso homem/mulher!
                         }
-                    }*/
+                    }
 
                     if (melhorParaShift == null) {
                         alertasGerados.add("⚠️ Semana de " + inicioSemana + ": Ninguém com permissão 'Finastra Shift' disponível para preencher o turno em falta!");
@@ -177,9 +196,8 @@ public class ScheduleGeneratorService {
                         Turn turnoShift = new Turn();
                         turnoShift.setAssignee(melhorParaShift);
                         turnoShift.setTurnType(tipoFinastraShift);
-                        // No turnoShift (Finastra):
                         turnoShift.setStartTime(inicioSemana.atStartOfDay());
-                        turnoShift.setEndTime(inicioSemana.plusDays(4).atTime(23, 59, 59)); // Sexta-feira às 23:59:59
+                        turnoShift.setEndTime(inicioSemana.plusDays(4).atTime(23, 59, 59)); // Sexta-feira às 23:59
                         turnoShift.setTurnValue(BigDecimal.ZERO);
                         turnoShift.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                         turnRepository.save(turnoShift);
