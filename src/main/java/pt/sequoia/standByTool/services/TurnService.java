@@ -10,6 +10,7 @@ import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.repositories.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,9 +60,7 @@ public class TurnService {
     }
 
     public List<Turn> getMyTurns(UUID userId) {
-        return turnRepository.findAll().stream()
-                .filter(t -> t.getAssignee().getId().equals(userId))
-                .toList();
+        return turnRepository.findByAssigneeIdOrderByStartTimeAscCreatedAtAsc(userId);
     }
 
     @Transactional
