@@ -139,4 +139,27 @@ public class TurnController {
 
         return "redirect:/dashboard";
     }
+
+    @PostMapping("/accept-all")
+    public String acceptAllTurns(jakarta.servlet.http.HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
+        User loggedUser = (User) session.getAttribute("loggedUser");
+
+        if (loggedUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            int count = turnService.acceptAllPendingTurns(loggedUser);
+            if (count > 0) {
+                redirectAttributes.addFlashAttribute("successMsg", count + " turno(s) aceite(s) com sucesso!");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMsg", "Não existiam turnos pendentes para aceitar.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao aceitar os turnos: " + e.getMessage());
+        }
+
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/dashboard");
+    }
 }
