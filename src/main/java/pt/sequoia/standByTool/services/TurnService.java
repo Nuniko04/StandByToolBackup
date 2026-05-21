@@ -202,4 +202,31 @@ public class TurnService {
     public Optional<Turn> getTurn(UUID id) {
         return turnRepository.findById(id);
     }
+
+    @Transactional
+    public int acceptAllPendingTurns(User loggedUser) {
+        List<Turn> pendingTurns = turnRepository.findAll().stream()
+                .filter(t -> t.getAssignee().getId().equals(loggedUser.getId())
+                        && t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
+                .toList();
+
+        int count = 0;
+        for (Turn turn : pendingTurns) {
+            turn.setTurnStatus(TurnStatus.ACCEPTED);
+
+            String eventId = calendarService.addTurnToCalendar(turn);
+            if (eventId != null) {
+                turn.setCalendarEventId(eventId);
+            }
+
+            turnRepository.save(turn);
+            count++;
+        }
+
+        if (count > 0) {
+            auditLogService.log(loggedUser, "ACCEPT_ALL_TURNS", "Turn", loggedUser.getId(), "Accepted " + count + " pending turns");
+        }
+
+        return count; // Retorna quantos turnos foram aceites
+    }
 }
