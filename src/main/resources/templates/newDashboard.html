@@ -102,7 +102,7 @@
         .board-card.pending { border-top: 3px solid var(--warning); }
         .board-card.confirmed { border-top: 3px solid var(--success); }
 
-        /* --- CUSTOM FULLCALENDAR UI --- */
+        .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
         #calendar { background-color: #161616; padding: 20px; border-radius: 12px; }
         .fc-col-header-cell { padding: 15px 0 !important; background: #161616; border-bottom: 1px solid #262626 !important; }
@@ -152,7 +152,7 @@
 
             <nav>
                 <a href="/dashboard" class="active"><i class="fas fa-calendar-alt"></i> My Schedule</a>
-                <a href="/dashboardAssigner" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Admin</a>
+                <a href="/dashboardAssigner" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Assigner</a>
             </nav>
         </div>
         <div class="sidebar-footer">

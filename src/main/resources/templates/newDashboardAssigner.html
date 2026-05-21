@@ -75,7 +75,7 @@
         .badge-confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border-color: var(--success); }
         .badge-red { background: rgba(255, 77, 77, 0.1); color: var(--danger); border-color: var(--danger); }
         .badge-pill { background: var(--danger); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;}
-
+        .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
         #calendar { background-color: #161616; padding: 20px; border-radius: 12px; }
         .fc-col-header-cell { padding: 15px 0 !important; background: #161616; border-bottom: 1px solid #262626 !important; }
@@ -142,7 +142,7 @@
             <div class="user-profile">
                 <div class="user-avatar" th:text="${#strings.substring(user.name,0,1)}">A</div>
                 <div class="user-info">
-                    <p th:text="${user.name}">Admin Name</p>
+                    <p th:text="${user.name}">Assigner Name</p>
                     <span>Assigner</span>
                 </div>
             </div>
@@ -155,8 +155,8 @@
                     <div class="nav-inner"><i class="fas fa-envelope"></i> Swap Requests</div>
                     <span th:if="${pendingRequestsCount > 0}" class="badge-pill" th:text="${pendingRequestsCount}">0</span>
                 </button>
-                <button id="btn-nav-admin" onclick="switchMainView('admin')">
-                    <div class="nav-inner"><i class="fas fa-cog"></i> Administration</div>
+                <button id="btn-nav-Assigner" onclick="switchMainView('Assigner')">
+                    <div class="nav-inner"><i class="fas fa-cog"></i> Assigner</div>
                 </button>
                 <a href="/employee-view" style="margin-top: 20px; border: 1px solid var(--border); justify-content: center;">
                     <div class="nav-inner"><i class="fas fa-user-switch"></i> Employee View</div>
@@ -164,6 +164,7 @@
             </nav>
         </div>
         <div class="sidebar-footer">
+            <button id="theme-toggle" class="logout-btn"><i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span></button>
             <form action="/logout" method="post" style="margin:0; width:100%;">
                 <button type="submit" class="logout-btn danger"><i class="fas fa-sign-out-alt"></i> Log Out</button>
             </form>
@@ -299,8 +300,8 @@
             </div>
         </div>
 
-        <!-- VIEW: ADMINISTRATION -->
-        <div id="view-admin" class="hidden">
+        <!-- VIEW: Assigner -->
+        <div id="view-Assigner" class="hidden">
             <!-- Employees Panel -->
             <div class="panel">
                 <div class="panel-header">
@@ -320,7 +321,7 @@
                         <tr th:each="emp : ${employees}">
                             <td><strong th:text="${emp.name}">Name</strong></td>
                             <td th:text="${emp.email}" style="color: var(--text-muted);">Email</td>
-                            <td><span class="status-badge" th:text="${emp.isAssigner ? 'Admin' : 'Staff'}">Role</span></td>
+                            <td><span class="status-badge" th:text="${emp.isAssigner ? 'Assigner' : 'Staff'}">Role</span></td>
                             <td style="text-align: right;">
                                 <button class="btn-action" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i> Edit</button>
                                 <button class="btn-action" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-tasks"></i> Matrix</button>
@@ -457,7 +458,7 @@
                 <div class="form-group"><label>Name</label><input type="text" name="name" required class="form-input"></div>
                 <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
                 <label class="checkbox-label" style="margin-bottom: 20px;">
-                    <input type="checkbox" name="isAssigner" value="true"> Make Assigner (Admin)
+                    <input type="checkbox" name="isAssigner" value="true"> Make Assigner (Assigner)
                 </label>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
@@ -478,7 +479,7 @@
                 <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${emp.name}" required class="form-input"></div>
                 <div class="form-group"><label>Email</label><input type="email" name="email" th:value="${emp.email}" required class="form-input"></div>
                 <label class="checkbox-label" style="margin-bottom: 20px;">
-                    <input type="checkbox" name="isAssigner" value="true" th:checked="${emp.isAssigner}"> Make Assigner (Admin)
+                    <input type="checkbox" name="isAssigner" value="true" th:checked="${emp.isAssigner}"> Make Assigner (Assigner)
                 </label>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
@@ -622,7 +623,7 @@
         });
 
         function switchMainView(viewName) {
-            ['master', 'requests', 'admin'].forEach(v => {
+            ['master', 'requests', 'Assigner'].forEach(v => {
                 document.getElementById('view-' + v).classList.add('hidden');
                 document.getElementById('btn-nav-' + v).classList.remove('active');
             });
@@ -642,8 +643,8 @@
                 title.innerText = "Swap Requests";
                 subtitle.innerText = "Pending & Historical Shift Transfers";
                 actions.style.display = "none";
-            } else if (viewName === 'admin') {
-                title.innerText = "Administration";
+            } else if (viewName === 'Assigner') {
+                title.innerText = "Assigner";
                 subtitle.innerText = "Employees, Shift Types & Payment Cards";
                 actions.style.display = "none";
             }
@@ -699,6 +700,34 @@
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+            }
+        }
+        const toggleBtn = document.getElementById('theme-toggle');
+        const themeText = document.getElementById('theme-text');
+        const mainLogo = document.getElementById('main-logo');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+
+        function applyTheme(theme) {
+            htmlElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const icon = toggleBtn.querySelector('i');
+            if (theme === 'light') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                themeText.innerText = 'Light Mode';
+                mainLogo.src = '/blueSequoiaLogo.avif'; 
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                themeText.innerText = 'Dark Mode';
+                mainLogo.src = '/whiteSequoiaLogo.png'; 
             }
         }
     </script>
