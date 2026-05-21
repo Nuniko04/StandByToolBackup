@@ -620,6 +620,7 @@
 
 <script th:inline="javascript">
     let fcAssignerInstance;
+    let isCalendarRendered = false; // 💡 Controla se já foi desenhado
 
     document.addEventListener('DOMContentLoaded', function() {
         var eventsList = [
@@ -627,8 +628,8 @@
             {
                 id: /*[[${turn.id}]]*/ '1',
                 title: /*[[${turn.assignee.name + ' - ' + turn.turnType.name}]]*/ 'Colaborador - Turno',
-                start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
-                end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+                start: /*[[${#temporals.format(turn.startTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-01T00:00:00',
+                end: /*[[${#temporals.format(turn.endTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-02T00:00:00',
                 color: /*[[${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? '#eab308' : '#22c55e'}]]*/ '#22c55e'
             },
             /*[/]*/
@@ -644,6 +645,7 @@
                 height: '100%',
                 displayEventTime: false
             });
+            // ❌ APAGÁMOS o render() daqui! Não o deixamos desenhar no escuro.
         }
     });
 
@@ -693,7 +695,18 @@
         if (btnAdmin) btnAdmin.className = (viewName === 'admin') ? classAtiva : classInativa;
         if (btnRequests) btnRequests.className = (viewName === 'requests') ? classAtiva : classInativa;
 
-        if (viewName === 'calendar' && fcAssignerInstance) { setTimeout(() => { fcAssignerInstance.render(); }, 50); }
+        // 💡 MAGIA AQUI: Quando a aba Calendar fica visível, damos 50 milissegundos
+        // e SÓ AÍ dizemos ao FullCalendar para desenhar a grelha (com a altura correta)!
+        if (viewName === 'calendar' && fcAssignerInstance) {
+            setTimeout(() => {
+                if (!isCalendarRendered) {
+                    fcAssignerInstance.render();
+                    isCalendarRendered = true;
+                } else {
+                    fcAssignerInstance.updateSize();
+                }
+            }, 50);
+        }
     }
 
     function toggleDarkMode() {

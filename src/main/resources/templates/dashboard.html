@@ -334,46 +334,103 @@
 </div>
 
 <script th:inline="javascript">
-    let fcInstance; // Variável para o calendário
+    let fcAssignerInstance;
+    let calendarRendered = false; // Controla se o calendário já foi iniciado uma vez
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Formatar turnos para o calendário
         var eventsList = [
-            /*[# th:each="turn : ${myTurns}"]*/
+            /*[# th:each="turn : ${allTurns}"]*/
             {
                 id: /*[[${turn.id}]]*/ '1',
-                title: /*[[${turn.turnType.name}]]*/ 'Turno',
-                start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
-                end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
-                color: /*[[${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? '#eab308' : '#3b82f6'}]]*/ '#3b82f6'
+                title: /*[[${turn.assignee.name + ' - ' + turn.turnType.name}]]*/ 'Colaborador - Turno',
+                start: /*[[${#temporals.format(turn.startTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-01T00:00:00',
+                end: /*[[${#temporals.format(turn.endTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-02T00:00:00',
+                color: /*[[${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? '#eab308' : '#22c55e'}]]*/ '#22c55e'
             },
             /*[/]*/
         ];
 
         var calendarEl = document.getElementById('calendar');
-        fcInstance = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            events: eventsList,
-            firstDay: 1,
-            height: '100%',
-            eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
-        });
+        if(calendarEl) {
+            fcAssignerInstance = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                events: eventsList,
+                firstDay: 1,
+                height: '100%',
+                displayEventTime: false
+            });
+            // O calendário é preparado, mas NÃO O RENDERIZAMOS AQUI!
+        }
     });
 
-    function openSwapModal(turnId) {
-        document.getElementById('swapTurnId').value = turnId;
-        document.getElementById('swapModal').classList.remove('hidden');
+    function setView(viewName) {
+        // 1. Esconder todas as vistas
+        ['list', 'calendar', 'admin', 'requests'].forEach(v => {
+            const el = document.getElementById('view-' + v);
+            if(el) el.classList.add('hidden');
+        });
+
+        // 2. Mostrar a vista selecionada
+        const activeEl = document.getElementById('view-' + viewName);
+        if(activeEl) activeEl.classList.remove('hidden');
+
+        // 3. Atualizar as cores dos botões
+        ['list', 'calendar'].forEach(v => {
+            const btn = document.getElementById('btn-' + v);
+            if(btn) {
+                if (viewName === v) {
+                    btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm transition-all";
+                } else {
+                    btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all";
+                }
+            }
+        });
+
+        // 4. Atualizar os Títulos do Topo e Menus
+        const headerTitle = document.getElementById('header-title');
+        const viewToggles = document.getElementById('view-toggles');
+
+        if (viewName === 'list' || viewName === 'calendar') {
+            if(headerTitle) headerTitle.innerText = 'Master Schedule';
+            if(viewToggles) viewToggles.classList.remove('hidden');
+            document.title = 'StandByTool | Master Schedule';
+        } else if (viewName === 'admin') {
+            if(headerTitle) headerTitle.innerText = 'Administração';
+            if(viewToggles) viewToggles.classList.add('hidden');
+            document.title = 'StandByTool | Administração';
+        } else if (viewName === 'requests') {
+            if(headerTitle) headerTitle.innerText = 'Swap Requests';
+            if(viewToggles) viewToggles.classList.add('hidden');
+            document.title = 'StandByTool | Swap Requests';
+        }
+
+        const btnMaster = document.getElementById('btn-sidebar-master');
+        const btnAdmin = document.getElementById('btn-admin');
+        const btnRequests = document.getElementById('btn-requests');
+        const classAtiva = "w-full flex items-center justify-between px-3 py-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-medium text-left transition-colors mt-2";
+        const classInativa = "w-full flex items-center justify-between px-3 py-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium text-left transition-colors mt-2";
+
+        if (btnMaster) btnMaster.className = (viewName === 'list' || viewName === 'calendar') ? classAtiva : classInativa;
+        if (btnAdmin) btnAdmin.className = (viewName === 'admin') ? classAtiva : classInativa;
+        if (btnRequests) btnRequests.className = (viewName === 'requests') ? classAtiva : classInativa;
+
+        // ==========================================
+        // 5. A SOLUÇÃO FINAL DO FULLCALENDAR
+        // ==========================================
+        if (viewName === 'calendar' && fcAssignerInstance) {
+            // Esperamos 100ms para garantir que a transição de display:none já acabou
+            setTimeout(() => {
+                if (!calendarRendered) {
+                    fcAssignerInstance.render(); // Renderiza da 1ª vez
+                    calendarRendered = true;
+                }
+                fcAssignerInstance.updateSize(); // OBRIGA a ajustar o tamanho da grelha
+            }, 100);
+        }
     }
 
-    function closeSwapModal() {
-        document.getElementById('swapModal').classList.add('hidden');
-    }
-
+    // Funcões utilitárias dos modais...
     function toggleDarkMode() {
         if (document.documentElement.classList.contains('dark')) {
             document.documentElement.classList.remove('dark');
@@ -384,24 +441,42 @@
         }
     }
 
-    function setView(viewName) {
-        // Esconder todos
-        ['list', 'board', 'calendar'].forEach(v => {
-            document.getElementById('view-' + v).classList.add('hidden');
-            const btn = document.getElementById('btn-' + v);
-            btn.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
-            btn.classList.add('text-gray-500', 'dark:text-gray-400');
-        });
+    function toggleModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if(modal) {
+            modal.classList.toggle('hidden');
+        } else {
+            console.error("Erro: O modal " + modalId + " não foi encontrado no HTML.");
+        }
+    }
 
-        // Mostrar selecionado
-        document.getElementById('view-' + viewName).classList.remove('hidden');
-        const activeBtn = document.getElementById('btn-' + viewName);
-        activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
-        activeBtn.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
-
-        // Renderizar o calendário quando a tab ficar visível
-        if (viewName === 'calendar' && fcInstance) {
-            setTimeout(() => { fcInstance.render(); }, 50);
+    async function runAutoGeneration() {
+        const form = document.getElementById('autoGenerateForm');
+        const formData = new FormData(form);
+        const startDate = formData.get('startDate');
+        const endDate = formData.get('endDate');
+        if (!startDate || !endDate) { alert("Por favor, preencha ambas as datas."); return; }
+        const btn = document.getElementById('btnRunAlgorithm');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin mr-2"></i> A processar...';
+        btn.disabled = true;
+        try {
+            const response = await fetch(`/api/schedule/generate?startDate=${startDate}&endDate=${endDate}`, { method: 'POST' });
+            if (response.ok) {
+                const alertas = await response.json();
+                if (alertas && alertas.length > 0) { alert("Geração concluída com avisos:\n\n" + alertas.join("\n")); }
+                else { alert("✨ Escalas geradas com sucesso sem conflitos!"); }
+                window.location.reload();
+            } else {
+                const errMsg = await response.text();
+                alert("Erro: " + errMsg);
+            }
+        } catch (error) {
+            console.error("Erro ao gerar escalas:", error);
+            alert("Erro de comunicação com o servidor.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     }
 </script>

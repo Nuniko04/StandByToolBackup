@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public interface TurnRepository extends JpaRepository<Turn, UUID> {
 
+    List<Turn> findByAssigneeIdOrderByStartTimeAscCreatedAtAsc(UUID assigneeId);
+
     // Verifica se o utilizador já tem um turno na data
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.assignee.id = :userId " +
             "AND t.startTime <= :end AND t.endTime >= :start")
