@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StandByTool | Unified Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+    <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <style>
+        /* FullCalendar Dark Mode fixes for Tailwind */
+        .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid { border-color: #e5e7eb; }
+        .dark .fc-theme-standard td, .dark .fc-theme-standard th, .dark .fc-theme-standard .fc-scrollgrid { border-color: #374151; }
+        .fc-col-header-cell-cushion { color: #374151; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .dark .fc-col-header-cell-cushion, .dark .fc-daygrid-day-number { color: #d1d5db; }
+        .fc-event { border: none; border-radius: 6px; padding: 3px; cursor: pointer; color: white !important;}
+        .fc-day-today { background-color: #eff6ff !important; }
+        .dark .fc-day-today { background-color: #1e3a8a !important; }
+        .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .fc .fc-button-primary { background-color: #3b82f6; border-color: #3b82f6; text-transform: capitalize; border-radius: 8px;}
+        .fc .fc-button-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 font-sans antialiased flex h-screen overflow-hidden transition-colors duration-200">
+
+<aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between hidden md:flex shrink-0 transition-colors duration-200">
+    <div>
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-700">
+            <i class="ph-fill ph-calendar-check text-blue-600 dark:text-blue-400 text-2xl mr-2"></i>
+            <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">StandByTool</span>
+        </div>
+        <nav class="p-4 space-y-1">
+            <a href="/dashboard" class="flex items-center px-3 py-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-medium">
+                <i class="ph ph-calendar-blank text-xl mr-3"></i> My Schedule
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-4 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
+
+        <div th:if="${session.loggedUser != null && session.loggedUser.assigner}" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4 mb-2 shadow-sm">
+            <div class="flex items-start text-blue-800 dark:text-blue-300 mb-3">
+                <i class="ph-fill ph-info text-xl mr-2 mt-0.5 shrink-0"></i>
+                <span class="text-sm font-medium leading-tight">Estás na <strong>Vista de Colaborador</strong>.</span>
+            </div>
+            <a href="/dashboard" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors shadow-sm">
+                <i class="ph-bold ph-shield-check mr-2 text-lg"></i> Voltar a Gestor
+            </a>
+        </div>
+
+        <button onclick="toggleDarkMode()" class="w-full flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors">
+            <i class="ph ph-moon text-xl mr-3 dark:hidden"></i>
+            <i class="ph ph-sun text-xl mr-3 hidden dark:block text-yellow-400"></i>
+            <span class="dark:hidden">Dark Mode</span>
+            <span class="hidden dark:block">Light Mode</span>
+        </button>
+
+        <form action="/logout" method="post" class="w-full m-0">
+            <button type="submit" class="w-full flex items-center px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg font-medium transition-colors">
+                <i class="ph ph-sign-out text-xl mr-3"></i> Terminar Sessão
+            </button>
+        </form>
+
+        <div class="flex items-center gap-3 mt-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold"
+                 th:text="${#strings.substring(user.name,0,1)}">
+                U
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[140px]" th:text="${user.name}">Nome</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${user.isAssigner ? 'Assigner' : 'Employee'}">Employee</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+    <header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-8 shrink-0 transition-colors duration-200">
+        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">My Schedule</h1>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center bg-gray-100 dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                <button id="btn-list" onclick="setView('list')"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm transition-all">
+                    <i class="ph ph-list-dashes text-lg"></i> List
+                </button>
+                <button id="btn-board" onclick="setView('board')"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                    <i class="ph ph-kanban text-lg"></i> Board
+                </button>
+                <button id="btn-calendar" onclick="setView('calendar')"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                    <i class="ph ph-calendar text-lg"></i> Calendar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-8">
+        <div class="max-w-6xl mx-auto w-full h-full flex flex-col">
+
+            <div th:if="${successMsg}" class="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 flex items-center gap-3 text-green-800 dark:text-green-400 shadow-sm">
+                <i class="ph-fill ph-check-circle text-xl shrink-0"></i>
+                <span class="font-medium" th:text="${successMsg}">Sucesso</span>
+            </div>
+            <div th:if="${errorMsg}" class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 flex items-center gap-3 text-red-800 dark:text-red-400 shadow-sm">
+                <i class="ph-fill ph-warning-circle text-xl shrink-0"></i>
+                <span class="font-medium" th:text="${errorMsg}">Erro</span>
+            </div>
+
+            <div class="mb-8 shrink-0 flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back, <span th:text="${#strings.substringBefore(user.name, ' ')}">User</span> 👋</h2>
+                    <p class="text-gray-500 dark:text-gray-400" th:if="${pendingCount > 0}">You have <strong class="text-blue-600 dark:text-blue-400" th:text="${pendingCount} + ' pending shift(s)'">1 pending shift</strong> that requires your acceptance.</p>
+                    <p class="text-gray-500 dark:text-gray-400" th:if="${pendingCount == 0}">You have no pending shifts. Enjoy your week!</p>
+                </div>
+
+                <div th:if="${pendingCount > 0}">
+                    <form th:action="@{/turns/accept-all}" method="POST" class="m-0">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center">
+                            <i class="ph-bold ph-check-double mr-2 text-lg"></i> Aceitar Todos
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                            <i class="ph-fill ph-bell-ringing text-yellow-500 text-xl"></i> Avisos Recentes
+                        </h3>
+                        <span th:if="${alertasNaoLidos > 0}" class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm" th:text="${alertasNaoLidos}"></span>
+                    </div>
+
+                    <form th:if="${alertasNaoLidos > 0}" th:action="@{/notifications/mark-all-read}" method="POST" class="m-0">
+                        <button type="submit" class="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800">
+                            <i class="ph-bold ph-checks"></i> Marcar como lidas
+                        </button>
+                    </form>
+                </div>
+                <ul class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <li th:each="notif : ${notificacoes}"
+                        class="p-5 flex items-center justify-between transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                        th:classappend="${!notif.isRead} ? 'bg-yellow-50/30 dark:bg-yellow-900/10 border-l-4 border-yellow-400' : 'border-l-4 border-transparent'">
+                        <div class="flex items-center gap-3">
+                            <span th:if="${!notif.isRead}" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shrink-0"></span>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200" th:text="${notif.message}">O teu pedido foi aceite.</span>
+                        </div>
+                        <span class="text-xs text-gray-400 dark:text-gray-500 font-medium shrink-0 ml-4" th:text="${#temporals.format(notif.createdAt, 'dd MMM HH:mm')}">Data</span>
+                    </li>
+                    <li th:if="${#lists.isEmpty(notificacoes)}" class="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
+                        <i class="ph ph-check-circle text-3xl mb-2 opacity-40 block mx-auto"></i> Não tens novos avisos.
+                    </li>
+                </ul>
+            </div>
+
+            <div id="view-list" class="space-y-6 transition-opacity duration-300">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">My Shifts</h3>
+
+                <div th:each="turn : ${myTurns}"
+                     class="bg-white dark:bg-gray-800 rounded-2xl border shadow-sm overflow-hidden group hover:shadow-md transition-shadow relative"
+                     th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'border-yellow-200 dark:border-yellow-900/50' : 'border-gray-200 dark:border-gray-700'">
+
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5"
+                         th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'bg-yellow-400' : 'bg-blue-500'"></div>
+
+                    <div class="p-6 sm:flex items-center justify-between pl-8">
+                        <div class="flex items-center gap-6">
+                            <div class="text-center bg-gray-50 dark:bg-gray-900 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700 min-w-[100px]">
+                                <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Dates</span>
+                                <span class="block text-xl font-bold text-gray-900 dark:text-white mt-0.5" th:text="${#temporals.format(turn.startTime, 'MMM dd')}">May 11</span>
+                                <span class="block text-xs text-gray-400 dark:text-gray-500 mt-1" th:text="'to ' + ${#temporals.format(turn.endTime, 'MMM dd')}">to May 18</span>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <h4 class="text-lg font-bold text-gray-900 dark:text-white" th:text="${turn.turnType.name}">Shift Name</h4>
+
+                                    <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800">Pending</span>
+                                    <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800 flex items-center">
+                                        <i class="ph-fill ph-check-circle mr-1"></i> Confirmed
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                                    <i class="ph ph-coins mr-1.5 text-gray-400 dark:text-gray-500"></i> Estimated Value: €<span th:text="${turn.turnValue}">0.00</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 sm:mt-0 flex gap-3">
+                            <form th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}"
+                                  th:action="@{/turns/{id}/accept(id=${turn.id})}" method="POST" class="inline">
+                                <button type="submit"
+                                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center">
+                                    <i class="ph ph-check-circle mr-2 text-lg"></i> Aceitar Turno
+                                </button>
+                            </form>
+                            <div th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="mt-4 sm:mt-0 flex gap-3">
+                                <button type="button"
+                                        th:data-id="${turn.id}"
+                                        onclick="openSwapModal(this.getAttribute('data-id'))"
+                                        class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium shadow-sm border border-gray-300 dark:border-gray-600 transition-colors flex items-center">
+                                    <i class="ph ph-arrows-left-right mr-2 text-lg"></i> Pedir Troca
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(myTurns)}" class="p-8 text-center bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                    <i class="ph ph-calendar-slash text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium">You have no shifts assigned yet.</p>
+                </div>
+            </div>
+
+            <div id="view-board" class="hidden flex-1 min-h-[500px]">
+                <div class="flex gap-6 h-full pb-10 overflow-x-auto">
+
+                    <div class="w-80 shrink-0 flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-yellow-400"></span> Action Required
+                            </h3>
+                            <span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs py-0.5 px-2 rounded-full font-medium" th:text="${pendingCount}">0</span>
+                        </div>
+                        <div class="bg-gray-100/50 dark:bg-gray-900/50 p-2 rounded-xl flex-1 border border-gray-200 dark:border-gray-800 overflow-y-auto space-y-3">
+                            <div th:each="turn : ${myTurns}" th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}"
+                                 class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-1 pl-2" th:text="${turn.turnType.name}">Shift Name</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 pl-2" th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Dates</p>
+                                <div class="flex gap-2 mt-2 pl-2">
+                                    <form th:action="@{/turns/{id}/accept(id=${turn.id})}" method="POST" class="w-full">
+                                        <button type="submit" class="w-full bg-blue-600 text-white py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
+                                            <i class="ph ph-check-circle"></i> Accept
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-80 shrink-0 flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span> Confirmed
+                            </h3>
+                        </div>
+                        <div class="bg-gray-100/50 dark:bg-gray-900/50 p-2 rounded-xl flex-1 border border-gray-200 dark:border-gray-800 overflow-y-auto space-y-3">
+                            <div th:each="turn : ${myTurns}" th:if="${turn.turnStatus.name() == 'ACCEPTED'}"
+                                 class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-transparent dark:border-gray-700 relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-1 pl-2" th:text="${turn.turnType.name}">Shift Name</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 pl-2" th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Dates</p>
+                                <div class="flex items-center text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 w-fit px-2 py-1 rounded border border-green-200 dark:border-green-800/50 ml-2">
+                                    <i class="ph-fill ph-check-circle mr-1"></i> Accepted
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="view-calendar" class="hidden flex-1 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm min-h-[600px]">
+                <div id="calendar" class="h-full"></div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div id="swapModal" class="fixed inset-0 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm items-center justify-center z-50 p-4 hidden flex transition-opacity duration-300">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border dark:border-gray-700 transform transition-transform duration-300 scale-100">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <i class="ph-fill ph-arrows-left-right text-blue-500"></i> Pedir Troca de Turno
+            </h2>
+            <button type="button" onclick="closeSwapModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <form method="POST" th:action="@{/requests/swap}" class="p-6 space-y-5">
+            <input type="hidden" id="swapTurnId" name="turnId" value="">
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Escolher Colega</label>
+                <select name="targetUserId" required class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-4 py-3 text-sm text-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                    <option value="" disabled selected>Selecione um colega...</option>
+                    <option th:each="emp : ${colleagues}" th:value="${emp.id}" th:text="${emp.name}">Nome do Colega</option>
+                </select>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center">
+                    <i class="ph-fill ph-info mr-1"></i> O pedido será enviado diretamente para aprovação.
+                </p>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3 -mx-6 -mb-6 mt-6">
+                <button type="button" onclick="closeSwapModal()" class="px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center">
+                    <i class="ph-fill ph-paper-plane-tilt mr-2"></i> Submeter Pedido
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let fcAssignerInstance;
+    let calendarRendered = false; // Controla se o calendário já foi iniciado uma vez
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var eventsList = [
+            /*[# th:each="turn : ${allTurns}"]*/
+            {
+                id: /*[[${turn.id}]]*/ '1',
+                title: /*[[${turn.assignee.name + ' - ' + turn.turnType.name}]]*/ 'Colaborador - Turno',
+                start: /*[[${#temporals.format(turn.startTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-01T00:00:00',
+                end: /*[[${#temporals.format(turn.endTime, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2024-01-02T00:00:00',
+                color: /*[[${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? '#eab308' : '#22c55e'}]]*/ '#22c55e'
+            },
+            /*[/]*/
+        ];
+
+        var calendarEl = document.getElementById('calendar');
+        if(calendarEl) {
+            fcAssignerInstance = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                events: eventsList,
+                firstDay: 1,
+                height: '100%',
+                displayEventTime: false
+            });
+            // O calendário é preparado, mas NÃO O RENDERIZAMOS AQUI!
+        }
+    });
+
+    function setView(viewName) {
+        // 1. Esconder todas as vistas
+        ['list', 'calendar', 'admin', 'requests'].forEach(v => {
+            const el = document.getElementById('view-' + v);
+            if(el) el.classList.add('hidden');
+        });
+
+        // 2. Mostrar a vista selecionada
+        const activeEl = document.getElementById('view-' + viewName);
+        if(activeEl) activeEl.classList.remove('hidden');
+
+        // 3. Atualizar as cores dos botões
+        ['list', 'calendar'].forEach(v => {
+            const btn = document.getElementById('btn-' + v);
+            if(btn) {
+                if (viewName === v) {
+                    btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm transition-all";
+                } else {
+                    btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all";
+                }
+            }
+        });
+
+        // 4. Atualizar os Títulos do Topo e Menus
+        const headerTitle = document.getElementById('header-title');
+        const viewToggles = document.getElementById('view-toggles');
+
+        if (viewName === 'list' || viewName === 'calendar') {
+            if(headerTitle) headerTitle.innerText = 'Master Schedule';
+            if(viewToggles) viewToggles.classList.remove('hidden');
+            document.title = 'StandByTool | Master Schedule';
+        } else if (viewName === 'admin') {
+            if(headerTitle) headerTitle.innerText = 'Administração';
+            if(viewToggles) viewToggles.classList.add('hidden');
+            document.title = 'StandByTool | Administração';
+        } else if (viewName === 'requests') {
+            if(headerTitle) headerTitle.innerText = 'Swap Requests';
+            if(viewToggles) viewToggles.classList.add('hidden');
+            document.title = 'StandByTool | Swap Requests';
+        }
+
+        const btnMaster = document.getElementById('btn-sidebar-master');
+        const btnAdmin = document.getElementById('btn-admin');
+        const btnRequests = document.getElementById('btn-requests');
+        const classAtiva = "w-full flex items-center justify-between px-3 py-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-medium text-left transition-colors mt-2";
+        const classInativa = "w-full flex items-center justify-between px-3 py-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium text-left transition-colors mt-2";
+
+        if (btnMaster) btnMaster.className = (viewName === 'list' || viewName === 'calendar') ? classAtiva : classInativa;
+        if (btnAdmin) btnAdmin.className = (viewName === 'admin') ? classAtiva : classInativa;
+        if (btnRequests) btnRequests.className = (viewName === 'requests') ? classAtiva : classInativa;
+
+        // ==========================================
+        // 5. A SOLUÇÃO FINAL DO FULLCALENDAR
+        // ==========================================
+        if (viewName === 'calendar' && fcAssignerInstance) {
+            // Esperamos 100ms para garantir que a transição de display:none já acabou
+            setTimeout(() => {
+                if (!calendarRendered) {
+                    fcAssignerInstance.render(); // Renderiza da 1ª vez
+                    calendarRendered = true;
+                }
+                fcAssignerInstance.updateSize(); // OBRIGA a ajustar o tamanho da grelha
+            }, 100);
+        }
+    }
+
+    // Funcões utilitárias dos modais...
+    function toggleDarkMode() {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.theme = 'light';
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.theme = 'dark';
+        }
+    }
+
+    function toggleModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if(modal) {
+            modal.classList.toggle('hidden');
+        } else {
+            console.error("Erro: O modal " + modalId + " não foi encontrado no HTML.");
+        }
+    }
+
+    async function runAutoGeneration() {
+        const form = document.getElementById('autoGenerateForm');
+        const formData = new FormData(form);
+        const startDate = formData.get('startDate');
+        const endDate = formData.get('endDate');
+        if (!startDate || !endDate) { alert("Por favor, preencha ambas as datas."); return; }
+        const btn = document.getElementById('btnRunAlgorithm');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin mr-2"></i> A processar...';
+        btn.disabled = true;
+        try {
+            const response = await fetch(`/api/schedule/generate?startDate=${startDate}&endDate=${endDate}`, { method: 'POST' });
+            if (response.ok) {
+                const alertas = await response.json();
+                if (alertas && alertas.length > 0) { alert("Geração concluída com avisos:\n\n" + alertas.join("\n")); }
+                else { alert("✨ Escalas geradas com sucesso sem conflitos!"); }
+                window.location.reload();
+            } else {
+                const errMsg = await response.text();
+                alert("Erro: " + errMsg);
+            }
+        } catch (error) {
+            console.error("Erro ao gerar escalas:", error);
+            alert("Erro de comunicação com o servidor.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
