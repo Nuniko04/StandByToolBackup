@@ -1,42 +1,113 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>StandByTool | Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequoia — Login</title>
     <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb' } } } }
+    <style>
+        :root {
+            --bg: #050505;
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --radius: 24px;
         }
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/equipaLogin.png');
+            background-size: 25% 25%; 
+            background-repeat: repeat;
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-    </script>
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 50px 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 50%);
+            border-radius: var(--radius);
+            pointer-events: none;
+        }
+
+        .logo-img { width: 200px; margin-bottom: 20px; }
+        h1 { font-family: 'Syne', sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;}
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 30px; }
+
+        .alert-success { background: rgba(76, 209, 55, 0.1); border: 1px solid #4cd137; color: #4cd137; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; font-weight: bold;}
+
+        .btn-google {
+            width: 100%;
+            padding: 14px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-google:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .google-icon { width: 18px; height: 18px; }
+        .footer-text { margin-top: 25px; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;}
+    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center h-screen transition-colors duration-200">
-<div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-md text-center">
-    <i class="ph-fill ph-calendar-check text-blue-600 dark:text-blue-400 text-5xl mb-4"></i>
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to StandByTool</h1>
+<body>
+    <div class="login-card">
+        <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img">
+        <h1>StandByTool</h1>
+        <p class="subtitle">Gestão de Escalas e Operações</p>
 
-    <div th:if="${param.logout}" class="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 p-3 rounded-xl mb-6 text-sm font-medium">
-        Sessão terminada com sucesso. Até breve! 👋
+        <div th:if="${param.logout}" class="alert-success">
+            <i class="fas fa-check-circle"></i> Sessão terminada com sucesso. Até breve!
+        </div>
+
+        <a href="/oauth2/authorization/google" class="btn-google">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="google-icon">
+            Continuar com o Google
+        </a>
+        <p class="footer-text">Sequoia Consulting © 2026</p>
     </div>
-
-    <p class="text-gray-500 dark:text-gray-400 mb-8">Please sign in with your corporate account to continue.</p>
-
-    <a href="/oauth2/authorization/google"
-       class="flex items-center justify-center gap-3 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-3 px-4 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm">
-        <img src="https://docs.microsoft.com/en-us/azure/active-directory/develop/media/howto-add-branding-in-azure-ad-apps/google-logo.png" width="20">
-        Sign in with Google
-    </a>
-
-    <p class="mt-8 text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-widest">Sequoia Consulting © 2026</p>
-</div>
 </body>
 </html>
