@@ -55,7 +55,16 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
     @Query("SELECT COUNT(t) > 0 FROM Turn t WHERE t.turnType.name = :typeName AND t.startTime = :start")
     boolean existsTurnOfTypeInWeek(@Param("typeName") String typeName, @Param("start") LocalDateTime start);
 
-
     List<Turn> findByEndTimeBetween(LocalDateTime inicioSemanaPassada, LocalDateTime fimSemanaPassada);
-}
 
+    // --- NOVA TRANCA TEMPORAL DE CARTÕES ---
+    // Conta se este cartão já está a ser usado num turno sobreposto (ignora o próprio turno atual se for edição)
+    @Query("SELECT COUNT(t) FROM Turn t WHERE t.paymentCard.id = :cardId " +
+            "AND t.id <> :turnId " +
+            "AND t.turnStatus != 'CANCELLED' " +
+            "AND (t.startTime < :newEndTime AND t.endTime > :newStartTime)")
+    int countOverlappingTurnsWithCard(@Param("cardId") UUID cardId,
+                                      @Param("turnId") UUID turnId,
+                                      @Param("newStartTime") LocalDateTime newStartTime,
+                                      @Param("newEndTime") LocalDateTime newEndTime);
+}

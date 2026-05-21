@@ -14,6 +14,7 @@ import pt.sequoia.standByTool.repositories.TurnRepository;
 import pt.sequoia.standByTool.repositories.UserRepository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -129,5 +130,9 @@ public class RequestService {
             return true;
         }
         return false;
+    }
+
+    public List<Request> getAllRequests() {
+        return requestRepository.findAll();
     }
 }

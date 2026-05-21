@@ -51,14 +51,16 @@ public class Turn {
     @Column(name = "payment_status", length = 50)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
-    // --- NOVA LOGÍSTICA DE PAGAMENTO ---
+    // --- LOGÍSTICA DE PAGAMENTO ---
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", length = 50)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "payment_card_number")
-    private String paymentCardNumber;
-    // -----------------------------------
+    // --- LIGAÇÃO COM O CARTÃO ---
+    // Relação ManyToOne correta para permitir reutilização em semanas distintas
+    @ManyToOne
+    @JoinColumn(name = "payment_card_id")
+    private Card paymentCard;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "one_off_payment")
@@ -68,7 +70,7 @@ public class Turn {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    // A ligação Mágica: Uma escala pode ter vários serviços associados (Ex: Itaú + MG)
+    // Vinculação de múltiplos serviços associados (Ex: Itaú + MG)
     @ManyToMany
     @JoinTable(
             name = "turno_servicos",
@@ -77,7 +79,7 @@ public class Turn {
     )
     private List<ServicoCliente> servicosAlocados;
 
-    // Novo campo para o Calendário (ID do evento no Google/Outlook, gerado automaticamente)
+    // ID do evento gerado automaticamente no Google Calendar
     private String calendarEventId;
 
     @Column(name = "created_at", updatable = false)
@@ -97,5 +99,4 @@ public class Turn {
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
-
 }

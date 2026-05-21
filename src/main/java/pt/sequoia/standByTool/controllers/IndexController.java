@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import pt.sequoia.standByTool.models.Notification;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.User;
+import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.services.*;
 
@@ -21,13 +22,15 @@ public class IndexController {
     private final UserService userService;
     private final TurnTypeService turnTypeService;
     private final NotificationService notificationService;
+    private final CardService cardService;
 
-    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService) {
+    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
         this.turnService = turnService;
         this.requestService = requestService;
         this.userService = userService;
         this.turnTypeService = turnTypeService;
         this.notificationService = notificationService;
+        this.cardService = cardService;
     }
 
     @GetMapping("/")
@@ -52,12 +55,20 @@ public class IndexController {
             model.addAttribute("employees", userService.getAllUsers());
             model.addAttribute("turnTypes", turnTypeService.getAllTurnTypes());
 
+            // INJETAR OS CARTÕES PARA APARECEREM NA ADMINISTRAÇÃO E ATRIBUIÇÃO DE TURNOS
+            model.addAttribute("cards", cardService.getAllCards());
+
             model.addAttribute("pendingAcceptanceCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE).count());
             model.addAttribute("confirmedCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED).count());
 
-            // NOVO: Passar a lista completa de pedidos para o Modal do Assigner
+            // PEDIDOS PENDENTES E HISTÓRICO (Para a nova Aba de Swap Requests)
             model.addAttribute("pendingRequests", requestService.getPendingRequests());
             model.addAttribute("pendingRequestsCount", requestService.getPendingRequests().size());
+
+            // Filtra os pedidos que já não estão pendentes (Aprovados ou Rejeitados) para o Histórico
+            model.addAttribute("historyRequests", requestService.getAllRequests().stream()
+                    .filter(r -> r.getStatus() != RequestStatus.PENDING)
+                    .collect(Collectors.toList()));
 
             model.addAttribute("user", loggedUser);
             model.addAttribute("allTurns", allTurns);
@@ -74,7 +85,6 @@ public class IndexController {
                 .filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
                 .count();
 
-        // NOVO: Passar a lista de colegas (excluindo o próprio utilizador logado)
         List<User> colleagues = userService.getAllUsers().stream()
                 .filter(u -> !u.getId().equals(loggedUser.getId()))
                 .collect(Collectors.toList());
@@ -82,9 +92,8 @@ public class IndexController {
         model.addAttribute("user", loggedUser);
         model.addAttribute("myTurns", myTurns);
         model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("colleagues", colleagues); // Injeta os colegas para o Select do Modal de Swap
+        model.addAttribute("colleagues", colleagues);
 
-        // 💡 BUSCAR NOTIFICAÇÕES
         List<Notification> notificacoes = notificationService.obterNotificacoesDoUtilizador(loggedUser.getId());
         long alertasNaoLidos = notificationService.contarNaoLidas(loggedUser.getId());
 
@@ -105,26 +114,24 @@ public class IndexController {
                 .filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
                 .count();
 
-        // NOVO: Passar a lista de colegas (excluindo o próprio utilizador logado)
+        // ERRO CORRIGIDO NESTA LISTA:
         List<User> colleagues = userService.getAllUsers().stream()
-                .filter(u -> !u.getId().equals(u.getId()))
+                .filter(u -> !u.getId().equals(user.getId()))
                 .collect(Collectors.toList());
 
         model.addAttribute("user", user);
         model.addAttribute("myTurns", myTurns);
         model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("colleagues", colleagues); // Injeta os colegas para o Select do Modal de Swap
+        model.addAttribute("colleagues", colleagues);
 
-        // 💡 BUSCAR NOTIFICAÇÕES
         List<Notification> notificacoes = notificationService.obterNotificacoesDoUtilizador(user.getId());
         long alertasNaoLidos = notificationService.contarNaoLidas(user.getId());
 
         model.addAttribute("notificacoes", notificacoes);
         model.addAttribute("alertasNaoLidos", alertasNaoLidos);
 
-        // Adiciona uma flag para o HTML saber que este administrador está em "Modo de Visualização"
         model.addAttribute("isViewingAsEmployee", true);
-        return "dashboard"; // Abre o dashboard regular dos colaboradores
+        return "dashboard";
     }
 
     @GetMapping("/login")

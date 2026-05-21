@@ -1,17 +1,18 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-@RestController // Nota que mudei de @Controller para @RestController (para devolver JSON)
-@RequestMapping("/api/users")
+@Controller
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -20,53 +21,114 @@ public class UserController {
         this.userService = userService;
     }
 
-    // 1. Obter os dados de quem está logado (Para mostrar o nome no menu lateral!)
-    @GetMapping("/me")
-    public ResponseEntity<User> getMe(HttpSession session) {
-        User loggedUser = (User) session.getAttribute("loggedUser");
-        if (loggedUser != null) {
-            return ResponseEntity.ok(loggedUser);
-        }
-        return ResponseEntity.status(401).build();
+    @GetMapping("/api")
+    @ResponseBody
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
     }
 
-    // 2. Listar todos os utilizadores (Para o ecrã "Employee Directory")
-    @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
+    @PostMapping("/save")
+    public String saveUser(@RequestParam String name,
+                           @RequestParam String email,
+                           @RequestParam(required = false) boolean isAssigner,
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
 
-    // 3. Ativar/Desativar um utilizador
-    @PutMapping("/{id}/toggle-status")
-    public ResponseEntity<String> toggleStatus(@PathVariable UUID id, HttpSession session) {
         User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) {
+            return "redirect:/login";
+        }
 
-        // Bloqueia se não estiver logado ou não for Assigner
-        if (adminActor == null || !adminActor.isAssigner()) return ResponseEntity.status(403).build();
+        try {
+            userService.createUser(name, email, isAssigner, adminActor);
+            redirectAttributes.addFlashAttribute("successMsg", "Colaborador adicionado com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar colaborador: " + e.getMessage());
+        }
 
-        // Passamos o adminActor para o Serviço poder gravar no AuditLog!
+        return "redirect:/dashboard";
+    }
+
+    // --- NOVO: ENDPOINT PARA EDITAR O COLABORADOR ---
+    @PostMapping("/{id}/update")
+    public String updateUser(@PathVariable UUID id,
+                             @RequestParam String name,
+                             @RequestParam String email,
+                             @RequestParam(required = false) boolean isAssigner,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+
+        User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+
+        try {
+            userService.updateUserDetails(id, name, email, isAssigner, adminActor);
+            redirectAttributes.addFlashAttribute("successMsg", "Dados do colaborador atualizados com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar colaborador: " + e.getMessage());
+        }
+
+        return "redirect:/dashboard";
+    }
+
+    @PostMapping("/{id}/toggle-status")
+    public String toggleUserStatus(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
+        User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+
         boolean sucesso = userService.toggleUserStatus(id, adminActor);
         if (sucesso) {
-            return ResponseEntity.ok("Estado do utilizador atualizado.");
+            redirectAttributes.addFlashAttribute("successMsg", "Estado do colaborador alterado com sucesso!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
         }
-        return ResponseEntity.notFound().build();
+
+        return "redirect:/dashboard";
     }
 
-    // 4. Atualizar as permissões (Assigner e Finastra)
-    @PutMapping("/{id}/permissions")
-    public ResponseEntity<String> updatePermissions(@PathVariable UUID id, @RequestBody Map<String, Boolean> payload, HttpSession session) {
+    @PostMapping("/{id}/toggle-role")
+    public String toggleUserRole(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
         User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
-        // Bloqueia se não estiver logado ou não for Assigner
-        if (adminActor == null || !adminActor.isAssigner()) return ResponseEntity.status(403).build();
-
-        boolean isAssigner = payload.getOrDefault("isAssigner", false);
-
-        // Passamos o adminActor no final!
-        boolean sucesso = userService.updateUserPermissions(id, isAssigner, adminActor);
+        boolean sucesso = userService.toggleUserRole(id, adminActor);
         if (sucesso) {
-            return ResponseEntity.ok("Permissões atualizadas com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Permissões do colaborador atualizadas com sucesso!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
         }
-        return ResponseEntity.notFound().build();
+
+        return "redirect:/dashboard";
+    }
+
+    // =========================================================================
+    // ROTA DA MATRIZ DE ELEGIBILIDADE
+    // =========================================================================
+    @PostMapping("/{id}/eligibility")
+    public String updateEligibility(@PathVariable UUID id,
+                                    @RequestParam(required = false) List<UUID> turnTypeIds,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
+
+        User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+
+        // Se o Gestor desmarcar todas as opções, previne NullPointerException
+        if (turnTypeIds == null) {
+            turnTypeIds = new ArrayList<>();
+        }
+
+        try {
+            boolean sucesso = userService.updateEligibility(id, turnTypeIds, adminActor);
+            if (sucesso) {
+                redirectAttributes.addFlashAttribute("successMsg", "Matriz de elegibilidade atualizada com sucesso!");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar a matriz: " + e.getMessage());
+        }
+
+        return "redirect:/dashboard";
     }
 }

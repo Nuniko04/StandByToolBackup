@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+    <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -28,6 +32,19 @@
             document.documentElement.classList.remove('dark')
         }
     </script>
+    <style>
+        /* FullCalendar Dark Mode fixes for Tailwind */
+        .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid { border-color: #e5e7eb; }
+        .dark .fc-theme-standard td, .dark .fc-theme-standard th, .dark .fc-theme-standard .fc-scrollgrid { border-color: #374151; }
+        .fc-col-header-cell-cushion { color: #374151; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .dark .fc-col-header-cell-cushion, .dark .fc-daygrid-day-number { color: #d1d5db; }
+        .fc-event { border: none; border-radius: 6px; padding: 3px; cursor: pointer; color: white !important;}
+        .fc-day-today { background-color: #eff6ff !important; }
+        .dark .fc-day-today { background-color: #1e3a8a !important; }
+        .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
+        .fc .fc-button-primary { background-color: #3b82f6; border-color: #3b82f6; text-transform: capitalize; border-radius: 8px;}
+        .fc .fc-button-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+    </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 font-sans antialiased flex h-screen overflow-hidden transition-colors duration-200">
@@ -97,6 +114,10 @@
                 <button id="btn-board" onclick="setView('board')"
                         class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
                     <i class="ph ph-kanban text-lg"></i> Board
+                </button>
+                <button id="btn-calendar" onclick="setView('calendar')"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all">
+                    <i class="ph ph-calendar text-lg"></i> Calendar
                 </button>
             </div>
         </div>
@@ -251,6 +272,10 @@
                 </div>
             </div>
 
+            <div id="view-calendar" class="hidden flex-1 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm min-h-[600px]">
+                <div id="calendar" class="h-full"></div>
+            </div>
+
         </div>
     </div>
 </main>
@@ -290,7 +315,38 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
+    let fcInstance; // Variável para o calendário
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatar turnos para o calendário
+        var eventsList = [
+            /*[# th:each="turn : ${myTurns}"]*/
+            {
+                id: /*[[${turn.id}]]*/ '1',
+                title: /*[[${turn.turnType.name}]]*/ 'Turno',
+                start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
+                end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+                color: /*[[${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? '#eab308' : '#3b82f6'}]]*/ '#3b82f6'
+            },
+            /*[/]*/
+        ];
+
+        var calendarEl = document.getElementById('calendar');
+        fcInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: eventsList,
+            firstDay: 1,
+            height: '100%',
+            eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
+        });
+    });
+
     function openSwapModal(turnId) {
         document.getElementById('swapTurnId').value = turnId;
         document.getElementById('swapModal').classList.remove('hidden');
@@ -311,25 +367,23 @@
     }
 
     function setView(viewName) {
-        const listDiv = document.getElementById('view-list');
-        const boardDiv = document.getElementById('view-board');
-        const btnList = document.getElementById('btn-list');
-        const btnBoard = document.getElementById('btn-board');
+        // Esconder todos
+        ['list', 'board', 'calendar'].forEach(v => {
+            document.getElementById('view-' + v).classList.add('hidden');
+            const btn = document.getElementById('btn-' + v);
+            btn.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+            btn.classList.add('text-gray-500', 'dark:text-gray-400');
+        });
 
-        if (viewName === 'list') {
-            listDiv.classList.remove('hidden');
-            boardDiv.classList.add('hidden');
-            btnList.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
-            btnList.classList.remove('text-gray-500', 'dark:text-gray-400');
-            btnBoard.classList.add('text-gray-500', 'dark:text-gray-400');
-            btnBoard.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
-        } else {
-            boardDiv.classList.remove('hidden');
-            listDiv.classList.add('hidden');
-            btnBoard.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
-            btnBoard.classList.remove('text-gray-500', 'dark:text-gray-400');
-            btnList.classList.add('text-gray-500', 'dark:text-gray-400');
-            btnList.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+        // Mostrar selecionado
+        document.getElementById('view-' + viewName).classList.remove('hidden');
+        const activeBtn = document.getElementById('btn-' + viewName);
+        activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+        activeBtn.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-white', 'shadow-sm');
+
+        // Renderizar o calendário quando a tab ficar visível
+        if (viewName === 'calendar' && fcInstance) {
+            setTimeout(() => { fcInstance.render(); }, 50);
         }
     }
 </script>

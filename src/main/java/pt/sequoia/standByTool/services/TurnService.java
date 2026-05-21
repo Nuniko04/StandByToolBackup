@@ -2,13 +2,13 @@ package pt.sequoia.standByTool.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.sequoia.standByTool.models.Card;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.TurnType;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.repositories.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,15 +22,17 @@ public class TurnService {
     private final UserRepository userRepository;
     private final TurnTypeRepository turnTypeRepository;
     private final AuditLogService auditLogService;
+    private final CardRepository cardRepository;
 
     public TurnService(TurnRepository turnRepository, CalendarService calendarService,
                        UserRepository userRepository, TurnTypeRepository turnTypeRepository,
-                       AuditLogService auditLogService) {
+                       AuditLogService auditLogService, CardRepository cardRepository) {
         this.turnRepository = turnRepository;
         this.calendarService = calendarService;
         this.userRepository = userRepository;
         this.turnTypeRepository = turnTypeRepository;
         this.auditLogService = auditLogService;
+        this.cardRepository = cardRepository;
     }
 
     @Transactional
@@ -63,22 +65,19 @@ public class TurnService {
     }
 
     @Transactional
-    public Turn createManualTurn(UUID assigneeId, UUID turnTypeId, LocalDateTime start, LocalDateTime end, User assigner) {
+    public Turn createManualTurn(UUID assigneeId, UUID turnTypeId, UUID cardId, LocalDateTime start, LocalDateTime end, User assigner) {
         User assignee = userRepository.findById(assigneeId).orElseThrow();
         TurnType type = turnTypeRepository.findById(turnTypeId).orElseThrow();
 
-        // 💡 1. UTILIZAÇÃO DA MATRIZ DE ELEGIBILIDADE (Colocada no topo e protegida contra nulos)
         if (assignee.getEligibleTurnTypes() == null || assignee.getEligibleTurnTypes().stream().noneMatch(tt -> tt.getId().equals(type.getId()))) {
             throw new IllegalArgumentException("Erro: O colaborador " + assignee.getName() + " não tem permissão/elegibilidade para realizar turnos do tipo " + type.getName() + ".");
         }
 
-        // 🛡️ 2. A BARREIRA DE SEGURANÇA CONTRA SOBREPOSIÇÕES 🛡️
         boolean jaTemTurno = turnRepository.existsByAssigneeAndDates(assigneeId, start, end);
         if (jaTemTurno) {
             throw new IllegalArgumentException("O colaborador " + assignee.getName() + " já tem um turno atribuído que se sobrepõe a estas datas.");
         }
 
-        // ⚙️ 3. CRIAÇÃO E PERSISTÊNCIA
         Turn turn = new Turn();
         turn.setAssignee(assignee);
         turn.setTurnType(type);
@@ -88,40 +87,48 @@ public class TurnService {
         turn.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
         turn.setCreatedBy(assigner);
 
+        // 🛡️ VALIDAÇÃO E ATRIBUIÇÃO DO CARTÃO 🛡️
+        if (cardId != null) {
+            Card card = cardRepository.findById(cardId)
+                    .orElseThrow(() -> new IllegalArgumentException("Cartão não encontrado."));
+
+            // Usamos um UUID random falso na validação de criação porque o turno ainda não tem ID
+            int conflitosCartao = turnRepository.countOverlappingTurnsWithCard(cardId, UUID.randomUUID(), start, end);
+            if (conflitosCartao > 0) {
+                throw new IllegalArgumentException("Atenção: O cartão selecionado já está a ser utilizado noutro turno durante estas datas!");
+            }
+            turn.setPaymentCard(card);
+        }
+
         Turn saved = turnRepository.save(turn);
         auditLogService.log(assigner, "CREATE_MANUAL_TURN", "Turn", saved.getId(), "Manual assignment created");
         return saved;
     }
 
     @Transactional
-    public boolean updateTurn(UUID turnId, UUID newAssigneeId, LocalDateTime newStart, LocalDateTime newEnd, User assigner) {
+    public boolean updateTurn(UUID turnId, UUID newAssigneeId, UUID newCardId, LocalDateTime newStart, LocalDateTime newEnd, User assigner) {
         Optional<Turn> opt = turnRepository.findById(turnId);
         if (opt.isPresent()) {
             Turn turn = opt.get();
 
-            // 1. Variáveis finais para a matemática de conflitos e elegibilidade
             UUID finalAssigneeId = newAssigneeId != null ? newAssigneeId : turn.getAssignee().getId();
             LocalDateTime finalStart = newStart != null ? newStart : turn.getStartTime();
             LocalDateTime finalEnd = newEnd != null ? newEnd : turn.getEndTime();
 
-            // 💡 UTILIZAÇÃO DA MATRIZ DE ELEGIBILIDADE 💡
-            // Buscamos o colaborador que ficará com o turno (atual ou o novo)
             User colaboradorAlvo = userRepository.findById(finalAssigneeId)
                     .orElseThrow(() -> new IllegalArgumentException("Colaborador não encontrado."));
 
-            // Verificamos se o tipo deste turno está presente na lista de elegibilidade do colaborador
             boolean éElegivel = colaboradorAlvo.getEligibleTurnTypes().stream()
                     .anyMatch(tt -> tt.getId().equals(turn.getTurnType().getId()));
 
             if (!éElegivel) {
                 throw new IllegalArgumentException("Edição bloqueada: O colaborador " + colaboradorAlvo.getName() +
-                        " não tem elegibilidade/permissão para realizar turnos do tipo " + turn.getTurnType().getName() + ".");
+                        " não tem elegibilidade para realizar turnos do tipo " + turn.getTurnType().getName() + ".");
             }
 
-            // 🛡️ A BARREIRA DE SEGURANÇA CONTRA SOBREPOSIÇÕES CONTRA OUTROS TURNOS 🛡️
             List<Turn> outrosTurnos = turnRepository.findAll().stream()
                     .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(finalAssigneeId))
-                    .filter(t -> !t.getId().equals(turnId)) // Ignora o próprio turno em edição
+                    .filter(t -> !t.getId().equals(turnId))
                     .toList();
 
             boolean temConflito = outrosTurnos.stream().anyMatch(t ->
@@ -135,23 +142,19 @@ public class TurnService {
             StringBuilder changes = new StringBuilder();
             boolean mudouDePessoa = false;
 
-            // 2. Aplicar mudança de utilizador (Se existir)
             if (newAssigneeId != null && !newAssigneeId.equals(turn.getAssignee().getId())) {
-                // Como já buscámos e validámos o colaboradorAlvo acima, escusamos de ir à DB outra vez:
                 changes.append("Assignee: ").append(turn.getAssignee().getName()).append(" -> ").append(colaboradorAlvo.getName()).append("; ");
 
-                // MUDANÇA DE PESSOA: APAGA O EVENTO DO CALENDÁRIO!
                 if (turn.getCalendarEventId() != null && !turn.getCalendarEventId().isBlank()) {
                     calendarService.deleteTurnFromCalendar(turn);
-                    turn.setCalendarEventId(null); // Limpa a matrícula
+                    turn.setCalendarEventId(null);
                 }
 
                 turn.setAssignee(colaboradorAlvo);
-                turn.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE); // Força a nova aceitação
+                turn.setTurnStatus(TurnStatus.PENDING_ACCEPTANCE);
                 mudouDePessoa = true;
             }
 
-            // 3. Aplicar mudança de Datas
             if (newStart != null && !newStart.equals(turn.getStartTime())) {
                 changes.append("Start: ").append(turn.getStartTime()).append(" -> ").append(newStart).append("; ");
                 turn.setStartTime(newStart);
@@ -161,7 +164,20 @@ public class TurnService {
                 turn.setEndTime(newEnd);
             }
 
-            // 4. ATUALIZAR CALENDÁRIO CENTRAL (Apenas se manteve a mesma pessoa!)
+            // 🛡️ ATUALIZAÇÃO E VALIDAÇÃO DO CARTÃO 🛡️
+            if (newCardId != null) {
+                Card card = cardRepository.findById(newCardId)
+                        .orElseThrow(() -> new IllegalArgumentException("Cartão não encontrado."));
+
+                int conflitosCartao = turnRepository.countOverlappingTurnsWithCard(newCardId, turnId, finalStart, finalEnd);
+                if (conflitosCartao > 0) {
+                    throw new IllegalArgumentException("Atenção: O cartão selecionado já está a ser utilizado noutro turno durante estas datas!");
+                }
+
+                turn.setPaymentCard(card);
+                changes.append("Card updated; ");
+            }
+
             if (!mudouDePessoa && turn.getCalendarEventId() != null && !turn.getCalendarEventId().isBlank()) {
                 calendarService.updateTurnInCalendar(turn);
             }
@@ -181,5 +197,9 @@ public class TurnService {
             return true;
         }
         return false;
+    }
+
+    public Optional<Turn> getTurn(UUID id) {
+        return turnRepository.findById(id);
     }
 }

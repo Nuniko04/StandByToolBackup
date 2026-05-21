@@ -67,15 +67,18 @@ public class CalendarService {
                             + turn.getAssignee().getName()
             );
 
+            // Criamos o formatador rigoroso para a Google (com os segundos obrigatórios)
+            DateTimeFormatter formatoGoogle = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
             // Início
             Map<String, String> start = new HashMap<>();
-            start.put("dateTime", turn.getStartTime().toString()); // Mudou para dateTime
+            start.put("dateTime", turn.getStartTime().format(formatoGoogle)); // 💡 AQUI: format() em vez de toString()
             start.put("timeZone", "Europe/Lisbon"); // Obrigatório!
             event.put("start", start);
 
-// Fim
+            // Fim
             Map<String, String> end = new HashMap<>();
-            end.put("dateTime", turn.getEndTime().toString()); // Sem o plusDays(1)
+            end.put("dateTime", turn.getEndTime().format(formatoGoogle)); // 💡 AQUI: format() em vez de toString()
             end.put("timeZone", "Europe/Lisbon");
             event.put("end", end);
 

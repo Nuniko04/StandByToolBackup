@@ -6,7 +6,7 @@ import pt.sequoia.standByTool.models.TurnType;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.repositories.TurnTypeRepository;
 
-import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,22 +22,38 @@ public class TurnTypeService {
         this.auditLogService = auditLogService;
     }
 
-    public List<TurnType> getAllTurnTypes() { return turnTypeRepository.findAll(); }
+    public List<TurnType> getAllTurnTypes() {
+        return turnTypeRepository.findAll();
+    }
+
+    public Optional<TurnType> findById(UUID id) {
+        return turnTypeRepository.findById(id);
+    }
 
     @Transactional
-    public boolean updateTurnType(UUID id, String name, BigDecimal defaultValue, String googleCalendarId, User adminActor) {
-        Optional<TurnType> opt = turnTypeRepository.findById(id);
+    public void createTurnType(String name, String googleCalendarId, LocalTime start, LocalTime end, User adminActor) {
+        TurnType turnType = new TurnType();
+        turnType.setName(name);
+        turnType.setGoogleCalendarId(googleCalendarId);
+        turnType.setDefaultStartTime(start);
+        turnType.setDefaultEndTime(end);
 
-        if (opt.isPresent()) {
-            TurnType turnType = opt.get();
-            if (name != null && !name.isBlank()) turnType.setName(name);
-            if (defaultValue != null) turnType.setDefaultValue(defaultValue);
-            if (googleCalendarId != null && !googleCalendarId.isBlank()) turnType.setGoogleCalendarId(googleCalendarId);
+        turnTypeRepository.save(turnType);
+        auditLogService.log(adminActor, "CREATE_TURN_TYPE", "TurnType", turnType.getId(), "Created TurnType: " + name);
+    }
 
-            turnTypeRepository.save(turnType);
-            auditLogService.log(adminActor, "UPDATE_TURN_TYPE", "TurnType", id, "Settings updated for: " + turnType.getName());
-            return true;
-        }
-        return false;
+    // --- NOVO: MÉTODO PARA EDITAR TIPO DE TURNO ---
+    @Transactional
+    public void updateTurnType(UUID id, String name, String googleCalendarId, LocalTime start, LocalTime end, User adminActor) {
+        TurnType turnType = turnTypeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tipo de Turno não encontrado."));
+
+        turnType.setName(name);
+        turnType.setGoogleCalendarId(googleCalendarId);
+        turnType.setDefaultStartTime(start);
+        turnType.setDefaultEndTime(end);
+
+        turnTypeRepository.save(turnType);
+        auditLogService.log(adminActor, "UPDATE_TURN_TYPE", "TurnType", turnType.getId(), "Updated TurnType: " + name);
     }
 }

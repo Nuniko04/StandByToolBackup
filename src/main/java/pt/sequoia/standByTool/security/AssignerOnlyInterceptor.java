@@ -2,40 +2,45 @@ package pt.sequoia.standByTool.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import pt.sequoia.standByTool.models.User;
+import pt.sequoia.standByTool.repositories.UserRepository;
+
+import java.util.Optional;
 
 @Component
 public class AssignerOnlyInterceptor implements HandlerInterceptor {
 
-    // Vai ler o valor do nosso application.properties
-    @Value("${app.launch.assigner-only-mode:false}")
-    private boolean isAssignerOnlyMode;
+    private final UserRepository userRepository;
+
+    // Injetamos o repositório para podermos ir à Base de Dados
+    public AssignerOnlyInterceptor(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            User sessionUser = (User) session.getAttribute("loggedUser");
+            if (sessionUser != null) {
+                // Em vez de confiarmos cegamente na sessão, vamos verificar à Base de Dados!
+                Optional<User> dbUser = userRepository.findById(sessionUser.getId());
 
-        // Se o interruptor estiver desligado, toda a gente passa!
-        if (!isAssignerOnlyMode) {
-            return true;
+                if (dbUser.isPresent() && dbUser.get().isAssigner()) {
+                    // A pessoa continua a ser Assigner na BD. Pode passar!
+
+                    // Bónus: Atualizamos a sessão silenciosamente caso o nome/email tenha mudado
+                    session.setAttribute("loggedUser", dbUser.get());
+                    return true;
+                }
+            }
         }
 
-        // Se estiver ligado, temos de ver quem é o utilizador.
-        // (Nota: A forma de ir buscar o utilizador depende de como estão a fazer o Login.
-        // Assumindo que o guardaram na Sessão ao fazer login com o Google OAuth):
-        User utilizadorLogado = (User) request.getSession().getAttribute("loggedUser");
-
-        // Se o utilizador existir, mas a flag "isAssigner" for falsa...
-        if (utilizadorLogado != null && !utilizadorLogado.isAssigner()) {
-
-            // ... redirecionamos para uma página bonita a dizer "Aplicação em fase de testes"
-            response.sendRedirect("/coming-soon");
-            return false; // Bloqueia o acesso ao dashboard normal
-        }
-
-        // Se for o Assigner, deixa passar
-        return true;
+        // Se chegou aqui, ou não tem sessão, ou já não é Assigner na BD. Rua!
+        response.sendRedirect("/employee-view");
+        return false;
     }
 }

@@ -1,16 +1,17 @@
 package pt.sequoia.standByTool.controllers;
 
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import pt.sequoia.standByTool.models.TurnType;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.TurnTypeService;
 
-import java.util.List;
+import java.time.LocalTime;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/turntypes")
+@Controller
+@RequestMapping("/turntypes")
 public class TurnTypeController {
 
     private final TurnTypeService turnTypeService;
@@ -19,23 +20,53 @@ public class TurnTypeController {
         this.turnTypeService = turnTypeService;
     }
 
-    // Endpoint: GET /api/turntypes
-    // O que faz: O frontend chama isto para mostrar os turnos disponíveis quando o Assigner clica em "Assign New Shift"
-    @GetMapping
-    public ResponseEntity<List<TurnType>> getAll() {
-        return ResponseEntity.ok(turnTypeService.getAllTurnTypes());
+    @PostMapping("/save")
+    public String saveTurnType(@RequestParam String name,
+                               @RequestParam String googleCalendarId,
+                               @RequestParam String defaultStartTime,
+                               @RequestParam String defaultEndTime,
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes) {
+
+        User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+
+        try {
+            LocalTime start = LocalTime.parse(defaultStartTime);
+            LocalTime end = LocalTime.parse(defaultEndTime);
+
+            turnTypeService.createTurnType(name, googleCalendarId, start, end, adminActor);
+            redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno criado com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar tipo de turno: " + e.getMessage());
+        }
+
+        return "redirect:/dashboard";
     }
 
-    // Endpoint: PUT /api/turntypes/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable UUID id, @RequestBody TurnType turnTypeDetails, jakarta.servlet.http.HttpSession session) {
+    // --- NOVO: ENDPOINT PARA EDITAR O TIPO DE TURNO ---
+    @PostMapping("/{id}/update")
+    public String updateTurnType(@PathVariable UUID id,
+                                 @RequestParam String name,
+                                 @RequestParam String googleCalendarId,
+                                 @RequestParam String defaultStartTime,
+                                 @RequestParam String defaultEndTime,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+
         User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return ResponseEntity.status(403).build();
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
-        boolean sucesso = turnTypeService.updateTurnType(
-                id, turnTypeDetails.getName(), turnTypeDetails.getDefaultValue(),
-                turnTypeDetails.getGoogleCalendarId(), adminActor);
+        try {
+            LocalTime start = LocalTime.parse(defaultStartTime);
+            LocalTime end = LocalTime.parse(defaultEndTime);
 
-        return sucesso ? ResponseEntity.ok("Tipo de turno atualizado!") : ResponseEntity.notFound().build();
+            turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, adminActor);
+            redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno atualizado com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar tipo de turno: " + e.getMessage());
+        }
+
+        return "redirect:/dashboard";
     }
 }

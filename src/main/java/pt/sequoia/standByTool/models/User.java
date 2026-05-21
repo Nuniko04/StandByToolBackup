@@ -21,7 +21,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "google_oauth_id", unique = true, nullable = false)
+    // ANTES: @Column(name = "google_oauth_id", unique = true, nullable = false)
+    // DEPOIS:
+    @Column(name = "google_oauth_id", unique = true)
     private String googleOauthId;
 
     @Column(nullable = false)
