@@ -72,12 +72,16 @@ public class RequestService {
     public Request createSwapRequest(UUID userId, UUID turnId, UUID targetUserId, String note) {
         User requester = userRepository.findById(userId).orElseThrow();
         Turn turn = turnRepository.findById(turnId).orElseThrow();
-        User targetUser = userRepository.findById(targetUserId).orElseThrow(); // <-- NOVO: Buscar o alvo
+        User targetUser = userRepository.findById(targetUserId).orElseThrow();
+
+        // 💡 1. BLOQUEAR O TURNO: Muda o estado para SWAP_REQUESTED
+        turn.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.SWAP_REQUESTED);
+        turnRepository.save(turn); // Guarda a alteração do turno na base de dados
 
         Request request = new Request();
         request.setRequestType(RequestType.TURN_SWAP);
         request.setRequester(requester);
-        request.setTargetUser(targetUser); // <-- NOVO: Guardar o alvo
+        request.setTargetUser(targetUser);
         request.setTurn(turn);
         request.setRequesterNote(note);
 
@@ -97,30 +101,32 @@ public class RequestService {
             request.setAssignerNote(assignerNote);
 
             String logDetails = "Request processed as " + status;
+            Turn turnoToSwap = request.getTurn();
 
-            if (status == RequestStatus.APPROVED && request.getRequestType() == RequestType.TURN_SWAP) {
-                Turn turnoToSwap = request.getTurn();
-                User novoColaborador = request.getTargetUser(); // 💡 Busca diretamente o Alvo do pedido!
+            if (request.getRequestType() == RequestType.TURN_SWAP) {
+                if (status == RequestStatus.APPROVED) {
+                    // 💡 2. APROVADO: Passa para o novo utilizador e volta a ficar ACCEPTED
+                    User novoColaborador = request.getTargetUser();
+                    logDetails += ". Turn reassigned from " + turnoToSwap.getAssignee().getName() + " to " + novoColaborador.getName();
 
-                logDetails += ". Turn reassigned from " + turnoToSwap.getAssignee().getName() + " to " + novoColaborador.getName();
+                    turnoToSwap.setAssignee(novoColaborador);
+                    turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED);
 
-                turnoToSwap.setAssignee(novoColaborador);
-                turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED); // Opção A: Fica logo confirmado!
+                    calendarService.updateTurnInCalendar(turnoToSwap);
+                } else if (status == RequestStatus.DENIED) {
+                    // 💡 3. REJEITADO: Volta a ficar ACCEPTED para a pessoa original, desbloqueando-o
+                    turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED);
+                }
 
-                calendarService.updateTurnInCalendar(turnoToSwap);
-                turnRepository.save(turnoToSwap);
-            }
+                turnRepository.save(turnoToSwap); // Guarda o turno com o novo estado
 
-            // 💡 O NOVO SISTEMA DE NOTIFICAÇÕES PARA SWAPS
-            if (request.getRequestType() == pt.sequoia.standByTool.models.enums.RequestType.TURN_SWAP) {
+                // Sistema de Notificações
                 String acao = status == RequestStatus.APPROVED ? "APROVADO ✅" : "REJEITADO ❌";
-                String dataTurno = request.getTurn().getStartTime().toLocalDate().toString();
+                String dataTurno = turnoToSwap.getStartTime().toLocalDate().toString();
 
-                // Avisa o Colaborador A (Quem pediu)
                 String msgA = "O teu pedido de troca de turno (" + dataTurno + ") com o/a " + request.getTargetUser().getName() + " foi " + acao + " pelos RH.";
                 notificationService.criarNotificacao(request.getRequester(), msgA);
 
-                // Avisa o Colaborador B (O Alvo da troca)
                 String msgB = "A troca de turno (" + dataTurno + ") pedida pelo/a " + request.getRequester().getName() + " para ti foi " + acao + " pelos RH.";
                 notificationService.criarNotificacao(request.getTargetUser(), msgB);
             }

@@ -55,12 +55,21 @@ public class TurnService {
         return false;
     }
 
+    // ==========================================
+    // MÉTODOS DE LISTAGEM (Ocultam os CANCELLED)
+    // ==========================================
     public List<Turn> getAllTurns() {
-        return turnRepository.findAll();
+        return turnRepository.findAll().stream()
+                // Ignora os turnos que foram apagados (Cancelados)
+                .filter(t -> t.getTurnStatus() != TurnStatus.CANCELLED)
+                .toList();
     }
 
     public List<Turn> getMyTurns(UUID userId) {
-        return turnRepository.findByAssigneeIdOrderByStartTimeAscCreatedAtAsc(userId);
+        return turnRepository.findByAssigneeIdOrderByStartTimeAscCreatedAtAsc(userId).stream()
+                // Ignora os turnos que foram apagados (Cancelados)
+                .filter(t -> t.getTurnStatus() != TurnStatus.CANCELLED)
+                .toList();
     }
 
     @Transactional
@@ -188,14 +197,52 @@ public class TurnService {
         return false;
     }
 
+    // ==========================================
+    // MÉTODO APAGAR (Agora usa SOFT DELETE)
+    // ==========================================
     @Transactional
     public boolean deleteTurn(UUID turnId, User assigner) {
-        if (turnRepository.existsById(turnId)) {
-            turnRepository.deleteById(turnId);
-            auditLogService.log(assigner, "DELETE_TURN", "Turn", turnId, "Turn deleted");
+        Optional<Turn> opt = turnRepository.findById(turnId);
+        if (opt.isPresent()) {
+            Turn turn = opt.get();
+
+            // 1º Tenta apagar o evento do Google Calendar (se existir)
+            if (turn.getCalendarEventId() != null && turn.getTurnType().getGoogleCalendarId() != null) {
+                try {
+                    calendarService.deleteTurnFromCalendar(turn);
+                } catch (Exception e) {
+                    System.err.println("Erro ao remover evento do calendário, prosseguindo: " + e.getMessage());
+                }
+                turn.setCalendarEventId(null);
+            }
+
+            // 2º SOFT DELETE: A magia acontece aqui. Muda o status em vez de destruir a linha!
+            turn.setTurnStatus(TurnStatus.CANCELLED);
+            turnRepository.save(turn);
+
+            auditLogService.log(assigner, "DELETE_TURN", "Turn", turnId, "Turn soft-deleted (CANCELLED)");
             return true;
         }
         return false;
+    }
+
+    // ==========================================
+    // NOVO MÉTODO: CONCLUIR TURNOS DO PASSADO
+    // ==========================================
+    @Transactional
+    public int markPastTurnsAsCompleted() {
+        // Encontra todos os turnos que estavam aceites mas cuja data final já passou do momento atual
+        List<Turn> turnsToComplete = turnRepository.findAll().stream()
+                .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED)
+                .filter(t -> t.getEndTime().isBefore(LocalDateTime.now()))
+                .toList();
+
+        for (Turn t : turnsToComplete) {
+            t.setTurnStatus(TurnStatus.COMPLETED);
+            turnRepository.save(t);
+        }
+
+        return turnsToComplete.size(); // Devolve a quantidade de turnos concluídos com sucesso
     }
 
     public Optional<Turn> getTurn(UUID id) {
