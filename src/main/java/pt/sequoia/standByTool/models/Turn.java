@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import pt.sequoia.standByTool.models.enums.PaymentMethod;
 import pt.sequoia.standByTool.models.enums.PaymentStatus;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,10 +35,10 @@ public class Turn {
     private TurnType turnType;
 
     @Column(name = "start_time", nullable = false)
-    private LocalDate startTime;
+    private LocalDateTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDate endTime;
+    private LocalDateTime endTime;
 
     @Column(name = "turn_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal turnValue;
@@ -49,15 +51,26 @@ public class Turn {
     @Column(name = "payment_status", length = 50)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
+    // --- LOGÍSTICA DE PAGAMENTO ---
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 50)
+    private PaymentMethod paymentMethod;
+
+    // --- LIGAÇÃO COM O CARTÃO ---
+    // Relação ManyToOne correta para permitir reutilização em semanas distintas
+    @ManyToOne
+    @JoinColumn(name = "payment_card_id")
+    private Card paymentCard;
+
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "one_off_payment", columnDefinition = "json")
+    @Column(name = "one_off_payment")
     private String oneOffPayment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    // A ligação Mágica: Uma escala pode ter vários serviços associados (Ex: Itaú + MG)
+    // Vinculação de múltiplos serviços associados (Ex: Itaú + MG)
     @ManyToMany
     @JoinTable(
             name = "turno_servicos",
@@ -66,7 +79,7 @@ public class Turn {
     )
     private List<ServicoCliente> servicosAlocados;
 
-    // Novo campo para o Calendário (ID do evento no Google/Outlook, gerado automaticamente)
+    // ID do evento gerado automaticamente no Google Calendar
     private String calendarEventId;
 
     @Column(name = "created_at", updatable = false)
@@ -86,5 +99,4 @@ public class Turn {
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
-
 }

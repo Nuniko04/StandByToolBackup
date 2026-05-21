@@ -1,5 +1,6 @@
 package pt.sequoia.standByTool.repositories;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import pt.sequoia.standByTool.models.User;
@@ -15,4 +16,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // Adicione este método para o login funcionar
     Optional<User> findByGoogleOauthId(String googleOauthId);
 
+    Optional<User> findByEmail(String email);
 }

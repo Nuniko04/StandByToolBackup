@@ -22,7 +22,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/login", "/error", "/coming-soon").permitAll()
+                        // 💡 ADICIONADO O CAMINHO /api/finance/** PARA O SCHEDULER
+                        .requestMatchers("/", "/login", "/error", "/coming-soon", "/api/finance/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )

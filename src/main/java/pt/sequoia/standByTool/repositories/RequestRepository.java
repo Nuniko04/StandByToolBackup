@@ -17,4 +17,12 @@ public interface RequestRepository extends JpaRepository<Request, UUID> {
     boolean hasApprovedVacation(@Param("userId") UUID userId,
                                 @Param("start") LocalDate start,
                                 @Param("end") LocalDate end);
+
+    // 1. Verifica se há férias a cruzar com as datas da semana atual
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Request r WHERE r.requester.id = :userId AND r.requestType = 'VACATION' AND r.status = 'APPROVED' AND r.timeOffStart <= :end AND r.timeOffEnd >= :start")
+    boolean hasApprovedVacationOverlapping(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    // 2. Verifica se as férias começam num dia MUITO específico (A nossa regra da 2ª feira)
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Request r WHERE r.requester.id = :userId AND r.requestType = 'VACATION' AND r.status = 'APPROVED' AND r.timeOffStart = :targetDate")
+    boolean hasApprovedVacationStartingOn(@Param("userId") UUID userId, @Param("targetDate") LocalDate targetDate);
 }

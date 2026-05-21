@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "servicos_cliente")
@@ -12,8 +14,8 @@ import java.math.BigDecimal;
 public class ServicoCliente {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
     private String nomeCliente; // Ex: Itaú, Finantia, MG
@@ -29,4 +31,8 @@ public class ServicoCliente {
 
     @Column(nullable = false)
     private boolean ativo = true; // Para desativar quando perdem o cliente
+
+    // ADICIONA ISTO:
+    @Column(name = "data_fim")
+    private LocalDate dataFim;
 }

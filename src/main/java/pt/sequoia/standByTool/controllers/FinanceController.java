@@ -1,55 +1,44 @@
 package pt.sequoia.standByTool.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import pt.sequoia.standByTool.services.FinanceService;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/finance")
 public class FinanceController {
 
     private final FinanceService financeService;
+    private final String CRON_SECRET = "MinhaChaveSecretaSuperSegura123";
 
     public FinanceController(FinanceService financeService) {
         this.financeService = financeService;
     }
 
-    @PostMapping("/calculate/previous-month")
-    public ResponseEntity<String> processPreviousMonth() {
-        try {
-            int turnosProcessados = financeService.processPreviousMonthAcceptedTurns();
-            return ResponseEntity.ok("Fecho de mês concluído. Turnos atualizados: " + turnosProcessados);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao processar o mês anterior: " + e.getMessage());
+    // 💡 Rota corrigida para semanal
+    @PostMapping("/process-weekly-billing")
+    public ResponseEntity<String> processWeeklyBilling(@RequestHeader(value = "X-Cloud-Scheduler-Auth", required = false) String authHeader) {
+
+        if (authHeader == null || !authHeader.equals(CRON_SECRET)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado.");
         }
-    }
 
-    /**
-     * Endpoint para recalcular e atualizar o valor de um turno específico.
-     * Pode ser acionado remotamente via POST.
-     */
-    @PostMapping("/calculate/{turnId}")
-    public ResponseEntity<BigDecimal> calculateTurnValue(@PathVariable UUID turnId) {
         try {
-            BigDecimal valorFinal = financeService.calculateAndUpdateTurnValue(turnId);
-            return ResponseEntity.ok(valorFinal);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+            System.out.println("🚀 A iniciar o fecho financeiro da semana anterior...");
+
+            // 💡 Chama o método com o teu nome original/lógica semanal
+            financeService.calcularEAtualizarValoresDaSemanaAnterior();
+
+            System.out.println("✅ Fecho financeiro semanal concluído com sucesso.");
+            return ResponseEntity.ok("Fecho financeiro da semana concluído!");
+
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            System.err.println("❌ Erro ao processar fecho semanal: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro interno: " + e.getMessage());
         }
-    }
-
-    @GetMapping("/earnings/{userId}")
-    public ResponseEntity<BigDecimal> getMonthlyEarnings(
-            @PathVariable UUID userId,
-            @RequestParam int month,
-            @RequestParam int year) {
-
-        BigDecimal ganhos = financeService.calculateMonthlyEarnings(userId, month, year);
-        return ResponseEntity.ok(ganhos);
     }
 }

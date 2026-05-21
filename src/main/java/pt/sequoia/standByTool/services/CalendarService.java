@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 import pt.sequoia.standByTool.models.Turn;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,14 +67,19 @@ public class CalendarService {
                             + turn.getAssignee().getName()
             );
 
+            // Criamos o formatador rigoroso para a Google (com os segundos obrigatórios)
+            DateTimeFormatter formatoGoogle = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
             // Início
             Map<String, String> start = new HashMap<>();
-            start.put("date", turn.getStartTime().toString());
+            start.put("dateTime", turn.getStartTime().format(formatoGoogle)); // 💡 AQUI: format() em vez de toString()
+            start.put("timeZone", "Europe/Lisbon"); // Obrigatório!
             event.put("start", start);
 
             // Fim
             Map<String, String> end = new HashMap<>();
-            end.put("date", turn.getEndTime().plusDays(1).toString());
+            end.put("dateTime", turn.getEndTime().format(formatoGoogle)); // 💡 AQUI: format() em vez de toString()
+            end.put("timeZone", "Europe/Lisbon");
             event.put("end", end);
 
             HttpEntity<Map<String, Object>> request =
@@ -96,5 +102,113 @@ public class CalendarService {
         }
 
         return null;
+    }
+
+    public void updateTurnInCalendar(Turn turn) {
+        // Se o turno nunca foi ao calendário, não há nada para atualizar
+        if (turn.getCalendarEventId() == null || turn.getCalendarEventId().isBlank()) {
+            System.out.println("⚠️ O turno não tem ID de calendário. Atualização ignorada.");
+            return;
+        }
+
+        try {
+            String calendarId = turn.getTurnType().getGoogleCalendarId();
+
+            if (calendarId == null || calendarId.isBlank()) {
+                calendarId = "primary";
+            }
+
+            // O URL agora aponta diretamente para a "matrícula" do evento
+            String url = "https://www.googleapis.com/calendar/v3/calendars/"
+                    + calendarId
+                    + "/events/"
+                    + turn.getCalendarEventId(); // <-- A MAGIA AQUI
+
+            String token = getServiceAccountToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // Reconstruímos o evento com o NOME DO NOVO COLABORADOR
+            Map<String, Object> event = new HashMap<>();
+
+            event.put(
+                    "summary",
+                    turn.getTurnType().getName() + ": " + turn.getAssignee().getName()
+            );
+
+            event.put(
+                    "description",
+                    "Turn updated via Swap Request. Now assigned to: "
+                            + turn.getAssignee().getName()
+            );
+
+            // Criamos o formatador rigoroso para a Google (com os segundos obrigatórios)
+            DateTimeFormatter formatoGoogle = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+            // Início
+            Map<String, String> start = new HashMap<>();
+            start.put("dateTime", turn.getStartTime().format(formatoGoogle)); // 💡 Usamos o format() em vez de toString()
+            start.put("timeZone", "Europe/Lisbon");
+            event.put("start", start);
+
+            // Fim
+            Map<String, String> end = new HashMap<>();
+            end.put("dateTime", turn.getEndTime().format(formatoGoogle)); // 💡 Usamos o format() em vez de toString()
+            end.put("timeZone", "Europe/Lisbon");
+            event.put("end", end);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(event, headers);
+
+            // Usamos EXCHANGE com HttpMethod.PUT para substituir os dados do evento
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.PUT, request, Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("🔄 Evento atualizado com sucesso no Calendário!");
+            }
+
+        } catch (Exception e) {
+            System.err.println(
+                    "❌ Erro ao atualizar calendário na troca: "
+                            + e.getMessage()
+            );
+        }
+    }
+
+    public void deleteTurnFromCalendar(Turn turn) {
+        if (turn.getCalendarEventId() == null || turn.getCalendarEventId().isBlank()) {
+            return; // Se não tem ID do Google, não há nada para apagar
+        }
+
+        try {
+            String calendarId = turn.getTurnType().getGoogleCalendarId();
+            if (calendarId == null || calendarId.isBlank()) {
+                calendarId = "primary";
+            }
+
+            // O URL para apagar usa o método DELETE e a matrícula do evento
+            String url = "https://www.googleapis.com/calendar/v3/calendars/"
+                    + calendarId
+                    + "/events/"
+                    + turn.getCalendarEventId();
+
+            String token = getServiceAccountToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            // Executa o pedido DELETE
+            ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("🗑️ Evento apagado com sucesso do Calendário!");
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao apagar evento do calendário: " + e.getMessage());
+        }
     }
 }

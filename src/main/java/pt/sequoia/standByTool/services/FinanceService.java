@@ -1,101 +1,78 @@
 package pt.sequoia.standByTool.services;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import pt.sequoia.standByTool.models.ClienteTurnTypeValor;
 import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.Turn;
-import pt.sequoia.standByTool.models.enums.TurnStatus;
+import pt.sequoia.standByTool.repositories.ClienteTurnTypeValorRepository;
+import pt.sequoia.standByTool.repositories.ServicoClienteRepository;
 import pt.sequoia.standByTool.repositories.TurnRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.TemporalAdjusters;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class FinanceService {
 
+    private final ServicoClienteRepository servicoClienteRepository;
+    private final ClienteTurnTypeValorRepository precarioRepository;
     private final TurnRepository turnRepository;
 
-    public FinanceService(TurnRepository turnRepository) {
+    public FinanceService(ServicoClienteRepository servicoClienteRepository, ClienteTurnTypeValorRepository precarioRepository, TurnRepository turnRepository) {
+        this.servicoClienteRepository = servicoClienteRepository;
+        this.precarioRepository = precarioRepository;
         this.turnRepository = turnRepository;
     }
 
-    /**
-     * Calcula e atualiza o valor de um turno com base nos serviços de cliente ATIVOS alocados.
-     */
     @Transactional
-    public BigDecimal calculateAndUpdateTurnValue(UUID turnId) {
-        Turn turn = turnRepository.findById(turnId)
-                .orElseThrow(() -> new IllegalArgumentException("Turno não encontrado."));
+    public void calcularEAtualizarValoresDaSemanaAnterior() {
+        // Assume-se que o CRON corre à Segunda-feira
+        LocalDateTime agora = LocalDateTime.now();
 
-        BigDecimal totalValue = BigDecimal.ZERO;
+        // A semana anterior começou há 7 dias, à meia-noite (00:00:00)
+        LocalDateTime inicioSemanaPassada = agora.minusDays(7).withHour(0).withMinute(0).withSecond(0);
 
-        if (turn.getServicosAlocados() == null || turn.getServicosAlocados().isEmpty()) {
-            totalValue = turn.getTurnType().getDefaultValue();
-        } else {
-            String turnTypeName = turn.getTurnType().getName();
+        // A semana anterior terminou ontem, no final do dia (23:59:59)
+        LocalDateTime fimSemanaPassada = agora.minusDays(1).withHour(23).withMinute(59).withSecond(59);
 
-            for (ServicoCliente servico : turn.getServicosAlocados()) {
-                if (servico.isAtivo()) {
-                    if ("StandBy".equalsIgnoreCase(turnTypeName)) {
-                        totalValue = totalValue.add(servico.getValorStandby());
-                    } else if ("Backup".equalsIgnoreCase(turnTypeName)) {
-                        totalValue = totalValue.add(servico.getValorBackup());
-                    }
-                }
+        // 1. Procurar os turnos que terminaram dentro deste intervalo
+        // (Vais precisar de criar esta query no TurnRepository)
+        List<Turn> turnosDaSemana = turnRepository.findByEndTimeBetween(inicioSemanaPassada, fimSemanaPassada);
+
+        // 2. Calcular o valor de cada um e "trancar" na base de dados
+        for(Turn t : turnosDaSemana) {
+            double valorFinal = calcularValorTurno(t); // O método que já fizemos com a tabela de preçário
+            t.setTurnValue(BigDecimal.valueOf(valorFinal));
+            turnRepository.save(t);
+        }
+    }
+
+    public double calcularValorTurno(Turn turn) {
+        if (turn == null || turn.getTurnType() == null) {
+            return 0.0;
+        }
+
+        // 1. Data em que o turno acabou (Nota: Teremos de mudar getEndTime() para LocalDate quando migrarmos para LocalDateTime)
+        LocalDateTime dataFimTurno = turn.getEndTime();
+
+        // 2. Quais clientes estavam ativos neste dia?
+        List<ServicoCliente> clientesAtivos = servicoClienteRepository.findAtivosNaData(dataFimTurno.toLocalDate());
+
+        // 3. Somar os valores específicos no preçário
+        double valorTotalClientes = 0.0;
+        for (ServicoCliente cliente : clientesAtivos) {
+            // Vai à tabela de preçário ver quanto este cliente paga por este tipo de turno
+            ClienteTurnTypeValor precario = precarioRepository.findByClienteAndTurnType(cliente, turn.getTurnType());
+
+            if (precario != null) {
+                valorTotalClientes += precario.getValorContribuicao();
             }
         }
 
-        turn.setTurnValue(totalValue);
-        turnRepository.save(turn);
-
-        return totalValue;
-    }
-
-    /**
-     * Calcula os ganhos estimados de um colaborador num mês e ano específicos.
-     */
-    @Transactional(readOnly = true)
-    public BigDecimal calculateMonthlyEarnings(UUID userId, int month, int year) {
-
-        // Mantemos tudo como LocalDate
-        LocalDate startOfMonth = LocalDate.of(year, month, 1);
-        LocalDate endOfMonth = startOfMonth.with(TemporalAdjusters.lastDayOfMonth());
-
-        List<Turn> userTurns = turnRepository.findAll().stream()
-                .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(userId))
-                // Comparamos LocalDate com LocalDate (usamos !isBefore e !isAfter para incluir o 1º e o último dia)
-                // Usamos !isBefore e !isAfter para incluir o primeiro e último dia do mês
-                .filter(t -> !t.getStartTime().isBefore(startOfMonth) && !t.getStartTime().isAfter(endOfMonth))
-                .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED)
-                .toList();
-
-        return userTurns.stream()
-                .map(Turn::getTurnValue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /**
-     * Vai à BD buscar os turnos ACCEPTED do mês anterior e atualiza o seu valor.
-     */
-    @Transactional
-    public int processPreviousMonthAcceptedTurns() {
-        // 1. Descobrir as datas do mês passado usando LocalDate
-        LocalDate hoje = LocalDate.now();
-        LocalDate inicioDoMesPassado = hoje.minusMonths(1).withDayOfMonth(1);
-        LocalDate fimDoMesPassado = hoje.withDayOfMonth(1).minusDays(1);
-
-        // 2. Ir à BD buscar todos os turnos ACCEPTED desse período
-        List<Turn> turnosParaProcessar = turnRepository.findAcceptedTurnsInPeriod(inicioDoMesPassado, fimDoMesPassado);
-
-        for (Turn turno : turnosParaProcessar) {
-            calculateAndUpdateTurnValue(turno.getId());
-        }
-
-        return turnosParaProcessar.size();
+        // O valor final é o valor base do turno (se existir) + a soma da faturação cruzada dos clientes
+        return valorTotalClientes;
     }
 }

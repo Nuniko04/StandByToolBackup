@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalTime; // <-- Só precisas deste import novo
 import java.util.UUID;
 
 @Entity
@@ -25,5 +26,12 @@ public class TurnType {
 
     @Column(name = "default_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal defaultValue = BigDecimal.ZERO;
+
+    // --- NOVOS CAMPOS (O Lombok gera os Getters/Setters sozinho) ---
+    @Column(name = "default_start_time")
+    private LocalTime defaultStartTime;
+
+    @Column(name = "default_end_time")
+    private LocalTime defaultEndTime;
 
 }
