@@ -34,4 +34,7 @@ public class TurnType {
     @Column(name = "default_end_time")
     private LocalTime defaultEndTime;
 
+    @Column(nullable = false)
+    private String color = "#3498db"; // Valor azul por defeito
+
 }

@@ -25,6 +25,7 @@ public class TurnTypeController {
                                @RequestParam String googleCalendarId,
                                @RequestParam String defaultStartTime,
                                @RequestParam String defaultEndTime,
+                               @RequestParam(required = false, defaultValue = "#3498db") String color,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
 
@@ -35,7 +36,7 @@ public class TurnTypeController {
             LocalTime start = LocalTime.parse(defaultStartTime);
             LocalTime end = LocalTime.parse(defaultEndTime);
 
-            turnTypeService.createTurnType(name, googleCalendarId, start, end, adminActor);
+            turnTypeService.createTurnType(name, googleCalendarId, start, end, color, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno criado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar tipo de turno: " + e.getMessage());
@@ -51,6 +52,7 @@ public class TurnTypeController {
                                  @RequestParam String googleCalendarId,
                                  @RequestParam String defaultStartTime,
                                  @RequestParam String defaultEndTime,
+                                 @RequestParam(required = false, defaultValue = "#3498db") String color,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
 
@@ -61,7 +63,7 @@ public class TurnTypeController {
             LocalTime start = LocalTime.parse(defaultStartTime);
             LocalTime end = LocalTime.parse(defaultEndTime);
 
-            turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, adminActor);
+            turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, color, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno atualizado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar tipo de turno: " + e.getMessage());
