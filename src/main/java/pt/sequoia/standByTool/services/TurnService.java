@@ -10,7 +10,6 @@ import pt.sequoia.standByTool.models.enums.TurnStatus;
 import pt.sequoia.standByTool.repositories.*;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,20 +55,14 @@ public class TurnService {
     }
 
     // ==========================================
-    // MÉTODOS DE LISTAGEM (Ocultam os CANCELLED)
+    // MÉTODOS DE LISTAGEM (Ocultam os CANCELLED diretamente na BD)
     // ==========================================
     public List<Turn> getAllTurns() {
-        return turnRepository.findAll().stream()
-                // Ignora os turnos que foram apagados (Cancelados)
-                .filter(t -> t.getTurnStatus() != TurnStatus.CANCELLED)
-                .toList();
+        return turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED);
     }
 
     public List<Turn> getMyTurns(UUID userId) {
-        return turnRepository.findByAssigneeIdOrderByStartTimeAscCreatedAtAsc(userId).stream()
-                // Ignora os turnos que foram apagados (Cancelados)
-                .filter(t -> t.getTurnStatus() != TurnStatus.CANCELLED)
-                .toList();
+        return turnRepository.findByAssigneeIdAndTurnStatusNotOrderByStartTimeAscCreatedAtAsc(userId, TurnStatus.CANCELLED);
     }
 
     @Transactional
@@ -134,8 +127,8 @@ public class TurnService {
                         " não tem elegibilidade para realizar turnos do tipo " + turn.getTurnType().getName() + ".");
             }
 
-            List<Turn> outrosTurnos = turnRepository.findAll().stream()
-                    .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(finalAssigneeId))
+            // 💡 Otimização: Vai buscar apenas os turnos da pessoa (já sem os cancelados)
+            List<Turn> outrosTurnos = turnRepository.findByAssigneeIdAndTurnStatusNotOrderByStartTimeAscCreatedAtAsc(finalAssigneeId, TurnStatus.CANCELLED).stream()
                     .filter(t -> !t.getId().equals(turnId))
                     .toList();
 
@@ -231,8 +224,8 @@ public class TurnService {
     // ==========================================
     @Transactional
     public int markPastTurnsAsCompleted() {
-        // Encontra todos os turnos que estavam aceites mas cuja data final já passou do momento atual
-        List<Turn> turnsToComplete = turnRepository.findAll().stream()
+        // Apenas para os turnos que não estão cancelados
+        List<Turn> turnsToComplete = turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED).stream()
                 .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED)
                 .filter(t -> t.getEndTime().isBefore(LocalDateTime.now()))
                 .toList();
@@ -251,7 +244,7 @@ public class TurnService {
 
     @Transactional
     public int acceptAllPendingTurns(User loggedUser) {
-        List<Turn> pendingTurns = turnRepository.findAll().stream()
+        List<Turn> pendingTurns = turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED).stream()
                 .filter(t -> t.getAssignee().getId().equals(loggedUser.getId())
                         && t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
                 .toList();
@@ -273,6 +266,6 @@ public class TurnService {
             auditLogService.log(loggedUser, "ACCEPT_ALL_TURNS", "Turn", loggedUser.getId(), "Accepted " + count + " pending turns");
         }
 
-        return count; // Retorna quantos turnos foram aceites
+        return count;
     }
 }
