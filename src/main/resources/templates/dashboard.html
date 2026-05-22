@@ -102,7 +102,7 @@
         .board-card.pending { border-top: 3px solid var(--warning); }
         .board-card.confirmed { border-top: 3px solid var(--success); }
 
-        /* --- CUSTOM FULLCALENDAR UI --- */
+        .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
         #calendar { background-color: #161616; padding: 20px; border-radius: 12px; }
         .fc-col-header-cell { padding: 15px 0 !important; background: #161616; border-bottom: 1px solid #262626 !important; }
@@ -132,7 +132,46 @@
         .form-input, select { width: 100%; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.2s; }
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
-        .hidden { display: none !important; }
+        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
+        @media (max-width: 768px) {
+            /* Passar o layout de lado-a-lado para coluna (cima para baixo) */
+            body { flex-direction: column; height: auto; overflow-y: auto; }
+
+            /* Ajustar a barra lateral para ocupar o ecrã todo no topo */
+            aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; z-index: 10; }
+            .logo-box { margin-bottom: 20px; }
+            nav { display: flex; flex-direction: column; gap: 5px; }
+
+            /* Ajustar o conteúdo principal */
+            main { padding: 20px; flex: none; overflow: visible; }
+            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
+
+            /* Ajustar cabeçalho com botões no Assigner */
+            #header-actions-master { flex-wrap: wrap; width: 100%; }
+            #header-actions-master button, .view-toggles { flex-grow: 1; text-align: center; justify-content: center; }
+
+            /* Grelhas (Passar de 2/3 colunas para 1 coluna) */
+            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+
+            /* Cartões de turno */
+            .shift-info { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .shift-actions button { width: 100%; justify-content: center; margin-top: 10px; }
+
+            /* Tabelas não podem quebrar o ecrã, adicionamos um scroll nativo */
+            .panel table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
+
+            /* Ajustes no calendário e nos painéis */
+            .panel { padding: 15px; }
+            .calendar-wrapper, #calendar { padding: 10px; min-height: auto; }
+            .fc-toolbar-title { font-size: 1rem !important; }
+            .fc-header-toolbar { flex-direction: column; gap: 10px; }
+
+            /* Botão de tema escuro flutuante */
+            .theme-btn { bottom: 15px; right: 15px; padding: 0 15px; height: 40px; font-size: 0.65rem; }
+
+            /* Modais */
+            .modal-box { padding: 20px; max-height: 90vh; overflow-y: auto; margin: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -140,7 +179,7 @@
     <aside>
         <div class="sidebar-top">
             <div class="logo-box">
-                <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
+                <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
             </div>
 
             <div class="user-profile">
@@ -152,7 +191,9 @@
             </div>
 
             <nav>
-                <a href="/employee-view" class="active"><i class="fas fa-calendar-alt"></i> My Schedule</a>
+                <a th:href="${session.loggedUser?.assigner ? '/employee-view' : '/dashboard'}" class="active">
+                    <i class="fas fa-calendar-alt"></i> My Schedule
+                </a>
                 <a href="/dashboard" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Assigner</a>
             </nav>
         </div>
@@ -386,11 +427,11 @@
             if (theme === 'light') {
                 icon.classList.replace('fa-moon', 'fa-sun');
                 themeText.innerText = 'Light Mode';
-                mainLogo.src = '/blueSequoiaLogo.avif'; 
+                mainLogo.src = '/images/blueSequoiaLogo.avif';
             } else {
                 icon.classList.replace('fa-sun', 'fa-moon');
                 themeText.innerText = 'Dark Mode';
-                mainLogo.src = '/whiteSequoiaLogo.png'; 
+                mainLogo.src = '/images/whiteSequoiaLogo.png';
             }
         }
     </script>

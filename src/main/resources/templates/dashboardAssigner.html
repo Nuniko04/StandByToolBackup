@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sequoia — Master Schedule</title>
     <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
-
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -129,7 +128,46 @@
         .toggle-btn { padding: 10px 15px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; }
         .toggle-btn.active { background: var(--text); color: var(--bg); }
         .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
+        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
+        @media (max-width: 768px) {
+            /* Passar o layout de lado-a-lado para coluna (cima para baixo) */
+            body { flex-direction: column; height: auto; overflow-y: auto; }
 
+            /* Ajustar a barra lateral para ocupar o ecrã todo no topo */
+            aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; z-index: 10; }
+            .logo-box { margin-bottom: 20px; }
+            nav { display: flex; flex-direction: column; gap: 5px; }
+
+            /* Ajustar o conteúdo principal */
+            main { padding: 20px; flex: none; overflow: visible; }
+            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
+
+            /* Ajustar cabeçalho com botões no Assigner */
+            #header-actions-master { flex-wrap: wrap; width: 100%; }
+            #header-actions-master button, .view-toggles { flex-grow: 1; text-align: center; justify-content: center; }
+
+            /* Grelhas (Passar de 2/3 colunas para 1 coluna) */
+            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+
+            /* Cartões de turno */
+            .shift-info { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .shift-actions button { width: 100%; justify-content: center; margin-top: 10px; }
+
+            /* Tabelas não podem quebrar o ecrã, adicionamos um scroll nativo */
+            .panel table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
+
+            /* Ajustes no calendário e nos painéis */
+            .panel { padding: 15px; }
+            .calendar-wrapper, #calendar { padding: 10px; min-height: auto; }
+            .fc-toolbar-title { font-size: 1rem !important; }
+            .fc-header-toolbar { flex-direction: column; gap: 10px; }
+
+            /* Botão de tema escuro flutuante */
+            .theme-btn { bottom: 15px; right: 15px; padding: 0 15px; height: 40px; font-size: 0.65rem; }
+
+            /* Modais */
+            .modal-box { padding: 20px; max-height: 90vh; overflow-y: auto; margin: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -137,7 +175,7 @@
     <aside>
         <div class="sidebar-top">
             <div class="logo-box">
-                <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
+                <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
             </div>
 
             <div class="user-profile">
@@ -724,11 +762,11 @@
             if (theme === 'light') {
                 icon.classList.replace('fa-moon', 'fa-sun');
                 themeText.innerText = 'Light Mode';
-                mainLogo.src = '/blueSequoiaLogo.avif'; 
+                mainLogo.src = '/images/blueSequoiaLogo.avif';
             } else {
                 icon.classList.replace('fa-sun', 'fa-moon');
                 themeText.innerText = 'Dark Mode';
-                mainLogo.src = '/whiteSequoiaLogo.png'; 
+                mainLogo.src = '/images/whiteSequoiaLogo.png';
             }
         }
     </script>
