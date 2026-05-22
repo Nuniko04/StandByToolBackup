@@ -80,4 +80,10 @@ public interface TurnRepository extends JpaRepository<Turn, UUID> {
                                       @Param("turnId") UUID turnId,
                                       @Param("newStartTime") LocalDateTime newStartTime,
                                       @Param("newEndTime") LocalDateTime newEndTime);
+
+    // 🛡️ QUERY FINANCEIRA: Só vai buscar turnos que efetivamente aconteceram (ACCEPTED ou COMPLETED)
+    @Query("SELECT t FROM Turn t WHERE t.turnStatus IN ('ACCEPTED', 'COMPLETED') " +
+            "AND t.endTime BETWEEN :start AND :end")
+    List<Turn> findPayableTurnsByEndTimeBetween(@Param("start") LocalDateTime start,
+                                                @Param("end") LocalDateTime end);
 }

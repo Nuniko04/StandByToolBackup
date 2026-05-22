@@ -10,7 +10,6 @@ import pt.sequoia.standByTool.repositories.ServicoClienteRepository;
 import pt.sequoia.standByTool.repositories.TurnRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,13 +37,13 @@ public class FinanceService {
         // A semana anterior terminou ontem, no final do dia (23:59:59)
         LocalDateTime fimSemanaPassada = agora.minusDays(1).withHour(23).withMinute(59).withSecond(59);
 
-        // 1. Procurar os turnos que terminaram dentro deste intervalo
-        // (Vais precisar de criar esta query no TurnRepository)
-        List<Turn> turnosDaSemana = turnRepository.findByEndTimeBetween(inicioSemanaPassada, fimSemanaPassada);
+        // 💡 CORREÇÃO APLICADA AQUI:
+        // Usamos a nova query que só traz turnos ACCEPTED e COMPLETED!
+        List<Turn> turnosDaSemana = turnRepository.findPayableTurnsByEndTimeBetween(inicioSemanaPassada, fimSemanaPassada);
 
-        // 2. Calcular o valor de cada um e "trancar" na base de dados
+        // Calcular o valor de cada um e "trancar" na base de dados
         for(Turn t : turnosDaSemana) {
-            double valorFinal = calcularValorTurno(t); // O método que já fizemos com a tabela de preçário
+            double valorFinal = calcularValorTurno(t);
             t.setTurnValue(BigDecimal.valueOf(valorFinal));
             turnRepository.save(t);
         }
@@ -55,13 +54,13 @@ public class FinanceService {
             return 0.0;
         }
 
-        // 1. Data em que o turno acabou (Nota: Teremos de mudar getEndTime() para LocalDate quando migrarmos para LocalDateTime)
+        // Data em que o turno acabou
         LocalDateTime dataFimTurno = turn.getEndTime();
 
-        // 2. Quais clientes estavam ativos neste dia?
+        // Quais clientes estavam ativos neste dia?
         List<ServicoCliente> clientesAtivos = servicoClienteRepository.findAtivosNaData(dataFimTurno.toLocalDate());
 
-        // 3. Somar os valores específicos no preçário
+        // Somar os valores específicos no preçário
         double valorTotalClientes = 0.0;
         for (ServicoCliente cliente : clientesAtivos) {
             // Vai à tabela de preçário ver quanto este cliente paga por este tipo de turno
@@ -72,7 +71,7 @@ public class FinanceService {
             }
         }
 
-        // O valor final é o valor base do turno (se existir) + a soma da faturação cruzada dos clientes
+        // O valor final é a soma da faturação cruzada dos clientes
         return valorTotalClientes;
     }
 }
