@@ -311,9 +311,10 @@
             <!-- CALENDAR VIEW -->
             <div id="view-calendar" class="hidden">
                 <div class="calendar-legend">
-                    <div class="legend-item"><div class="legend-dot" style="background:#4cd137"></div> Standby</div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#f1c40f"></div> Backup</div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Finastra Shift</div>
+                    <div th:each="type : ${turnTypes}" class="legend-item">
+                        <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
+                        <span th:text="${type.name}">Turn Name </span>
+                    </div>
                 </div>
                 <div id="calendar" class="calendar-wrapper"></div>
             </div>
