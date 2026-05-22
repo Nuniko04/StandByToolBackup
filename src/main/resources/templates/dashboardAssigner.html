@@ -582,6 +582,10 @@
             <form method="POST" action="/turntypes/save">
                 <div class="form-group"><label>Name (Ex: StandBy)</label><input type="text" name="name" required class="form-input"></div>
                 <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" required class="form-input"></div>
+                <div class="form-group">
+                    <label>Cor Identificativa</label>
+                    <input type="color" name="color" value="#3498db" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
+                </div>
                 <div class="grid-2">
                     <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" required class="form-input"></div>
                     <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" required class="form-input"></div>
@@ -604,6 +608,10 @@
             <form method="POST" th:action="@{/turntypes/{id}/update(id=${type.id})}">
                 <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${type.name}" required class="form-input"></div>
                 <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" required class="form-input"></div>
+                <div class="form-group">
+                    <label>Cor Identificativa</label>
+                    <input type="color" name="color" th:value="${type.color}" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
+                </div>
                 <div class="grid-2">
                     <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" th:value="${type.defaultStartTime}" required class="form-input"></div>
                     <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" th:value="${type.defaultEndTime}" required class="form-input"></div>
@@ -660,10 +668,13 @@
                 /*[# th:each="turn : ${allTurns}"]*/
                 {
                     id: /*[[${turn.id}]]*/ '1',
-                    title: /*[[${turn.turnType.name == 'StandBy' ? 'S: ' : (turn.turnType.name == 'Backup' ? 'B: ' : 'FS: ')} + ${turn.assignee.name}]]*/ 'S: Nome',
+                    // Fica muito mais limpo:
+                    title: /*[[${turn.turnType.name} + ' - ' + ${turn.assignee.name}]]*/ 'Tipo - Nome',
                     start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
                     end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
-                    className: /*[[${turn.turnType.name == 'StandBy' ? 'event-standby' : (turn.turnType.name == 'Backup' ? 'event-backup' : 'event-finastra')}]]*/ 'event-standby'
+
+                    // 💡 Puxa a cor diretamente da Base de Dados!
+                    color: /*[[${turn.turnType.color}]]*/ '#3498db'
                 },
                 /*[/]*/
             ];
