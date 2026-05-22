@@ -113,9 +113,9 @@ public class RequestService {
                     turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED);
 
                     calendarService.updateTurnInCalendar(turnoToSwap);
-                } else if (status == RequestStatus.DENIED) {
-                    // 💡 3. REJEITADO: Volta a ficar ACCEPTED para a pessoa original, desbloqueando-o
-                    turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.ACCEPTED);
+                } else if (status == RequestStatus.DENIED) { // Nota: Lembra-te que no backend a palavra é DENIED
+                    // 💡 O TEU NOVO FLUXO: Reverte para PENDING para forçar o dono original a re-confirmar
+                    turnoToSwap.setTurnStatus(pt.sequoia.standByTool.models.enums.TurnStatus.PENDING_ACCEPTANCE);
                 }
 
                 turnRepository.save(turnoToSwap); // Guarda o turno com o novo estado
