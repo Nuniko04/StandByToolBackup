@@ -132,43 +132,63 @@
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
         /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
         @media (max-width: 768px) {
-            /* Passar o layout de lado-a-lado para coluna (cima para baixo) */
             body { flex-direction: column; height: auto; overflow-y: auto; }
 
-            /* Ajustar a barra lateral para ocupar o ecrã todo no topo */
-            aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; z-index: 10; }
-            .logo-box { margin-bottom: 20px; }
-            nav { display: flex; flex-direction: column; gap: 5px; }
+            /* Estilo do Botão Hamburguer */
+            .menu-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--panel-bg, #ffffff);
+                color: var(--text-main, #333333);
+                border: 1px solid var(--border, #e0e0e0);
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 15px;
+                width: fit-content;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
 
-            /* Ajustar o conteúdo principal */
-            main { padding: 20px; flex: none; overflow: visible; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
+            /* Transformar a Barra Lateral num Menu Flutuante Oculto */
+            aside {
+                position: fixed;
+                top: 0;
+                left: -100%; /* Esconde o menu completamente para a esquerda */
+                width: 280px;
+                height: 100vh;
+                background: var(--panel-bg, #ffffff);
+                z-index: 9999; /* Garante que fica por cima de tudo */
+                transition: left 0.3s ease; /* Animação suave ao abrir */
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+                border-right: 1px solid var(--border);
+                padding: 25px;
+            }
 
-            /* Ajustar cabeçalho com botões no Assigner */
-            #header-actions-master { flex-wrap: wrap; width: 100%; }
-            #header-actions-master button, .view-toggles { flex-grow: 1; text-align: center; justify-content: center; }
+            /* Classe mágica que o JavaScript vai injetar para abrir o menu */
+            aside.menu-aberto {
+                left: 0;
+            }
 
-            /* Grelhas (Passar de 2/3 colunas para 1 coluna) */
+            /* Adicionar um botão de fechar dentro do menu (opcional, mas muito profissional) */
+            .logo-box {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }
+
+            /* Ajustar o resto do conteúdo para não colidir */
+            main { padding: 15px; flex: none; }
+            header { flex-direction: column; align-items: flex-start; gap: 15px; }
             .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+            .panel table { display: block; overflow-x: auto; white-space: nowrap; }
+        }
 
-            /* Cartões de turno */
-            .shift-info { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .shift-actions button { width: 100%; justify-content: center; margin-top: 10px; }
-
-            /* Tabelas não podem quebrar o ecrã, adicionamos um scroll nativo */
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
-
-            /* Ajustes no calendário e nos painéis */
-            .panel { padding: 15px; }
-            .calendar-wrapper, #calendar { padding: 10px; min-height: auto; }
-            .fc-toolbar-title { font-size: 1rem !important; }
-            .fc-header-toolbar { flex-direction: column; gap: 10px; }
-
-            /* Botão de tema escuro flutuante */
-            .theme-btn { bottom: 15px; right: 15px; padding: 0 15px; height: 40px; font-size: 0.65rem; }
-
-            /* Modais */
-            .modal-box { padding: 20px; max-height: 90vh; overflow-y: auto; margin: 10px; }
+        /* Ocultar o botão de menu em computadores */
+        @media (min-width: 769px) {
+            .menu-toggle-btn { display: none; }
         }
     </style>
 </head>
@@ -204,6 +224,9 @@
     </aside>
 
     <main>
+        <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
+            ☰ <span>Menu</span>
+        </button>
         <header>
             <div class="title-group">
                 <h2>Welcome back, <span th:text="${#strings.substringBefore(user.name, ' ')}">User</span></h2>
@@ -431,6 +454,31 @@
                 mainLogo.src = '/images/whiteSequoiaLogo.png';
             }
         }
+        function toggleMenu() {
+            const lateralMenu = document.querySelector('aside');
+            const menuBtn = document.getElementById('menu-toggle');
+
+            // Alterna a classe que mostra/esconde o menu
+            lateralMenu.classList.toggle('menu-aberto');
+
+            // Muda o ícone do botão para indicar se está aberto ou fechado
+            if (lateralMenu.classList.contains('menu-aberto')) {
+                menuBtn.innerHTML = '✕ <span>Fechar</span>';
+            } else {
+                menuBtn.innerHTML = '☰ <span>Menu</span>';
+            }
+        }
+
+        // Fechar o menu automaticamente se o utilizador clicar fora dele
+        document.addEventListener('click', function(event) {
+            const lateralMenu = document.querySelector('aside');
+            const menuBtn = document.getElementById('menu-toggle');
+
+            if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
+                lateralMenu.classList.remove('menu-aberto');
+                menuBtn.innerHTML = '☰ <span>Menu</span>';
+            }
+        });
     </script>
 </body>
 </html>
