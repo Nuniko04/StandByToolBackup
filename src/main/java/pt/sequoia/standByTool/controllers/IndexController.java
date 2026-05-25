@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import pt.sequoia.standByTool.models.Notification;
+import pt.sequoia.standByTool.models.Request;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
@@ -54,21 +55,18 @@ public class IndexController {
 
             model.addAttribute("employees", userService.getAllUsers());
             model.addAttribute("turnTypes", turnTypeService.getAllTurnTypes());
-
-            // INJETAR OS CARTÕES PARA APARECEREM NA ADMINISTRAÇÃO E ATRIBUIÇÃO DE TURNOS
             model.addAttribute("cards", cardService.getAllCards());
 
             model.addAttribute("pendingAcceptanceCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE).count());
             model.addAttribute("confirmedCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED).count());
 
-            // PEDIDOS PENDENTES E HISTÓRICO (Para a nova Aba de Swap Requests)
+            // Pedidos pendentes
             model.addAttribute("pendingRequests", requestService.getPendingRequests());
             model.addAttribute("pendingRequestsCount", requestService.getPendingRequests().size());
 
-            // Filtra os pedidos que já não estão pendentes (Aprovados ou Rejeitados) para o Histórico
-            model.addAttribute("historyRequests", requestService.getAllRequests().stream()
-                    .filter(r -> r.getStatus() != RequestStatus.PENDING)
-                    .collect(Collectors.toList()));
+            // 💡 A LIGAÇÃO CORRETA: Vai buscar o histórico ordenado ao Service
+            List<Request> historicoOrdenado = requestService.getHistoryRequests();
+            model.addAttribute("historyRequests", historicoOrdenado);
 
             model.addAttribute("user", loggedUser);
             model.addAttribute("allTurns", allTurns);
