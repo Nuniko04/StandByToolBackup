@@ -24,7 +24,7 @@
         body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
         aside { width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 40px 20px; display: flex; flex-direction: column; transition: 0.3s; z-index: 20;}
         main { flex: 1; padding: 40px; overflow-y: auto; }
-        
+
         .sidebar-top { flex: 1; }
         .logo-box { margin-bottom: 50px; display: flex; align-items: center; justify-content: center;}
         .logo-img { width: 160px; height: auto; transition: 0.3s; }
@@ -32,7 +32,7 @@
         nav button .nav-inner, nav a .nav-inner { display: flex; align-items: center; gap: 12px; }
         nav button:hover, nav button.active, nav a:hover { background: rgba(128, 128, 128, 0.15); color: var(--text); }
         .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
-        
+
         .user-profile { display: flex; align-items: center; gap: 12px; padding: 15px 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--text); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Syne'; font-size: 1.2rem;}
         .user-info p { margin: 0; font-size: 0.85rem; font-weight: bold; }
@@ -87,8 +87,8 @@
         .fc-day-today { background-color: rgba(255, 255, 255, 0.02) !important; }
         .fc-event { border: none !important; border-radius: 6px !important; padding: 6px 10px !important; font-family: 'DM Sans', sans-serif; font-weight: 700 !important; font-size: 0.75rem !important; margin-top: 3px !important; margin-bottom: 3px !important; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .fc-daygrid-event { margin-left: 5px !important; margin-right: 5px !important; }
-        .event-standby { background-color: #4cd137 !important; color: #000 !important; }      
-        .event-backup { background-color: #f1c40f !important; color: #000 !important; }       
+        .event-standby { background-color: #4cd137 !important; color: #000 !important; }
+        .event-backup { background-color: #f1c40f !important; color: #000 !important; }
         .event-finastra { background-color: #3498db !important; color: #000 !important; }
         .fc-toolbar-title { font-family: 'Syne', sans-serif; text-transform: uppercase; font-weight: 800 !important; letter-spacing: 1px; color: #fff; font-size: 1.2rem !important; }
         .fc .fc-button-primary { background-color: transparent !important; border: 1px solid #333 !important; color: #fff !important; text-transform: uppercase !important; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.75rem !important; border-radius: 6px !important; padding: 8px 16px !important;}
@@ -119,11 +119,11 @@
 
         .swap-card { background: var(--bg); border: 1px solid var(--warning); border-radius: 8px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; }
         .swap-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--warning); }
-        
+
         .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;}
         .alert-success { background: rgba(76, 209, 55, 0.1); border: 1px solid var(--success); color: var(--success); }
         .alert-error { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--danger); color: var(--danger); }
-        
+
         .view-toggles { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
         .toggle-btn { padding: 10px 15px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; }
         .toggle-btn.active { background: var(--text); color: var(--bg); }
@@ -259,87 +259,170 @@
 </head>
 <body>
 
-    <aside>
-        <div class="sidebar-top">
-            <div class="logo-box">
-                <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
-            </div>
-
-            <div class="user-profile">
-                <div class="user-avatar" th:text="${#strings.substring(user.name,0,1)}">A</div>
-                <div class="user-info">
-                    <p th:text="${user.name}">Assigner Name</p>
-                    <span>Assigner</span>
-                </div>
-            </div>
-
-            <nav>
-                <button id="btn-nav-master" class="active" onclick="switchMainView('master')">
-                    <div class="nav-inner"><i class="fas fa-globe"></i> Master Schedule</div>
-                </button>
-                <button id="btn-nav-requests" onclick="switchMainView('requests')">
-                    <div class="nav-inner"><i class="fas fa-envelope"></i> Swap Requests</div>
-                    <span th:if="${pendingRequestsCount > 0}" class="badge-pill" th:text="${pendingRequestsCount}">0</span>
-                </button>
-                <button id="btn-nav-Assigner" onclick="switchMainView('Assigner')">
-                    <div class="nav-inner"><i class="fas fa-cog"></i> Assigner</div>
-                </button>
-                <a href="/employee-view" style="margin-top: 20px; border: 1px solid var(--border); justify-content: center;">
-                    <div class="nav-inner"><i class="fas fa-user-switch"></i> Employee View</div>
-                </a>
-            </nav>
-        </div>
-        <div class="sidebar-footer">
-            <button id="theme-toggle" class="logout-btn"><i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span></button>
-            <form action="/logout" method="post" style="margin:0; width:100%;">
-                <button type="submit" class="logout-btn danger"><i class="fas fa-sign-out-alt"></i> Log Out</button>
-            </form>
-        </div>
-    </aside>
-
-    <main>
-        <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i> <span>Menu</span>
-        </button>
-        <header>
-            <div class="title-group">
-                <h2 id="header-title">Master Schedule</h2>
-                <p id="header-subtitle">Overview & Assignment Management</p>
-            </div>
-            
-            <div id="header-actions-master" style="display: flex; gap: 15px; align-items: center;">
-                <div class="view-toggles">
-                    <button class="toggle-btn active" id="btn-view-list" onclick="setMasterView('list')"><i class="fas fa-list"></i> List</button>
-                    <button class="toggle-btn" id="btn-view-calendar" onclick="setMasterView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar</button>
-                </div>
-                <button class="btn-main btn-purple" onclick="toggleModal('autoGenerateModal')"><i class="fas fa-magic"></i> Auto-Generate</button>
-                <button class="btn-main" onclick="toggleModal('assignModal')"><i class="fas fa-plus"></i> Assign Shift</button>
-            </div>
-        </header>
-
-        <div th:if="${successMsg}" class="alert alert-success">
-            <i class="fas fa-check-circle"></i> <span th:text="${successMsg}"></span>
-        </div>
-        <div th:if="${errorMsg}" class="alert alert-error">
-            <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMsg}"></span>
+<aside>
+    <div class="sidebar-top">
+        <div class="logo-box">
+            <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
         </div>
 
-        <!-- VIEW: MASTER SCHEDULE -->
-        <div id="view-master">
-            <div class="status-grid">
-                <div class="status-card sc-danger">
-                    <div class="status-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                    <div><p>0</p><span>Clashes</span></div>
-                </div>
-                <div class="status-card sc-warning">
-                    <div class="status-icon"><i class="fas fa-hourglass-half"></i></div>
-                    <div><p th:text="${pendingAcceptanceCount}">0</p><span>Pending</span></div>
-                </div>
-                <div class="status-card sc-success">
-                    <div class="status-icon"><i class="fas fa-check-circle"></i></div>
-                    <div><p th:text="${confirmedCount}">0</p><span>Confirmed</span></div>
+        <div class="user-profile">
+            <div class="user-avatar" th:text="${#strings.substring(user.name,0,1)}">A</div>
+            <div class="user-info">
+                <p th:text="${user.name}">Assigner Name</p>
+                <span>Assigner</span>
+            </div>
+        </div>
+
+        <nav>
+            <button id="btn-nav-master" class="active" onclick="switchMainView('master')">
+                <div class="nav-inner"><i class="fas fa-globe"></i> Master Schedule</div>
+            </button>
+            <button id="btn-nav-requests" onclick="switchMainView('requests')">
+                <div class="nav-inner"><i class="fas fa-envelope"></i> Swap Requests</div>
+                <span th:if="${pendingRequestsCount > 0}" class="badge-pill" th:text="${pendingRequestsCount}">0</span>
+            </button>
+            <button id="btn-nav-Assigner" onclick="switchMainView('Assigner')">
+                <div class="nav-inner"><i class="fas fa-cog"></i> Assigner</div>
+            </button>
+            <button id="btn-nav-feriados" onclick="switchMainView('feriados')">
+                <div class="nav-inner"><i class="fas fa-umbrella-beach"></i> Feriados</div>
+            </button>
+            <a href="/employee-view" style="margin-top: 20px; border: 1px solid var(--border); justify-content: center;">
+                <div class="nav-inner"><i class="fas fa-user-switch"></i> Employee View</div>
+            </a>
+        </nav>
+    </div>
+    <div class="sidebar-footer">
+        <button id="theme-toggle" class="logout-btn"><i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span></button>
+        <form action="/logout" method="post" style="margin:0; width:100%;">
+            <button type="submit" class="logout-btn danger"><i class="fas fa-sign-out-alt"></i> Log Out</button>
+        </form>
+    </div>
+</aside>
+
+<main>
+    <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
+        ☰ <span>Menu</span>
+    </button>
+    <header>
+        <div class="title-group">
+            <h2 id="header-title">Master Schedule</h2>
+            <p id="header-subtitle">Overview & Assignment Management</p>
+        </div>
+
+        <div id="header-actions-master" style="display: flex; gap: 15px; align-items: center;">
+            <div class="view-toggles">
+                <button class="toggle-btn active" id="btn-view-list" onclick="setMasterView('list')"><i class="fas fa-list"></i> List</button>
+                <button class="toggle-btn" id="btn-view-calendar" onclick="setMasterView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar</button>
+            </div>
+            <button class="btn-main btn-purple" onclick="toggleModal('autoGenerateModal')"><i class="fas fa-magic"></i> Auto-Generate</button>
+            <button class="btn-main" onclick="toggleModal('assignModal')"><i class="fas fa-plus"></i> Assign Shift</button>
+        </div>
+    </header>
+
+    <div th:if="${successMsg}" class="alert alert-success">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMsg}"></span>
+    </div>
+    <div th:if="${errorMsg}" class="alert alert-error">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMsg}"></span>
+    </div>
+
+    <!-- VIEW: MASTER SCHEDULE -->
+    <div id="view-master">
+        <div class="status-grid">
+            <div class="status-card sc-danger">
+                <div class="status-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div><p>0</p><span>Clashes</span></div>
+            </div>
+            <div class="status-card sc-warning">
+                <div class="status-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div><p th:text="${pendingAcceptanceCount}">0</p><span>Pending</span></div>
+            </div>
+            <div class="status-card sc-success">
+                <div class="status-icon"><i class="fas fa-check-circle"></i></div>
+                <div><p th:text="${confirmedCount}">0</p><span>Confirmed</span></div>
+            </div>
+        </div>
+
+        <!-- List Subview -->
+        <div id="master-subview-list" class="panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>Assignee</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="turn : ${allTurns}">
+                    <td><strong><i class="fas fa-user-circle" style="color:var(--text-muted); margin-right:8px;"></i> [[${turn.assignee.name}]]</strong></td>
+                    <td th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Date</td>
+                    <td th:text="${turn.turnType.name}">Type</td>
+                    <td>
+                        <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
+                        <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
+                            <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Apagar este turno?');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(allTurns)}">
+                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No shifts assigned yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calendar Subview -->
+        <div id="master-subview-calendar" class="panel hidden">
+            <div class="calendar-legend">
+                <div th:each="type : ${turnTypes}" class="legend-item">
+                    <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
+                    <span th:text="${type.name}">Nome do Cargo</span>
                 </div>
             </div>
+            <div id="calendar" class="calendar-wrapper"></div>
+        </div>
+    </div>
+
+    <!-- VIEW: SWAP REQUESTS -->
+    <div id="view-requests" class="hidden">
+        <div class="grid-2">
+            <div class="panel">
+                <div class="panel-header" style="color: var(--warning);"><i class="fas fa-clock"></i> Pending Approvals</div>
+                <div th:each="req : ${pendingRequests}" class="swap-card">
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;">
+                        <strong th:text="${req.requester.name}">User A</strong> wants to give their shift to <strong th:text="${req.targetUser.name}">User B</strong>.
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                        <i class="fas fa-calendar-day"></i> <span th:text="${req.turn.turnType.name}"></span>: <span th:text="${#temporals.format(req.turn.startTime, 'dd MMM')} + ' - ' + ${#temporals.format(req.turn.endTime, 'dd MMM')}"></span>
+                    </p>
+                    <div style="display: flex; gap: 10px;">
+                        <form th:action="@{/requests/{id}/approve(id=${req.id})}" method="POST" style="margin:0; flex:1;">
+                            <button type="submit" class="btn-main btn-success" style="width:100%; justify-content:center; padding: 10px;"><i class="fas fa-check"></i> Approve</button>
+                        </form>
+                        <form th:action="@{/requests/{id}/reject(id=${req.id})}" method="POST" style="margin:0; flex:1;">
+                            <button type="submit" class="btn-action" style="width:100%; justify-content:center; padding: 10px; color: var(--danger); border-color: var(--danger);"><i class="fas fa-times"></i> Reject</button>
+                        </form>
+                    </div>
+                </div>
+                <p th:if="${#lists.isEmpty(pendingRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No pending swap requests.</p>
+            </div>
+            <div class="panel">
+                <div class="panel-header"><i class="fas fa-history"></i> History</div>
+                <ul style="list-style:none;">
+                    <li th:each="req : ${historyRequests}" style="padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 0.85rem;">
+                            <strong th:text="${req.requester.name}"></strong> <i class="fas fa-arrow-right" style="color:var(--text-muted); margin:0 5px;"></i> <strong th:text="${req.targetUser.name}"></strong>
+                        </div>
+                        <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
 
             <!-- List Subview -->
             <div id="master-subview-list" class="panel">
@@ -377,17 +460,37 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <!-- Calendar Subview -->
-            <div id="master-subview-calendar" class="panel hidden">
-                <div class="calendar-legend">
-                    <div th:each="type : ${turnTypes}" class="legend-item">
-                        <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
-                        <span th:text="${type.name}">Nome do Cargo</span>
-                    </div>
-                </div>
-                <div id="calendar" class="calendar-wrapper"></div>
+    <!-- VIEW: Assigner -->
+    <div id="view-Assigner" class="hidden">
+        <div class="panel">
+            <div class="panel-header">
+                <span><i class="fas fa-users"></i> Employee Directory</span>
+                <button class="btn-action" onclick="toggleModal('userModal')"><i class="fas fa-user-plus"></i> Add Employee</button>
             </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="emp : ${employees}">
+                    <td><strong th:text="${emp.name}">Name</strong></td>
+                    <td th:text="${emp.email}" style="color: var(--text-muted);">Email</td>
+                    <td><span class="status-badge" th:text="${emp.isAssigner ? 'Assigner' : 'Staff'}">Role</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn-action" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn-action" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-tasks"></i> Matrix</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- VIEW: SWAP REQUESTS -->
@@ -440,308 +543,392 @@
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- VIEW: Assigner -->
-        <div id="view-Assigner" class="hidden">
-            <!-- Employees Panel -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fas fa-users"></i> Employee Directory</span>
-                    <button class="btn-action" onclick="toggleModal('userModal')"><i class="fas fa-user-plus"></i> Add Employee</button>
-                </div>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>Default Hours</th>
+                        <th>Edit</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="emp : ${employees}">
-                            <td><strong th:text="${emp.name}">Name</strong></td>
-                            <td th:text="${emp.email}" style="color: var(--text-muted);">Email</td>
-                            <td><span class="status-badge" th:text="${emp.isAssigner ? 'Assigner' : 'Staff'}">Role</span></td>
-                            <td style="text-align: right;">
-                                <button class="btn-action" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="btn-action" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-tasks"></i> Matrix</button>
-                            </td>
-                        </tr>
+                    <tr th:each="type : ${turnTypes}">
+                        <td><strong th:text="${type.name}">Name</strong></td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${type.defaultStartTime != null ? type.defaultStartTime + ' - ' + type.defaultEndTime : 'N/A'}">Hours</td>
+                        <td><button class="btn-action" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button></td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
 
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fas fa-credit-card"></i> Payment Cards</span>
+                    <button class="btn-action" onclick="toggleModal('cardModal')"><i class="fas fa-plus"></i> Add Card</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Identifier</th>
+                        <th>Expiration</th>
+                        <th>Edit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="card : ${cards}">
+                        <td><strong th:text="${card.identifier}">Card</strong></td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${card.expirationDate}">Exp</td>
+                        <td><button class="btn-action" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(cards)}">
+                        <td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No cards registered.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-feriados" class="hidden">
+        <div class="panel">
+            <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span><i class="fas fa-umbrella-beach"></i> Organizational Holidays</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-action" onclick="toggleModal('importFeriadoModal')">
+                            <i class="fas fa-cloud-download-alt"></i> Import
+                        </button>
+                        <button class="btn-action" onclick="toggleModal('feriadoModal')">
+                            <i class="fas fa-plus"></i> Add Holiday
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10px;">
+                    <h2 id="current-year-display" style="font-size: 1.8rem; font-family: 'Syne', sans-serif; color: var(--text-muted); margin-bottom: 5px;">2026</h2>
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <button class="btn-action" onclick="changeMonth(-1)" style="padding: 8px 15px; font-size: 1rem;"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="current-month-display" style="font-size: 1.2rem; font-family: 'Syne', sans-serif; min-width: 160px; text-align: center; color: var(--text);">JANUARY</h3>
+                        <button class="btn-action" onclick="changeMonth(1)" style="padding: 8px 15px; font-size: 1rem;"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Holiday Name</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="feriado : ${feriados}"
+                    class="holiday-row hidden"
+                    th:attr="data-year=${#temporals.format(feriado.data, 'yyyy')}, data-month=${#temporals.format(feriado.data, 'M')}">
+
+                    <td th:text="${#temporals.format(feriado.data, 'dd/MM/yyyy')}" style="color: var(--text-muted);">01/01/2026</td>
+                    <td><strong th:text="${feriado.nome}">Holiday Name</strong></td>
+                    <td style="text-align: right;">
+                        <button class="btn-action" th:data-target="'editFeriadoModal-' + ${feriado.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button>
+                        <form th:action="@{/feriados/{id}/delete(id=${feriado.id})}" method="POST" style="margin:0; display:inline-block;">
+                            <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Are you sure you want to remove this holiday?');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr id="no-holidays-msg" class="hidden">
+                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No holidays registered for this month.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- MODALS -->
+
+<!-- Auto Generate Modal -->
+<div id="autoGenerateModal" class="modal-overlay">
+    <div class="modal-box purple-top">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--purple);"><i class="fas fa-magic"></i> Auto-Generate</h3>
+            <button type="button" onclick="toggleModal('autoGenerateModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="autoGenerateForm">
             <div class="grid-2">
-                <!-- Turn Types Panel -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <span><i class="fas fa-clock"></i> Shift Types</span>
-                        <button class="btn-action" onclick="toggleModal('turnTypeModal')"><i class="fas fa-plus"></i> Add Type</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Default Hours</th>
-                                <th>Edit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="type : ${turnTypes}">
-                                <td><strong th:text="${type.name}">Name</strong></td>
-                                <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${type.defaultStartTime != null ? type.defaultStartTime + ' - ' + type.defaultEndTime : 'N/A'}">Hours</td>
-                                <td><button class="btn-action" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Cards Panel -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <span><i class="fas fa-credit-card"></i> Payment Cards</span>
-                        <button class="btn-action" onclick="toggleModal('cardModal')"><i class="fas fa-plus"></i> Add Card</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Identifier</th>
-                                <th>Expiration</th>
-                                <th>Edit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="card : ${cards}">
-                                <td><strong th:text="${card.identifier}">Card</strong></td>
-                                <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${card.expirationDate}">Exp</td>
-                                <td><button class="btn-action" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button></td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(cards)}">
-                                <td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No cards registered.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="form-group"><label>Start Date</label><input type="date" name="startDate" required class="form-input"></div>
+                <div class="form-group"><label>End Date</label><input type="date" name="endDate" required class="form-input"></div>
             </div>
-        </div>
-    </main>
-
-    <!-- MODALS -->
-
-    <!-- Auto Generate Modal -->
-    <div id="autoGenerateModal" class="modal-overlay">
-        <div class="modal-box purple-top">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: var(--purple);"><i class="fas fa-magic"></i> Auto-Generate</h3>
-                <button type="button" onclick="toggleModal('autoGenerateModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" id="btnRunAlgorithm" onclick="runAutoGeneration()" class="btn-main btn-purple" style="flex:1; justify-content:center;"><i class="fas fa-play"></i> Run Algorithm</button>
+                <button type="button" onclick="toggleModal('autoGenerateModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
             </div>
-            <form id="autoGenerateForm">
-                <div class="grid-2">
-                    <div class="form-group"><label>Start Date</label><input type="date" name="startDate" required class="form-input"></div>
-                    <div class="form-group"><label>End Date</label><input type="date" name="endDate" required class="form-input"></div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="button" id="btnRunAlgorithm" onclick="runAutoGeneration()" class="btn-main btn-purple" style="flex:1; justify-content:center;"><i class="fas fa-play"></i> Run Algorithm</button>
-                    <button type="button" onclick="toggleModal('autoGenerateModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
+        </form>
     </div>
+</div>
 
-    <!-- Assign Shift Modal -->
-    <div id="assignModal" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-calendar-plus"></i> Assign Shift</h3>
-                <button type="button" onclick="toggleModal('assignModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
-            </div>
-            <form method="POST" th:action="@{/turns/assign}">
-                <div class="form-group">
-                    <label>Employee</label>
-                    <select name="assigneeId" required class="form-input">
-                        <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.name}"></option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Shift Type</label>
-                    <select name="turnTypeId" required class="form-input">
-                        <option th:each="type : ${turnTypes}" th:value="${type.id}" th:text="${type.name}"></option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Payment Card (Optional)</label>
-                    <select name="cardId" class="form-input">
-                        <option value="">-- No Card --</option>
-                        <option th:each="card : ${cards}" th:value="${card.id}" th:text="${card.identifier}"></option>
-                    </select>
-                </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>Start Date</label><input type="date" name="startDate" required class="form-input"></div>
-                    <div class="form-group"><label>End Date</label><input type="date" name="endDate" required class="form-input"></div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Assign</button>
-                    <button type="button" onclick="toggleModal('assignModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
+<!-- Assign Shift Modal -->
+<div id="assignModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-calendar-plus"></i> Assign Shift</h3>
+            <button type="button" onclick="toggleModal('assignModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
         </div>
-    </div>
-
-    <!-- Add User Modal -->
-    <div id="userModal" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-user-plus"></i> Add Employee</h3>
-                <button type="button" onclick="toggleModal('userModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        <form method="POST" th:action="@{/turns/assign}">
+            <div class="form-group">
+                <label>Employee</label>
+                <select name="assigneeId" required class="form-input">
+                    <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.name}"></option>
+                </select>
             </div>
-            <form method="POST" action="/users/save">
-                <div class="form-group"><label>Name</label><input type="text" name="name" required class="form-input"></div>
-                <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
-                <label class="checkbox-label" style="margin-bottom: 20px;">
-                    <input type="checkbox" name="isAssigner" value="true"> Make Assigner (Assigner)
+            <div class="form-group">
+                <label>Shift Type</label>
+                <select name="turnTypeId" required class="form-input">
+                    <option th:each="type : ${turnTypes}" th:value="${type.id}" th:text="${type.name}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Payment Card (Optional)</label>
+                <select name="cardId" class="form-input">
+                    <option value="">-- No Card --</option>
+                    <option th:each="card : ${cards}" th:value="${card.id}" th:text="${card.identifier}"></option>
+                </select>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>Start Date</label><input type="date" name="startDate" required class="form-input"></div>
+                <div class="form-group"><label>End Date</label><input type="date" name="endDate" required class="form-input"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Assign</button>
+                <button type="button" onclick="toggleModal('assignModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="userModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-user-plus"></i> Add Employee</h3>
+            <button type="button" onclick="toggleModal('userModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/users/save">
+            <div class="form-group"><label>Name</label><input type="text" name="name" required class="form-input"></div>
+            <div class="form-group"><label>Email</label><input type="email" name="email" required class="form-input"></div>
+            <label class="checkbox-label" style="margin-bottom: 20px;">
+                <input type="checkbox" name="isAssigner" value="true"> Make Assigner (Assigner)
+            </label>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" onclick="toggleModal('userModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit User Modals -->
+<div th:each="emp : ${employees}" th:id="'editUserModal-' + ${emp.id}" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-user-edit"></i> Edit Employee</h3>
+            <button type="button" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/users/{id}/update(id=${emp.id})}">
+            <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${emp.name}" required class="form-input"></div>
+            <div class="form-group"><label>Email</label><input type="email" name="email" th:value="${emp.email}" required class="form-input"></div>
+            <label class="checkbox-label" style="margin-bottom: 20px;">
+                <input type="checkbox" name="isAssigner" value="true" th:checked="${emp.isAssigner}"> Make Assigner (Assigner)
+            </label>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
+                <button type="button" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Eligibility Matrix Modals -->
+<div th:each="emp : ${employees}" th:id="'eligibilityModal-' + ${emp.id}" class="modal-overlay">
+    <div class="modal-box purple-top">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--purple);"><i class="fas fa-tasks"></i> Eligibility Matrix</h3>
+            <button type="button" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/users/{id}/eligibility(id=${emp.id})}">
+            <p style="font-size: 0.85rem; margin-bottom: 15px;">Select allowed shifts for <strong>[[${emp.name}]]</strong>:</p>
+            <div style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <label th:each="type : ${turnTypes}" class="checkbox-label">
+                    <input type="checkbox" name="turnTypeIds" th:value="${type.id}" th:checked="${emp.eligibleTurnTypes != null and #lists.contains(emp.eligibleTurnTypes, type)}">
+                    [[${type.name}]]
                 </label>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
-                    <button type="button" onclick="toggleModal('userModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit User Modals -->
-    <div th:each="emp : ${employees}" th:id="'editUserModal-' + ${emp.id}" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-user-edit"></i> Edit Employee</h3>
-                <button type="button" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+                <p th:if="${#lists.isEmpty(turnTypes)}" style="font-size: 0.8rem; color: var(--text-muted);">No shift types available.</p>
             </div>
-            <form method="POST" th:action="@{/users/{id}/update(id=${emp.id})}">
-                <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${emp.name}" required class="form-input"></div>
-                <div class="form-group"><label>Email</label><input type="email" name="email" th:value="${emp.email}" required class="form-input"></div>
-                <label class="checkbox-label" style="margin-bottom: 20px;">
-                    <input type="checkbox" name="isAssigner" value="true" th:checked="${emp.isAssigner}"> Make Assigner (Assigner)
-                </label>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
-                    <button type="button" th:data-target="'editUserModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Eligibility Matrix Modals -->
-    <div th:each="emp : ${employees}" th:id="'eligibilityModal-' + ${emp.id}" class="modal-overlay">
-        <div class="modal-box purple-top">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: var(--purple);"><i class="fas fa-tasks"></i> Eligibility Matrix</h3>
-                <button type="button" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main btn-purple" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
             </div>
-            <form method="POST" th:action="@{/users/{id}/eligibility(id=${emp.id})}">
-                <p style="font-size: 0.85rem; margin-bottom: 15px;">Select allowed shifts for <strong>[[${emp.name}]]</strong>:</p>
-                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
-                    <label th:each="type : ${turnTypes}" class="checkbox-label">
-                        <input type="checkbox" name="turnTypeIds" th:value="${type.id}" th:checked="${emp.eligibleTurnTypes != null and #lists.contains(emp.eligibleTurnTypes, type)}">
-                        [[${type.name}]]
-                    </label>
-                    <p th:if="${#lists.isEmpty(turnTypes)}" style="font-size: 0.8rem; color: var(--text-muted);">No shift types available.</p>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main btn-purple" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
-                    <button type="button" th:data-target="'eligibilityModal-' + ${emp.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
+        </form>
     </div>
+</div>
 
-    <!-- Add TurnType Modal -->
-    <div id="turnTypeModal" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-clock"></i> Configure Shift Type</h3>
-                <button type="button" onclick="toggleModal('turnTypeModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+<!-- Add TurnType Modal -->
+<div id="turnTypeModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-clock"></i> Configure Shift Type</h3>
+            <button type="button" onclick="toggleModal('turnTypeModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/turntypes/save">
+            <div class="form-group"><label>Name (Ex: StandBy)</label><input type="text" name="name" required class="form-input"></div>
+            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" required class="form-input"></div>
+            <div class="form-group">
+                <label>Cor Identificativa</label>
+                <input type="color" name="color" value="#3498db" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
             </div>
-            <form method="POST" action="/turntypes/save">
-                <div class="form-group"><label>Name (Ex: StandBy)</label><input type="text" name="name" required class="form-input"></div>
-                <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" required class="form-input"></div>
+            <div class="grid-2">
+                <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" required class="form-input"></div>
+                <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" required class="form-input"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" onclick="toggleModal('turnTypeModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit TurnType Modals -->
+<div th:each="type : ${turnTypes}" th:id="'editTurnTypeModal-' + ${type.id}" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-clock"></i> Edit Shift Type</h3>
+            <button type="button" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/turntypes/{id}/update(id=${type.id})}">
+            <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${type.name}" required class="form-input"></div>
+            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" required class="form-input"></div>
+            <div class="form-group">
+                <label>Cor Identificativa</label>
+                <input type="color" name="color" th:value="${type.color}" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" th:value="${type.defaultStartTime}" required class="form-input"></div>
+                <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" th:value="${type.defaultEndTime}" required class="form-input"></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
+                <button type="button" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Card Modal -->
+<div id="cardModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-credit-card"></i> Register Payment Card</h3>
+            <button type="button" onclick="toggleModal('cardModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/cards/save">
+            <div class="form-group"><label>Identifier (Ex: Card 01)</label><input type="text" name="identifier" required class="form-input"></div>
+            <div class="form-group"><label>Expiration (Month/Year)</label><input type="month" name="expirationDate" required class="form-input"></div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" onclick="toggleModal('cardModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Card Modals -->
+<div th:each="card : ${cards}" th:id="'editCardModal-' + ${card.id}" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-credit-card"></i> Edit Card</h3>
+            <button type="button" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/cards/{id}/update(id=${card.id})}">
+            <div class="form-group"><label>Identifier</label><input type="text" name="identifier" th:value="${card.identifier}" required class="form-input"></div>
+            <div class="form-group"><label>Expiration (Month/Year)</label><input type="month" name="expirationDate" th:value="${card.expirationDate}" required class="form-input"></div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
+                <button type="button" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="importFeriadoModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-cloud-download-alt"></i> Import Holidays</h3>
+            <button type="button" onclick="toggleModal('importFeriadoModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/feriados/import">
+            <div class="form-group">
+                <label>Year (Ano)</label>
+                <input type="number" name="ano" required class="form-input" placeholder="Ex: 2026" min="2020" max="2050" value="2026">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-file-import"></i> Import</button>
+                <button type="button" onclick="toggleModal('importFeriadoModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="feriadoModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-umbrella-beach"></i> New Holiday</h3>
+            <button type="button" onclick="toggleModal('feriadoModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/feriados/save">
+            <div class="form-group">
+                <label>Holiday Name</label>
+                <input type="text" name="nome" required class="form-input" placeholder="Ex: Good Friday">
+            </div>
+            <div class="form-group">
                 <div class="form-group">
-                    <label>Cor Identificativa</label>
-                    <input type="color" name="color" value="#3498db" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
+                    <label>Date</label>
+                    <input type="date" name="data" required class="form-input">
                 </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" required class="form-input"></div>
-                    <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" required class="form-input"></div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
-                    <button type="button" onclick="toggleModal('turnTypeModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Edit TurnType Modals -->
-    <div th:each="type : ${turnTypes}" th:id="'editTurnTypeModal-' + ${type.id}" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-clock"></i> Edit Shift Type</h3>
-                <button type="button" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
             </div>
-            <form method="POST" th:action="@{/turntypes/{id}/update(id=${type.id})}">
-                <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${type.name}" required class="form-input"></div>
-                <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" required class="form-input"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" onclick="toggleModal('feriadoModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:each="feriado : ${feriados}" th:id="'editFeriadoModal-' + ${feriado.id}" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-edit"></i> Edit Holiday</h3>
+            <button type="button" th:data-target="'editFeriadoModal-' + ${feriado.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/feriados/{id}/update(id=${feriado.id})}">
+            <div class="form-group">
+                <label>Holiday Name</label>
+                <input type="text" name="nome" th:value="${feriado.nome}" required class="form-input">
+            </div>
+            <div class="grid-2">
                 <div class="form-group">
-                    <label>Cor Identificativa</label>
-                    <input type="color" name="color" th:value="${type.color}" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
+                    <label>Date</label>
+                    <input type="date" name="data" th:value="${feriado.data}" required class="form-input">
                 </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" th:value="${type.defaultStartTime}" required class="form-input"></div>
-                    <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" th:value="${type.defaultEndTime}" required class="form-input"></div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
-                    <button type="button" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Card Modal -->
-    <div id="cardModal" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-credit-card"></i> Register Payment Card</h3>
-                <button type="button" onclick="toggleModal('cardModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
             </div>
-            <form method="POST" action="/cards/save">
-                <div class="form-group"><label>Identifier (Ex: Card 01)</label><input type="text" name="identifier" required class="form-input"></div>
-                <div class="form-group"><label>Expiration (Month/Year)</label><input type="month" name="expirationDate" required class="form-input"></div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
-                    <button type="button" onclick="toggleModal('cardModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Card Modals -->
-    <div th:each="card : ${cards}" th:id="'editCardModal-' + ${card.id}" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0;"><i class="fas fa-credit-card"></i> Edit Card</h3>
-                <button type="button" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
+                <button type="button" th:data-target="'editFeriadoModal-' + ${feriado.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
             </div>
-            <form method="POST" th:action="@{/cards/{id}/update(id=${card.id})}">
-                <div class="form-group"><label>Identifier</label><input type="text" name="identifier" th:value="${card.identifier}" required class="form-input"></div>
-                <div class="form-group"><label>Expiration (Month/Year)</label><input type="month" name="expirationDate" th:value="${card.expirationDate}" required class="form-input"></div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
-                    <button type="button" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
-                </div>
-            </form>
-        </div>
+        </form>
     </div>
 
     <script th:inline="javascript">
@@ -839,134 +1026,193 @@
                 document.getElementById('view-' + v).classList.add('hidden');
                 document.getElementById('btn-nav-' + v).classList.remove('active');
             });
-            document.getElementById('view-' + viewName).classList.remove('hidden');
-            document.getElementById('btn-nav-' + viewName).classList.add('active');
-
-            const title = document.getElementById('header-title');
-            const subtitle = document.getElementById('header-subtitle');
-            const actions = document.getElementById('header-actions-master');
-
-            if (viewName === 'master') {
-                title.innerText = "Master Schedule";
-                subtitle.innerText = "Overview & Assignment Management";
-                actions.style.display = "flex";
-                if(fcAssignerInstance) setTimeout(() => { fcAssignerInstance.render(); }, 50);
-            } else if (viewName === 'requests') {
-                title.innerText = "Swap Requests";
-                subtitle.innerText = "Pending & Historical Shift Transfers";
-                actions.style.display = "none";
-            } else if (viewName === 'Assigner') {
-                title.innerText = "Assigner";
-                subtitle.innerText = "Employees, Shift Types & Payment Cards";
-                actions.style.display = "none";
-            }
         }
+    });
 
-        function setMasterView(subView) {
-            document.getElementById('master-subview-list').classList.add('hidden');
-            document.getElementById('master-subview-calendar').classList.add('hidden');
-            document.getElementById('btn-view-list').classList.remove('active');
-            document.getElementById('btn-view-calendar').classList.remove('active');
+    function switchMainView(viewName) {
+        ['master', 'requests', 'Assigner', 'feriados'].forEach(v => {
+            const el = document.getElementById('view-' + v);
+            if(el) el.classList.add('hidden');
 
-            document.getElementById('master-subview-' + subView).classList.remove('hidden');
-            document.getElementById('btn-view-' + subView).classList.add('active');
-
-            if (subView === 'calendar' && fcAssignerInstance) {
-                setTimeout(() => { fcAssignerInstance.render(); }, 50);
-            }
-        }
-
-        function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) {
-                if(modal.style.display === 'flex') modal.style.display = 'none';
-                else modal.style.display = 'flex';
-            }
-        }
-
-        async function runAutoGeneration() {
-            const form = document.getElementById('autoGenerateForm');
-            const formData = new FormData(form);
-            const startDate = formData.get('startDate');
-            const endDate = formData.get('endDate');
-            if (!startDate || !endDate) { alert("Please fill both dates."); return; }
-            
-            const btn = document.getElementById('btnRunAlgorithm');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            btn.disabled = true;
-
-            try {
-                const response = await fetch(`/api/schedule/generate?startDate=${startDate}&endDate=${endDate}`, { method: 'POST' });
-                if (response.ok) {
-                    const alertas = await response.json();
-                    if (alertas && alertas.length > 0) { alert("Done with warnings:\n\n" + alertas.join("\n")); }
-                    else { alert("✨ Schedule generated successfully without conflicts!"); }
-                    window.location.reload();
-                } else {
-                    const errMsg = await response.text();
-                    alert("Error: " + errMsg);
-                }
-            } catch (error) {
-                alert("Server communication error.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-        const toggleBtn = document.getElementById('theme-toggle');
-        const themeText = document.getElementById('theme-text');
-        const mainLogo = document.getElementById('main-logo');
-        const htmlElement = document.documentElement;
-
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        applyTheme(savedTheme);
-
-        toggleBtn.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
+            const btn = document.getElementById('btn-nav-' + v);
+            if(btn) btn.classList.remove('active');
         });
 
-        function applyTheme(theme) {
-            htmlElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            const icon = toggleBtn.querySelector('i');
-            if (theme === 'light') {
-                icon.classList.replace('fa-moon', 'fa-sun');
-                themeText.innerText = 'Light Mode';
-                mainLogo.src = '/images/blueSequoiaLogo.avif';
-            } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
-                themeText.innerText = 'Dark Mode';
-                mainLogo.src = '/images/whiteSequoiaLogo.png';
-            }
+        const activeEl = document.getElementById('view-' + viewName);
+        if(activeEl) activeEl.classList.remove('hidden');
+
+        const activeBtn = document.getElementById('btn-nav-' + viewName);
+        if(activeBtn) activeBtn.classList.add('active');
+
+        const title = document.getElementById('header-title');
+        const subtitle = document.getElementById('header-subtitle');
+        const actions = document.getElementById('header-actions-master');
+
+        if (viewName === 'master') {
+            title.innerText = "Master Schedule";
+            subtitle.innerText = "Overview & Assignment Management";
+            actions.style.display = "flex";
+            if(fcAssignerInstance) setTimeout(() => { fcAssignerInstance.render(); }, 50);
+        } else if (viewName === 'requests') {
+            title.innerText = "Swap Requests";
+            subtitle.innerText = "Pending & Historical Shift Transfers";
+            actions.style.display = "none";
+        } else if (viewName === 'Assigner') {
+            title.innerText = "Assigner";
+            subtitle.innerText = "Employees, Shift Types & Payment Cards";
+            actions.style.display = "none";
+        } else if (viewName === 'feriados') {
+            title.innerText = "Holidays & Absences";
+            subtitle.innerText = "Management of Active and Passive Holidays";
+            actions.style.display = "none";
         }
-        function toggleMenu() {
-            const lateralMenu = document.querySelector('aside');
-            const menuBtn = document.getElementById('menu-toggle');
+    }
+    function setMasterView(subView) {
+        document.getElementById('master-subview-list').classList.add('hidden');
+        document.getElementById('master-subview-calendar').classList.add('hidden');
+        document.getElementById('btn-view-list').classList.remove('active');
+        document.getElementById('btn-view-calendar').classList.remove('active');
 
-            // Alterna a classe que mostra/esconde o menu
-            lateralMenu.classList.toggle('menu-aberto');
+        document.getElementById('master-subview-' + subView).classList.remove('hidden');
+        document.getElementById('btn-view-' + subView).classList.add('active');
 
-            // Muda o ícone do botão para indicar se está aberto ou fechado
-            if (lateralMenu.classList.contains('menu-aberto')) {
-                menuBtn.innerHTML = '✕ <span>Fechar</span>';
-            } else {
-                menuBtn.innerHTML = '☰ <span>Menu</span>';
-            }
+        if (subView === 'calendar' && fcAssignerInstance) {
+            setTimeout(() => { fcAssignerInstance.render(); }, 50);
         }
+    }
 
-        // Fechar o menu automaticamente se o utilizador clicar fora dele
-        document.addEventListener('click', function(event) {
-            const lateralMenu = document.querySelector('aside');
-            const menuBtn = document.getElementById('menu-toggle');
+    function toggleModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if(modal) {
+            if(modal.style.display === 'flex') modal.style.display = 'none';
+            else modal.style.display = 'flex';
+        }
+    }
 
-            if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
-                lateralMenu.classList.remove('menu-aberto');
-                menuBtn.innerHTML = '☰ <span>Menu</span>';
+    async function runAutoGeneration() {
+        const form = document.getElementById('autoGenerateForm');
+        const formData = new FormData(form);
+        const startDate = formData.get('startDate');
+        const endDate = formData.get('endDate');
+        if (!startDate || !endDate) { alert("Please fill both dates."); return; }
+
+        const btn = document.getElementById('btnRunAlgorithm');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/schedule/generate?startDate=${startDate}&endDate=${endDate}`, { method: 'POST' });
+            if (response.ok) {
+                const alertas = await response.json();
+                if (alertas && alertas.length > 0) { alert("Done with warnings:\n\n" + alertas.join("\n")); }
+                else { alert("✨ Schedule generated successfully without conflicts!"); }
+                window.location.reload();
+            } else {
+                const errMsg = await response.text();
+                alert("Error: " + errMsg);
+            }
+        } catch (error) {
+            alert("Server communication error.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+    const toggleBtn = document.getElementById('theme-toggle');
+    const themeText = document.getElementById('theme-text');
+    const mainLogo = document.getElementById('main-logo');
+    const htmlElement = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    toggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+    });
+
+    function applyTheme(theme) {
+        htmlElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        const icon = toggleBtn.querySelector('i');
+        if (theme === 'light') {
+            icon.classList.replace('fa-moon', 'fa-sun');
+            themeText.innerText = 'Light Mode';
+            mainLogo.src = '/images/blueSequoiaLogo.avif';
+        } else {
+            icon.classList.replace('fa-sun', 'fa-moon');
+            themeText.innerText = 'Dark Mode';
+            mainLogo.src = '/images/whiteSequoiaLogo.png';
+        }
+    }
+    function toggleMenu() {
+        const lateralMenu = document.querySelector('aside');
+        const menuBtn = document.getElementById('menu-toggle');
+
+        // Alterna a classe que mostra/esconde o menu
+        lateralMenu.classList.toggle('menu-aberto');
+
+        // Muda o ícone do botão para indicar se está aberto ou fechado
+        if (lateralMenu.classList.contains('menu-aberto')) {
+            menuBtn.innerHTML = '✕ <span>Fechar</span>';
+        } else {
+            menuBtn.innerHTML = '☰ <span>Menu</span>';
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const lateralMenu = document.querySelector('aside');
+        const menuBtn = document.getElementById('menu-toggle');
+
+        if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
+            lateralMenu.classList.remove('menu-aberto');
+            menuBtn.innerHTML = '☰ <span>Menu</span>';
+        }
+    });
+
+    let currentHolidayDate = new Date(); // Começa no dia de hoje
+
+    function updateHolidayView() {
+        const year = currentHolidayDate.getFullYear();
+        const month = currentHolidayDate.getMonth() + 1; // JS vai de 0-11, o Thymeleaf 'M' vai de 1-12
+
+        document.getElementById('current-year-display').innerText = year;
+        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        document.getElementById('current-month-display').innerText = monthNames[month - 1];
+
+        const rows = document.querySelectorAll('.holiday-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowYear = parseInt(row.getAttribute('data-year'));
+            const rowMonth = parseInt(row.getAttribute('data-month'));
+
+            if (rowYear === year && rowMonth === month) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
             }
         });
-    </script>
+
+        const noHolidaysMsg = document.getElementById('no-holidays-msg');
+        if (visibleCount === 0) {
+            noHolidaysMsg.classList.remove('hidden');
+        } else {
+            noHolidaysMsg.classList.add('hidden');
+        }
+    }
+
+    function changeMonth(offset) {
+        currentHolidayDate.setMonth(currentHolidayDate.getMonth() + offset);
+        updateHolidayView();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateHolidayView();
+    });
+</script>
 </body>
 </html>
