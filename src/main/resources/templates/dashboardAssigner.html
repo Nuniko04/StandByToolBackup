@@ -74,6 +74,8 @@
         .badge-pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border-color: var(--warning); }
         .badge-confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border-color: var(--success); }
         .badge-red { background: rgba(255, 77, 77, 0.1); color: var(--danger); border-color: var(--danger); }
+        /* 💡 NOVA ETIQUETA ROXA: */
+        .badge-swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border-color: var(--purple); }
         .badge-pill { background: var(--danger); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;}
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -319,6 +321,7 @@
                             <td>
                                 <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
                                 <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
+                                <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge badge-swap"><i class="fas fa-sync-alt"></i> Swap Req.</span>
                             </td>
                             <td style="text-align: right;">
                                 <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
@@ -380,6 +383,8 @@
                             <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
 
                             <span th:if="${req.status.name() == 'DENIED'}" class="status-badge badge-red">Denied</span>
+
+
                         </li>
                         <li th:if="${#lists.isEmpty(historyRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No history available.</li>
                     </ul>

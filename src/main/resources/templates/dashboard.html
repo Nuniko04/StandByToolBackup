@@ -15,7 +15,8 @@
             --bg: #0a0a0a; --sidebar-bg: #111111; --panel-bg: #161616; --border: #262626;
             --text: #ffffff; --text-muted: #888888; --danger: #ff4d4d; --success: #4cd137;
             --warning: #f1c40f; --radius: 12px;
-            --finastra-shift: #3498db; 
+            --finastra-shift: #3498db;
+            --purple: #9b59b6; /* <-- ADICIONA ISTO */
         }
         [data-theme="light"] {
             --bg: #f5f5f5; --sidebar-bg: #ffffff; --panel-bg: #ffffff; --border: #e0e0e0;
@@ -74,6 +75,7 @@
         .shift-card:hover { border-color: var(--text-muted); }
         .shift-card.pending { border-left: 4px solid var(--warning); }
         .shift-card.confirmed { border-left: 4px solid var(--success); }
+        .shift-card.swap { border-left: 4px solid var(--purple); } /* NOVO */
         
         .shift-info { display: flex; gap: 30px; align-items: center; }
         .shift-date-box { text-align: center; background: var(--panel-bg); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; min-width: 100px; }
@@ -85,6 +87,7 @@
         .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         .status-badge.pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border: 1px solid var(--warning); }
         .status-badge.confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .status-badge.swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border: 1px solid var(--purple); } /* NOVO */
 
         .btn-main { background: var(--text); color: var(--bg); border: none; padding: 12px 24px; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;}
         .btn-main:hover { opacity: 0.8; transform: translateY(-2px); }
@@ -101,6 +104,7 @@
         .board-card:hover { border-color: var(--text-muted); }
         .board-card.pending { border-top: 3px solid var(--warning); }
         .board-card.confirmed { border-top: 3px solid var(--success); }
+        .board-card.swap { border-top: 3px solid var(--purple); } /* NOVO */
 
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -306,7 +310,9 @@
 
             <!-- LIST VIEW -->
             <div id="view-list" class="shifts-grid">
-                <div th:each="turn : ${myTurns}" class="shift-card" th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : 'confirmed'">
+                <div th:each="turn : ${myTurns}" class="shift-card"
+                     th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : (${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed')">
+
                     <div class="shift-info">
                         <div class="shift-date-box">
                             <span class="month" th:text="${#temporals.format(turn.startTime, 'MMM')}">MMM</span>
@@ -318,6 +324,7 @@
                             <p style="margin-top: 8px;">
                                 <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge pending">Pending</span>
                                 <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed"><i class="fas fa-check"></i> Confirmed</span>
+                                <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap"><i class="fas fa-sync-alt fa-spin"></i> Swap Requested</span>
                             </p>
                         </div>
                     </div>
@@ -348,11 +355,19 @@
                     </div>
                 </div>
                 <div class="board-column">
-                    <h4 class="column-title">Confirmed <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
-                    <div th:each="turn : ${myTurns}" th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="board-card confirmed">
+                    <h4 class="column-title">Confirmed & Swaps <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
+
+                    <div th:each="turn : ${myTurns}"
+                         th:if="${turn.turnStatus.name() == 'ACCEPTED' or turn.turnStatus.name() == 'SWAP_REQUESTED'}"
+                         class="board-card"
+                         th:classappend="${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed'">
+
                         <h4 th:text="${turn.turnType.name}" style="margin-bottom: 5px;">Shift</h4>
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;" th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Dates</p>
-                        <span class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                        <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                        <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap" style="font-size: 0.6rem; padding: 2px 6px;">Swap Pending</span>
                     </div>
                 </div>
             </div>
