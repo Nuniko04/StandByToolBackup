@@ -44,6 +44,9 @@ public class RequestController {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao submeter troca: " + e.getMessage());
         }
 
+        if(loggedUser.isAssigner()){
+            return "redirect:/employee-view";
+        }
         return "redirect:/dashboard";
     }
 
