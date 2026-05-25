@@ -135,64 +135,90 @@
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
         /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
+        /* --- REGRAS ULTRA PROFISSIONAIS PARA TELEMÓVEL (768px ou menos) --- */
         @media (max-width: 768px) {
+            /* Layout Geral e Contentor Principal */
             body { flex-direction: column; height: auto; overflow-y: auto; }
+            main { padding: 15px; flex: none; width: 100%; overflow-x: hidden; }
 
-            /* Estilo do Botão Hamburguer */
-            .menu-toggle-btn {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--panel-bg, #ffffff);
-                color: var(--text-main, #333333);
-                border: 1px solid var(--border, #e0e0e0);
-                padding: 10px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-bottom: 15px;
-                width: fit-content;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-
-            /* Transformar a Barra Lateral num Menu Flutuante Oculto */
+            /* --- MENU LATERAL (HAMBURGUER) --- */
             aside {
-                position: fixed;
-                top: 0;
-                left: -100%; /* Esconde o menu completamente para a esquerda */
-                width: 280px;
-                height: 100vh;
-                background: var(--panel-bg, #ffffff);
-                z-index: 9999; /* Garante que fica por cima de tudo */
-                transition: left 0.3s ease; /* Animação suave ao abrir */
-                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-                border-right: 1px solid var(--border);
-                padding: 25px;
+                position: fixed; top: 0; left: -100%; width: 290px; height: 100vh;
+                background: var(--panel-bg, #ffffff); z-index: 9999;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 4px 0 25px rgba(0,0,0,0.15);
+                border-right: 1px solid var(--border); padding: 25px;
+            }
+            aside.menu-aberto { left: 0; }
+            .logo-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+            /* Botão Hamburguer */
+            .menu-toggle-btn {
+                display: flex; align-items: center; gap: 8px; justify-content: center;
+                width: 100%; padding: 12px; border-radius: 8px; font-weight: 600;
+                margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
 
-            /* Classe mágica que o JavaScript vai injetar para abrir o menu */
-            aside.menu-aberto {
-                left: 0;
+            /* --- CABEÇALHO E BOTÕES (CORREÇÃO TOTAL) --- */
+            header {
+                flex-direction: column; align-items: stretch; /* Empilha tudo na vertical */
+                gap: 15px; margin-bottom: 20px; width: 100%;
             }
 
-            /* Adicionar um botão de fechar dentro do menu (opcional, mas muito profissional) */
-            .logo-box {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 30px;
+            /* O contentor que junta os botões do topo */
+            header div {
+                display: flex; flex-direction: column; /* Empilha botões verticalmente */
+                gap: 12px; width: 100% !important; margin: 0 !important;
             }
 
-            /* Ajustar o resto do conteúdo para não colidir */
-            main { padding: 15px; flex: none; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; }
-        }
+            /* Estilo para todos os botões do topo (Calendário, Filtros, Assign, etc) */
+            header button, .view-toggles, .view-toggles button {
+                width: 100% !important; /* Estica todos os botões a 100% */
+                margin: 0 !important; justify-content: center !important;
+                text-align: center; padding: 12px !important;
+                font-size: 0.95rem !important; display: flex; align-items: center;
+            }
 
-        /* Ocultar o botão de menu em computadores */
-        @media (min-width: 769px) {
-            .menu-toggle-btn { display: none; }
+            /* --- SECÇÃO DE FILTROS --- */
+            #filters-wrapper, .shifts-wrapper {
+                display: flex; flex-direction: column !important; /* Empilha filtros verticalmente */
+                gap: 12px; width: 100% !important; margin: 0 !important;
+            }
+            .shifts-wrapper label, .shifts-wrapper input, .shifts-wrapper select, #search-shifts {
+                width: 100% !important; /* Filtros ocupam a largura toda */
+                margin: 0 !important;
+            }
+
+            /* --- GRELHAS E CARTÕES (Status, Clashes, etc) --- */
+            .status-grid, .board-container, .grid-2, .grid-3 {
+                grid-template-columns: 1fr !important; /* Força tudo a 1 coluna */
+                gap: 15px;
+            }
+
+            /* --- CALENDÁRIO (FullCalendar Fix) --- */
+            .fc .fc-header-toolbar {
+                display: flex !important; flex-direction: column !important; /* Toolbar em coluna */
+                gap: 8px !important; align-items: center !important;
+            }
+            .fc .fc-toolbar-title { font-size: 1.1rem !important; text-align: center; }
+            .fc .fc-button-group { display: flex !important; width: 100% !important; }
+            .fc .fc-button { flex: 1 !important; padding: 8px 4px !important; font-size: 0.8rem !important; }
+
+            /* --- TABELAS E PAINÉIS --- */
+            .panel { padding: 12px; width: 100%; }
+            /* Tabelas ganham scroll horizontal se necessário */
+            .panel table, .table-responsive {
+                display: block; overflow-x: auto; white-space: nowrap;
+                width: 100%; -webkit-overflow-scrolling: touch;
+            }
+
+            /* Cartões de turno individuais */
+            .shift-info { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .shift-actions, .shift-actions button { width: 100%; justify-content: center; }
+
+            /* Legenda */
+            .calendar-legend { flex-wrap: wrap; gap: 10px; justify-content: flex-start; }
+            .legend-item { font-size: 0.85rem; }
         }
     </style>
 </head>
