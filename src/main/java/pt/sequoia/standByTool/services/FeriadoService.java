@@ -1,5 +1,8 @@
 package pt.sequoia.standByTool.services;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -86,36 +89,63 @@ public class FeriadoService {
                 "Feriado eliminado: " + feriado.getNome());
     }
 
-    // --- MÉTODO DE IMPORTAÇÃO AUTOMÁTICA PRESERVADO ---
     public void importarFeriados(int ano) {
         String url = "https://date.nager.at/api/v3/PublicHolidays/" + ano + "/PT";
+
         try {
-            FeriadoDTO[] feriadosAPI = restTemplate.getForObject(url, FeriadoDTO[].class);
-            if (feriadosAPI != null) {
-                for (FeriadoDTO dto : feriadosAPI) {
-                    Feriado feriado = new Feriado();
-                    feriado.setData(dto.getDate());
-                    feriado.setNome(dto.getLocalName());
+            ResponseEntity<List<FeriadoDTO>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<FeriadoDTO>>() {
+                    }
+            );
 
-                    DayOfWeek diaDaSemana = dto.getDate().getDayOfWeek();
-                    boolean isFimDeSemana = (diaDaSemana == DayOfWeek.SATURDAY || diaDaSemana == DayOfWeek.SUNDAY);
+            List<FeriadoDTO> feriadosDaApi = response.getBody();
 
-                    if (!feriadoRepository.existsByData(feriado.getData())) {
-                        feriadoRepository.save(feriado);
+            if (feriadosDaApi != null) {
+                for (FeriadoDTO dto : feriadosDaApi) {
+
+                    // 💡 O TRUQUE ESTÁ AQUI: Filtrar por tipo!
+                    // A API Nager define feriados nacionais (Public) ou locais/regionais (Authorities, Optional, etc).
+                    // Só queremos os "Public" (Nacionais) e garantir que não tem a flag "counties" preenchida (que indica regionalismo).
+
+                    boolean isNacional = dto.getTypes().contains("Public") && dto.getCounties() == null;
+
+                    if (isNacional) {
+                        boolean jaExiste = feriadoRepository.existsByData(dto.getDate());
+
+                        if (!jaExiste) {
+                            Feriado feriado = new Feriado();
+                            feriado.setNome(dto.getLocalName());
+                            feriado.setData(dto.getDate());
+
+                            feriadoRepository.save(feriado);
+                        }
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Erro ao importar feriados: " + e.getMessage());
+            System.err.println("Erro ao importar feriados da API: " + e.getMessage());
         }
     }
 
     private static class FeriadoDTO {
         private LocalDate date;
         private String localName;
+        private List<String> types;    // 💡 NOVO: Para ler o "Public"
+        private List<String> counties; // 💡 NOVO: Para ler a região
+
         public LocalDate getDate() { return date; }
         public void setDate(LocalDate date) { this.date = date; }
+
         public String getLocalName() { return localName; }
         public void setLocalName(String localName) { this.localName = localName; }
+
+        public List<String> getTypes() { return types; }
+        public void setTypes(List<String> types) { this.types = types; }
+
+        public List<String> getCounties() { return counties; }
+        public void setCounties(List<String> counties) { this.counties = counties; }
     }
 }
