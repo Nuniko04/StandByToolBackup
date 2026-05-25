@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import pt.sequoia.standByTool.models.Notification;
+import pt.sequoia.standByTool.models.Request;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
@@ -23,14 +24,16 @@ public class IndexController {
     private final TurnTypeService turnTypeService;
     private final NotificationService notificationService;
     private final CardService cardService;
+    private final FeriadoService feriadoService;
 
-    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
+    public IndexController(FeriadoService feriadoService, TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
         this.turnService = turnService;
         this.requestService = requestService;
         this.userService = userService;
         this.turnTypeService = turnTypeService;
         this.notificationService = notificationService;
         this.cardService = cardService;
+        this.feriadoService = feriadoService;
     }
 
     @GetMapping("/")
@@ -54,25 +57,23 @@ public class IndexController {
 
             model.addAttribute("employees", userService.getAllUsers());
             model.addAttribute("turnTypes", turnTypeService.getAllTurnTypes());
-
-            // INJETAR OS CARTÕES PARA APARECEREM NA ADMINISTRAÇÃO E ATRIBUIÇÃO DE TURNOS
             model.addAttribute("cards", cardService.getAllCards());
 
             model.addAttribute("pendingAcceptanceCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE).count());
             model.addAttribute("confirmedCount", allTurns.stream().filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED || t.getTurnStatus() == TurnStatus.COMPLETED).count());
 
-            // PEDIDOS PENDENTES E HISTÓRICO (Para a nova Aba de Swap Requests)
+            // Pedidos pendentes
             model.addAttribute("pendingRequests", requestService.getPendingRequests());
             model.addAttribute("pendingRequestsCount", requestService.getPendingRequests().size());
 
-            // Filtra os pedidos que já não estão pendentes (Aprovados ou Rejeitados) para o Histórico
-            model.addAttribute("historyRequests", requestService.getAllRequests().stream()
-                    .filter(r -> r.getStatus() != RequestStatus.PENDING)
-                    .collect(Collectors.toList()));
+            // 💡 A LIGAÇÃO CORRETA: Vai buscar o histórico ordenado ao Service
+            List<Request> historicoOrdenado = requestService.getHistoryRequests();
+            model.addAttribute("historyRequests", historicoOrdenado);
 
             model.addAttribute("user", loggedUser);
             model.addAttribute("allTurns", allTurns);
 
+            model.addAttribute("feriados", feriadoService.getAllFeriados());
             return "dashboardAssigner";
         }
 
@@ -143,4 +144,7 @@ public class IndexController {
     public String comingSoon() {
         return "coming-soon";
     }
-}
+
+
+
+    }

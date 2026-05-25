@@ -74,6 +74,8 @@
         .badge-pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border-color: var(--warning); }
         .badge-confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border-color: var(--success); }
         .badge-red { background: rgba(255, 77, 77, 0.1); color: var(--danger); border-color: var(--danger); }
+        /* 💡 NOVA ETIQUETA ROXA: */
+        .badge-swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border-color: var(--purple); }
         .badge-pill { background: var(--danger); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;}
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -126,65 +128,132 @@
         .toggle-btn { padding: 10px 15px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; }
         .toggle-btn.active { background: var(--text); color: var(--bg); }
         .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
-        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
+
         @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; overflow-y: auto; }
-
-            /* Estilo do Botão Hamburguer */
-            .menu-toggle-btn {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--panel-bg, #ffffff);
-                color: var(--text-main, #333333);
-                border: 1px solid var(--border, #e0e0e0);
-                padding: 10px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-bottom: 15px;
-                width: fit-content;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
             }
 
-            /* Transformar a Barra Lateral num Menu Flutuante Oculto */
+            main {
+                padding: 12px !important;
+                flex: none !important;
+                width: 100% !important;
+                display: flex;
+                flex-direction: column;
+            }
+
             aside {
-                position: fixed;
-                top: 0;
-                left: -100%; /* Esconde o menu completamente para a esquerda */
-                width: 280px;
-                height: 100vh;
-                background: var(--panel-bg, #ffffff);
-                z-index: 9999; /* Garante que fica por cima de tudo */
-                transition: left 0.3s ease; /* Animação suave ao abrir */
-                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-                border-right: 1px solid var(--border);
-                padding: 25px;
+                position: relative !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: var(--panel-bg, #ffffff) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--border) !important;
+                padding: 15px !important;
+                z-index: 100 !important;
             }
 
-            /* Classe mágica que o JavaScript vai injetar para abrir o menu */
-            aside.menu-aberto {
-                left: 0;
-            }
-
-            /* Adicionar um botão de fechar dentro do menu (opcional, mas muito profissional) */
             .logo-box {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 30px;
+                display: flex !important;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
             }
 
-            /* Ajustar o resto do conteúdo para não colidir */
-            main { padding: 15px; flex: none; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; }
+            nav {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                justify-content: center !important;
+            }
+
+            nav a, nav button {
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+                width: auto !important;
+            }
+
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+
+            header {
+                order: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                width: 100% !important;
+                margin-bottom: 20px !important;
+                align-items: stretch !important;
+            }
+
+            #header-actions-master, header div {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+
+            header button, #header-actions-master button {
+                flex: 1 1 45% !important;
+                width: auto !important;
+                padding: 12px 8px !important;
+                font-size: 0.85rem !important;
+                justify-content: center !important;
+            }
+
+            .status-grid, .board-container, .grid-3 {
+                order: 2 !important;
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* Empilhados para leitura profissional */
+                gap: 12px !important;
+                margin-bottom: 25px !important;
+                width: 100% !important;
+            }
+
+            .panel {
+                padding: 12px !important;
+            }
+
+            .grid-2, .calendar-section-wrapper, .main-layout-split {
+                order: 3 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 15px !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 10px !important;
+            }
+
+            .grid-2 > div, .calendar-wrapper, #calendar, .shifts-list-panel {
+                flex: 0 0 85% !important;
+                scroll-snap-align: start;
+                width: auto !important;
+                min-width: 280px !important;
+            }
+
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 6px !important; }
+            .fc .fc-toolbar-title { font-size: 0.95rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { font-size: 0.75rem !important; padding: 6px 3px !important; }
         }
 
-        /* Ocultar o botão de menu em computadores */
         @media (min-width: 769px) {
-            .menu-toggle-btn { display: none; }
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+
+            body {
+                flex-direction: row !important;
+            }
         }
     </style>
 </head>
@@ -355,10 +424,41 @@
                         </div>
                         <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
 
-                        <span th:if="${req.status.name() == 'DENIED'}" class="status-badge badge-red">Denied</span>
-                    </li>
-                    <li th:if="${#lists.isEmpty(historyRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No history available.</li>
-                </ul>
+            <!-- List Subview -->
+            <div id="master-subview-list" class="panel">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Assignee</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="turn : ${allTurns}">
+                            <td><strong><i class="fas fa-user-circle" style="color:var(--text-muted); margin-right:8px;"></i> [[${turn.assignee.name}]]</strong></td>
+                            <td th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Date</td>
+                            <td th:text="${turn.turnType.name}">Type</td>
+                            <td>
+                                <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
+                                <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
+                                <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge badge-swap"><i class="fas fa-sync-alt"></i> Swap Req.</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
+                                    <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Apagar este turno?');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(allTurns)}">
+                            <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No shifts assigned yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -393,11 +493,55 @@
             </table>
         </div>
 
-        <div class="grid-2">
-            <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fas fa-clock"></i> Shift Types</span>
-                    <button class="btn-action" onclick="toggleModal('turnTypeModal')"><i class="fas fa-plus"></i> Add Type</button>
+        <!-- VIEW: SWAP REQUESTS -->
+        <div id="view-requests" class="hidden">
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-header" style="color: var(--warning);"><i class="fas fa-clock"></i> Pending Approvals</div>
+                    <div th:each="req : ${pendingRequests}" class="swap-card">
+                        <p style="font-size: 0.9rem; margin-bottom: 10px;">
+                            <strong th:text="${req.requester.name}">User A</strong> wants to give their shift to <strong th:text="${req.targetUser.name}">User B</strong>.
+                        </p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                            <i class="fas fa-calendar-day"></i> <span th:text="${req.turn.turnType.name}"></span>: <span th:text="${#temporals.format(req.turn.startTime, 'dd MMM')} + ' - ' + ${#temporals.format(req.turn.endTime, 'dd MMM')}"></span>
+                        </p>
+                        <div style="display: flex; gap: 10px;">
+                            <form th:action="@{/requests/{id}/approve(id=${req.id})}" method="POST" style="margin:0; flex:1;">
+                                <button type="submit" class="btn-main btn-success" style="width:100%; justify-content:center; padding: 10px;"><i class="fas fa-check"></i> Approve</button>
+                            </form>
+                            <form th:action="@{/requests/{id}/reject(id=${req.id})}" method="POST" style="margin:0; flex:1;">
+                                <button type="submit" class="btn-action" style="width:100%; justify-content:center; padding: 10px; color: var(--danger); border-color: var(--danger);"><i class="fas fa-times"></i> Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(pendingRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No pending swap requests.</p>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><i class="fas fa-history"></i> History</div>
+                    <ul id="history-list" style="list-style:none;">
+                        <li th:each="req : ${historyRequests}" class="history-item" style="display: none; padding: 15px; border-bottom: 1px solid var(--border); justify-content: space-between; align-items: center;">
+                            <div style="font-size: 0.85rem;">
+                                <strong th:text="${req.requester.name}"></strong> <i class="fas fa-arrow-right" style="color:var(--text-muted); margin:0 5px;"></i> <strong th:text="${req.targetUser.name}"></strong>
+                            </div>
+                            <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
+                            <span th:if="${req.status.name() == 'DENIED'}" class="status-badge badge-red">Denied</span>
+                        </li>
+                        <li th:if="${#lists.isEmpty(historyRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No history available.</li>
+                    </ul>
+
+                    <div id="history-pagination" style="display: none; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                        <button type="button" id="btn-prev-history" class="btn-action" onclick="changeHistoryPage(-1)">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+
+                        <span id="history-page-info" style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">
+                            Page 1 of 1
+                        </span>
+
+                        <button type="button" id="btn-next-history" class="btn-action" onclick="changeHistoryPage(1)">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
                 <table>
                     <thead>
@@ -786,35 +930,101 @@
             </div>
         </form>
     </div>
-</div>
 
-<script th:inline="javascript">
-    let fcAssignerInstance;
+    <script th:inline="javascript">
+        // ==========================================
+        // PAGINAÇÃO DO HISTÓRICO (CLIENT-SIDE)
+        // ==========================================
+        let currentHistoryPage = 1;
+        const itemsPerPage = 5; // 💡 Podes mudar isto para 10 se quiseres mostrar mais
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var eventsList = [
-            /*[# th:each="turn : ${allTurns}"]*/
-            {
-                id: /*[[${turn.id}]]*/ '1',
-                // Fica muito mais limpo:
-                title: /*[[${turn.turnType.name} + ' - ' + ${turn.assignee.name}]]*/ 'Tipo - Nome',
-                start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
-                end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+        function renderHistoryPage() {
+            const items = document.querySelectorAll('.history-item');
+            if (items.length === 0) return;
 
-                color: /*[[${turn.turnType.color}]]*/ '#3498db'
-            },
-            /*[/]*/
-        ];
+            const totalPages = Math.ceil(items.length / itemsPerPage);
 
-        var calendarEl = document.getElementById('calendar');
-        if(calendarEl) {
-            fcAssignerInstance = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-                events: eventsList,
-                firstDay: 1,
-                height: '100%',
-                displayEventTime: false
+            // Só mostra os botões de paginação se houver mais de 1 página
+            document.getElementById('history-pagination').style.display = totalPages > 1 ? 'flex' : 'none';
+
+            // Esconde tudo e mostra apenas os da página atual
+            items.forEach((item, index) => {
+                item.style.display = 'none'; // Volta a esconder
+
+                // Lógica matemática para saber se o item pertence à página atual
+                if (index >= (currentHistoryPage - 1) * itemsPerPage && index < currentHistoryPage * itemsPerPage) {
+                    item.style.display = 'flex'; // Mostra (flex por causa do layout)
+                }
+            });
+
+            // Atualiza o texto "Page X of Y"
+            const pageInfo = document.getElementById('history-page-info');
+            if(pageInfo) pageInfo.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
+
+            // Esconde os botões se estivermos na primeira ou última página
+            const btnPrev = document.getElementById('btn-prev-history');
+            const btnNext = document.getElementById('btn-next-history');
+
+            if(btnPrev) btnPrev.style.visibility = currentHistoryPage > 1 ? 'visible' : 'hidden';
+            if(btnNext) btnNext.style.visibility = currentHistoryPage < totalPages ? 'visible' : 'hidden';
+        }
+
+        window.changeHistoryPage = function(direction) {
+            const items = document.querySelectorAll('.history-item');
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            currentHistoryPage += direction;
+
+            // Proteções para não passar dos limites
+            if (currentHistoryPage < 1) currentHistoryPage = 1;
+            if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+
+            renderHistoryPage();
+        }
+
+        // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
+        // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... o teu código existente do FullCalendar ...
+
+            renderHistoryPage(); // 💡 Inicia a paginação na primeira página
+        });
+
+        let fcAssignerInstance;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var eventsList = [
+                /*[# th:each="turn : ${allTurns}"]*/
+                {
+                    id: /*[[${turn.id}]]*/ '1',
+                    // Fica muito mais limpo:
+                    title: /*[[${turn.turnType.name} + ' - ' + ${turn.assignee.name}]]*/ 'Tipo - Nome',
+                    start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
+                    end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+
+                    // 💡 Puxa a cor diretamente da Base de Dados!
+                    color: /*[[${turn.turnType.color}]]*/ '#3498db'
+                },
+                /*[/]*/
+            ];
+
+            var calendarEl = document.getElementById('calendar');
+            if(calendarEl) {
+                fcAssignerInstance = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                    events: eventsList,
+                    firstDay: 1,
+                    height: '100%',
+                    displayEventTime: false
+                });
+            }
+        });
+
+        function switchMainView(viewName) {
+            ['master', 'requests', 'Assigner'].forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden');
+                document.getElementById('btn-nav-' + v).classList.remove('active');
             });
         }
     });

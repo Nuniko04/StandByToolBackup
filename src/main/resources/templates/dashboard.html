@@ -15,7 +15,8 @@
             --bg: #0a0a0a; --sidebar-bg: #111111; --panel-bg: #161616; --border: #262626;
             --text: #ffffff; --text-muted: #888888; --danger: #ff4d4d; --success: #4cd137;
             --warning: #f1c40f; --radius: 12px;
-            --finastra-shift: #3498db; 
+            --finastra-shift: #3498db;
+            --purple: #9b59b6; /* <-- ADICIONA ISTO */
         }
         [data-theme="light"] {
             --bg: #f5f5f5; --sidebar-bg: #ffffff; --panel-bg: #ffffff; --border: #e0e0e0;
@@ -74,6 +75,7 @@
         .shift-card:hover { border-color: var(--text-muted); }
         .shift-card.pending { border-left: 4px solid var(--warning); }
         .shift-card.confirmed { border-left: 4px solid var(--success); }
+        .shift-card.swap { border-left: 4px solid var(--purple); } /* NOVO */
         
         .shift-info { display: flex; gap: 30px; align-items: center; }
         .shift-date-box { text-align: center; background: var(--panel-bg); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; min-width: 100px; }
@@ -85,6 +87,7 @@
         .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         .status-badge.pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border: 1px solid var(--warning); }
         .status-badge.confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .status-badge.swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border: 1px solid var(--purple); } /* NOVO */
 
         .btn-main { background: var(--text); color: var(--bg); border: none; padding: 12px 24px; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;}
         .btn-main:hover { opacity: 0.8; transform: translateY(-2px); }
@@ -101,6 +104,7 @@
         .board-card:hover { border-color: var(--text-muted); }
         .board-card.pending { border-top: 3px solid var(--warning); }
         .board-card.confirmed { border-top: 3px solid var(--success); }
+        .board-card.swap { border-top: 3px solid var(--purple); } /* NOVO */
 
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -130,65 +134,181 @@
         .form-input, select { width: 100%; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.2s; }
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
-        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
-        @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; overflow-y: auto; }
-
-            /* Estilo do Botão Hamburguer */
-            .menu-toggle-btn {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--panel-bg, #ffffff);
-                color: var(--text-main, #333333);
-                border: 1px solid var(--border, #e0e0e0);
-                padding: 10px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-bottom: 15px;
-                width: fit-content;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-
-            /* Transformar a Barra Lateral num Menu Flutuante Oculto */
-            aside {
-                position: fixed;
-                top: 0;
-                left: -100%; /* Esconde o menu completamente para a esquerda */
-                width: 280px;
-                height: 100vh;
-                background: var(--panel-bg, #ffffff);
-                z-index: 9999; /* Garante que fica por cima de tudo */
-                transition: left 0.3s ease; /* Animação suave ao abrir */
-                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-                border-right: 1px solid var(--border);
-                padding: 25px;
-            }
-
-            /* Classe mágica que o JavaScript vai injetar para abrir o menu */
-            aside.menu-aberto {
-                left: 0;
-            }
-
-            /* Adicionar um botão de fechar dentro do menu (opcional, mas muito profissional) */
-            .logo-box {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 30px;
-            }
-
-            /* Ajustar o resto do conteúdo para não colidir */
-            main { padding: 15px; flex: none; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; }
+        .accept-all-wrapper {
+            padding: 15px 20px 0 20px;
+            display: flex;
+            justify-content: flex-end; /* Encosta à direita no PC */
         }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
+            }
 
-        /* Ocultar o botão de menu em computadores */
+            main {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                padding: 15px !important;
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .menu-toggle-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                background: var(--panel-bg) !important;
+                color: var(--text) !important;
+                border: 1px solid var(--border) !important;
+                padding: 8px 14px !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                width: fit-content !important; /* Garante que fica pequeno, não estica */
+                font-size: 0.85rem !important;
+                order: 0 !important; /* Fica no topo isolado */
+                margin-bottom: 15px !important;
+            }
+
+            aside {
+                position: fixed !important;
+                top: 0 !important;
+                left: -100% !important; /* Totalmente escondido à esquerda */
+                width: 280px !important;
+                height: 100vh !important;
+                background: var(--sidebar-bg) !important;
+                z-index: 9999 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5) !important;
+                border-right: 1px solid var(--border) !important;
+                padding: 25px !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            aside.menu-aberto {
+                left: 0 !important; /* Desliza suavemente ao abrir */
+            }
+            .logo-box { margin-bottom: 30px !important; }
+            nav { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+            nav a, nav button { width: 100% !important; text-align: left !important; }
+
+            header {
+                display: contents !important; /* Liberta os filhos diretos para o Main */
+            }
+
+            #header-actions-master:not([style*="display: none"]) {
+                display: contents !important;
+            }
+
+            #view-master:not(.hidden) {
+                display: contents !important;
+            }
+
+            .title-group {
+                order: 1 !important;
+                width: 100% !important;
+                margin-bottom: 15px !important;
+            }
+            .title-group h2 { font-size: 1.5rem !important; }
+
+            header .btn-purple, #header-actions-master .btn-purple {
+                order: 2 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
+            header .btn-main:not(.btn-purple), #header-actions-master .btn-main:not(.btn-purple) {
+                order: 3 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                margin-left: 12px !important; /* Separação entre os dois */
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
+
+            .status-grid {
+                order: 4 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                margin-top: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            .status-card { padding: 18px !important; width: 100% !important; }
+
+            .view-toggles {
+                order: 5 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
+                background: var(--bg) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+            }
+            .view-toggles .toggle-btn {
+                flex: 1 !important;
+                text-align: center !important;
+                padding: 10px !important;
+            }
+
+            #master-subview-list, #master-subview-calendar, .panel {
+                order: 6 !important;
+                width: 100% !important;
+                margin-bottom: 25px !important;
+            }
+
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+
+            #view-requests:not(.hidden), #view-assigner:not(.hidden), #view-Assigner:not(.hidden) {
+                order: 10 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+            }
+
+            .grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
+
+            /* Ajustes finos do FullCalendar */
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 8px !important; }
+            .fc .fc-toolbar-title { font-size: 1rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
+        }
+        @media (max-width: 768px) {
+            .accept-all-wrapper {
+                padding: 15px 12px 0 12px;
+            }
+            .accept-all-wrapper form, .accept-all-wrapper button {
+                width: 100%; /* Estica a 100% no telemóvel */
+                justify-content: center;
+            }
+
         @media (min-width: 769px) {
-            .menu-toggle-btn { display: none; }
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+            body {
+                flex-direction: row !important;
+            }
         }
     </style>
 </head>
@@ -225,18 +345,13 @@
 
     <main>
         <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
-            ☰ <span>Menu</span>
+            <i class="fas fa-bars"></i> <span>Menu</span>
         </button>
         <header>
             <div class="title-group">
                 <h2>Welcome back, <span th:text="${#strings.substringBefore(user.name, ' ')}">User</span></h2>
                 <p th:if="${pendingCount > 0}">You have <strong th:text="${pendingCount} + ' pending shift(s)'"></strong> requiring action.</p>
                 <p th:if="${pendingCount == 0}">You have no pending shifts. Enjoy your week!</p>
-            </div>
-            <div th:if="${pendingCount > 0}">
-                <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
-                    <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
-                </form>
             </div>
         </header>
 
@@ -278,9 +393,17 @@
                 </div>
             </div>
 
+            <div th:if="${pendingCount > 0}" class="accept-all-wrapper">
+                <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
+                    <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
+                </form>
+            </div>
+
             <!-- LIST VIEW -->
             <div id="view-list" class="shifts-grid">
-                <div th:each="turn : ${myTurns}" class="shift-card" th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : 'confirmed'">
+                <div th:each="turn : ${myTurns}" class="shift-card"
+                     th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : (${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed')">
+
                     <div class="shift-info">
                         <div class="shift-date-box">
                             <span class="month" th:text="${#temporals.format(turn.startTime, 'MMM')}">MMM</span>
@@ -292,6 +415,7 @@
                             <p style="margin-top: 8px;">
                                 <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge pending">Pending</span>
                                 <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed"><i class="fas fa-check"></i> Confirmed</span>
+                                <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap"><i class="fas fa-sync-alt fa-spin"></i> Swap Requested</span>
                             </p>
                         </div>
                     </div>
@@ -322,11 +446,19 @@
                     </div>
                 </div>
                 <div class="board-column">
-                    <h4 class="column-title">Confirmed <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
-                    <div th:each="turn : ${myTurns}" th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="board-card confirmed">
+                    <h4 class="column-title">Confirmed & Swaps <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
+
+                    <div th:each="turn : ${myTurns}"
+                         th:if="${turn.turnStatus.name() == 'ACCEPTED' or turn.turnStatus.name() == 'SWAP_REQUESTED'}"
+                         class="board-card"
+                         th:classappend="${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed'">
+
                         <h4 th:text="${turn.turnType.name}" style="margin-bottom: 5px;">Shift</h4>
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;" th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Dates</p>
-                        <span class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                        <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                        <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap" style="font-size: 0.6rem; padding: 2px 6px;">Swap Pending</span>
                     </div>
                 </div>
             </div>

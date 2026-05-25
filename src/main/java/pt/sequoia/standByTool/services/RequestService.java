@@ -46,6 +46,10 @@ public class RequestService {
                 .toList();
     }
 
+    public List<Request> getHistoryRequests() {
+        return requestRepository.findByStatusNotOrderByCreatedAtDesc(RequestStatus.PENDING);
+    }
+
     public List<Request> getRequestsByUser(UUID userId) {
         return requestRepository.findAll().stream()
                 .filter(r -> r.getRequester().getId().equals(userId))
