@@ -24,14 +24,16 @@ public class IndexController {
     private final TurnTypeService turnTypeService;
     private final NotificationService notificationService;
     private final CardService cardService;
+    private final FeriadoService feriadoService;
 
-    public IndexController(TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
+    public IndexController(FeriadoService feriadoService, TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
         this.turnService = turnService;
         this.requestService = requestService;
         this.userService = userService;
         this.turnTypeService = turnTypeService;
         this.notificationService = notificationService;
         this.cardService = cardService;
+        this.feriadoService = feriadoService;
     }
 
     @GetMapping("/")
@@ -71,6 +73,7 @@ public class IndexController {
             model.addAttribute("user", loggedUser);
             model.addAttribute("allTurns", allTurns);
 
+            model.addAttribute("feriados", feriadoService.getAllFeriados());
             return "dashboardAssigner";
         }
 
@@ -141,4 +144,7 @@ public class IndexController {
     public String comingSoon() {
         return "coming-soon";
     }
-}
+
+
+
+    }
