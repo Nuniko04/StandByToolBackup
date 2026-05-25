@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sequoia — Master Schedule</title>
     <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -74,8 +75,6 @@
         .badge-pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border-color: var(--warning); }
         .badge-confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border-color: var(--success); }
         .badge-red { background: rgba(255, 77, 77, 0.1); color: var(--danger); border-color: var(--danger); }
-        /* 💡 NOVA ETIQUETA ROXA: */
-        .badge-swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border-color: var(--purple); }
         .badge-pill { background: var(--danger); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;}
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -89,7 +88,9 @@
         .fc-daygrid-event { margin-left: 5px !important; margin-right: 5px !important; }
         .event-standby { background-color: #4cd137 !important; color: #000 !important; }      
         .event-backup { background-color: #f1c40f !important; color: #000 !important; }       
-        .event-finastra { background-color: #3498db !important; color: #000 !important; }
+        .event-finastra { background-color: #3498db !important; color: #000 !important; }     
+        .event-sub-standby { background-color: #9b59b6 !important; color: #fff !important; }  
+        .event-sub-finastra { background-color: #e84393 !important; color: #fff !important; }
         .fc-toolbar-title { font-family: 'Syne', sans-serif; text-transform: uppercase; font-weight: 800 !important; letter-spacing: 1px; color: #fff; font-size: 1.2rem !important; }
         .fc .fc-button-primary { background-color: transparent !important; border: 1px solid #333 !important; color: #fff !important; text-transform: uppercase !important; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.75rem !important; border-radius: 6px !important; padding: 8px 16px !important;}
         .fc .fc-button-primary:hover { background-color: #333 !important; border-color: #444 !important; }
@@ -129,132 +130,6 @@
         .toggle-btn.active { background: var(--text); color: var(--bg); }
         .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
 
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column !important;
-                height: auto !important;
-                overflow-y: auto !important;
-            }
-
-            main {
-                padding: 12px !important;
-                flex: none !important;
-                width: 100% !important;
-                display: flex;
-                flex-direction: column;
-            }
-
-            aside {
-                position: relative !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                background: var(--panel-bg, #ffffff) !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-                border-right: none !important;
-                border-bottom: 1px solid var(--border) !important;
-                padding: 15px !important;
-                z-index: 100 !important;
-            }
-
-            .logo-box {
-                display: flex !important;
-                justify-content: center !important;
-                margin-bottom: 15px !important;
-            }
-
-            nav {
-                display: flex !important;
-                flex-direction: row !important;
-                flex-wrap: wrap !important;
-                gap: 10px !important;
-                justify-content: center !important;
-            }
-
-            nav a, nav button {
-                padding: 8px 12px !important;
-                font-size: 0.85rem !important;
-                width: auto !important;
-            }
-
-            .menu-toggle-btn, #menu-toggle {
-                display: none !important;
-            }
-
-            header {
-                order: 1 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 10px !important;
-                width: 100% !important;
-                margin-bottom: 20px !important;
-                align-items: stretch !important;
-            }
-
-            #header-actions-master, header div {
-                display: flex !important;
-                flex-direction: row !important;
-                flex-wrap: wrap !important;
-                gap: 10px !important;
-                width: 100% !important;
-            }
-
-            header button, #header-actions-master button {
-                flex: 1 1 45% !important;
-                width: auto !important;
-                padding: 12px 8px !important;
-                font-size: 0.85rem !important;
-                justify-content: center !important;
-            }
-
-            .status-grid, .board-container, .grid-3 {
-                order: 2 !important;
-                display: grid !important;
-                grid-template-columns: 1fr !important; /* Empilhados para leitura profissional */
-                gap: 12px !important;
-                margin-bottom: 25px !important;
-                width: 100% !important;
-            }
-
-            .panel {
-                padding: 12px !important;
-            }
-
-            .grid-2, .calendar-section-wrapper, .main-layout-split {
-                order: 3 !important;
-                display: flex !important;
-                flex-direction: row !important;
-                gap: 15px !important;
-                width: 100% !important;
-                overflow-x: auto !important;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 10px !important;
-            }
-
-            .grid-2 > div, .calendar-wrapper, #calendar, .shifts-list-panel {
-                flex: 0 0 85% !important;
-                scroll-snap-align: start;
-                width: auto !important;
-                min-width: 280px !important;
-            }
-
-            .fc .fc-header-toolbar { flex-direction: column !important; gap: 6px !important; }
-            .fc .fc-toolbar-title { font-size: 0.95rem !important; }
-            .fc .fc-button-group { width: 100% !important; }
-            .fc .fc-button { font-size: 0.75rem !important; padding: 6px 3px !important; }
-        }
-
-        @media (min-width: 769px) {
-            .menu-toggle-btn, #menu-toggle {
-                display: none !important;
-            }
-
-            body {
-                flex-direction: row !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -262,7 +137,7 @@
     <aside>
         <div class="sidebar-top">
             <div class="logo-box">
-                <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
+                <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
             </div>
 
             <div class="user-profile">
@@ -298,9 +173,6 @@
     </aside>
 
     <main>
-        <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
-            ☰ <span>Menu</span>
-        </button>
         <header>
             <div class="title-group">
                 <h2 id="header-title">Master Schedule</h2>
@@ -361,7 +233,6 @@
                             <td>
                                 <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
                                 <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
-                                <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge badge-swap"><i class="fas fa-sync-alt"></i> Swap Req.</span>
                             </td>
                             <td style="text-align: right;">
                                 <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
@@ -381,10 +252,11 @@
             <!-- Calendar Subview -->
             <div id="master-subview-calendar" class="panel hidden">
                 <div class="calendar-legend">
-                    <div th:each="type : ${turnTypes}" class="legend-item">
-                        <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
-                        <span th:text="${type.name}">Nome do Cargo</span>
-                    </div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#4cd137"></div> Standby</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#f1c40f"></div> Backup</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Finastra Shift</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#9b59b6"></div> Sub Standby</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#e84393"></div> Sub Finastra</div>
                 </div>
                 <div id="calendar" class="calendar-wrapper"></div>
             </div>
@@ -415,30 +287,16 @@
                 </div>
                 <div class="panel">
                     <div class="panel-header"><i class="fas fa-history"></i> History</div>
-                    <ul id="history-list" style="list-style:none;">
-                        <li th:each="req : ${historyRequests}" class="history-item" style="display: none; padding: 15px; border-bottom: 1px solid var(--border); justify-content: space-between; align-items: center;">
+                    <ul style="list-style:none;">
+                        <li th:each="req : ${historyRequests}" style="padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                             <div style="font-size: 0.85rem;">
                                 <strong th:text="${req.requester.name}"></strong> <i class="fas fa-arrow-right" style="color:var(--text-muted); margin:0 5px;"></i> <strong th:text="${req.targetUser.name}"></strong>
                             </div>
                             <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
-                            <span th:if="${req.status.name() == 'DENIED'}" class="status-badge badge-red">Denied</span>
+                            <span th:if="${req.status.name() == 'REJECTED'}" class="status-badge badge-red">Rejected</span>
                         </li>
                         <li th:if="${#lists.isEmpty(historyRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No history available.</li>
                     </ul>
-
-                    <div id="history-pagination" style="display: none; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
-                        <button type="button" id="btn-prev-history" class="btn-action" onclick="changeHistoryPage(-1)">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-
-                        <span id="history-page-info" style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">
-                            Page 1 of 1
-                        </span>
-
-                        <button type="button" id="btn-next-history" class="btn-action" onclick="changeHistoryPage(1)">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -666,10 +524,6 @@
             <form method="POST" action="/turntypes/save">
                 <div class="form-group"><label>Name (Ex: StandBy)</label><input type="text" name="name" required class="form-input"></div>
                 <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" required class="form-input"></div>
-                <div class="form-group">
-                    <label>Cor Identificativa</label>
-                    <input type="color" name="color" value="#3498db" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
-                </div>
                 <div class="grid-2">
                     <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" required class="form-input"></div>
                     <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" required class="form-input"></div>
@@ -692,10 +546,6 @@
             <form method="POST" th:action="@{/turntypes/{id}/update(id=${type.id})}">
                 <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${type.name}" required class="form-input"></div>
                 <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" required class="form-input"></div>
-                <div class="form-group">
-                    <label>Cor Identificativa</label>
-                    <input type="color" name="color" th:value="${type.color}" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
-                </div>
                 <div class="grid-2">
                     <div class="form-group"><label>Start Time</label><input type="time" name="defaultStartTime" th:value="${type.defaultStartTime}" required class="form-input"></div>
                     <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" th:value="${type.defaultEndTime}" required class="form-input"></div>
@@ -745,64 +595,6 @@
     </div>
 
     <script th:inline="javascript">
-        // ==========================================
-        // PAGINAÇÃO DO HISTÓRICO (CLIENT-SIDE)
-        // ==========================================
-        let currentHistoryPage = 1;
-        const itemsPerPage = 5; // 💡 Podes mudar isto para 10 se quiseres mostrar mais
-
-        function renderHistoryPage() {
-            const items = document.querySelectorAll('.history-item');
-            if (items.length === 0) return;
-
-            const totalPages = Math.ceil(items.length / itemsPerPage);
-
-            // Só mostra os botões de paginação se houver mais de 1 página
-            document.getElementById('history-pagination').style.display = totalPages > 1 ? 'flex' : 'none';
-
-            // Esconde tudo e mostra apenas os da página atual
-            items.forEach((item, index) => {
-                item.style.display = 'none'; // Volta a esconder
-
-                // Lógica matemática para saber se o item pertence à página atual
-                if (index >= (currentHistoryPage - 1) * itemsPerPage && index < currentHistoryPage * itemsPerPage) {
-                    item.style.display = 'flex'; // Mostra (flex por causa do layout)
-                }
-            });
-
-            // Atualiza o texto "Page X of Y"
-            const pageInfo = document.getElementById('history-page-info');
-            if(pageInfo) pageInfo.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
-
-            // Esconde os botões se estivermos na primeira ou última página
-            const btnPrev = document.getElementById('btn-prev-history');
-            const btnNext = document.getElementById('btn-next-history');
-
-            if(btnPrev) btnPrev.style.visibility = currentHistoryPage > 1 ? 'visible' : 'hidden';
-            if(btnNext) btnNext.style.visibility = currentHistoryPage < totalPages ? 'visible' : 'hidden';
-        }
-
-        window.changeHistoryPage = function(direction) {
-            const items = document.querySelectorAll('.history-item');
-            const totalPages = Math.ceil(items.length / itemsPerPage);
-
-            currentHistoryPage += direction;
-
-            // Proteções para não passar dos limites
-            if (currentHistoryPage < 1) currentHistoryPage = 1;
-            if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
-
-            renderHistoryPage();
-        }
-
-        // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
-        // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
-        document.addEventListener('DOMContentLoaded', function() {
-            // ... o teu código existente do FullCalendar ...
-
-            renderHistoryPage(); // 💡 Inicia a paginação na primeira página
-        });
-
         let fcAssignerInstance;
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -810,13 +602,10 @@
                 /*[# th:each="turn : ${allTurns}"]*/
                 {
                     id: /*[[${turn.id}]]*/ '1',
-                    // Fica muito mais limpo:
-                    title: /*[[${turn.turnType.name} + ' - ' + ${turn.assignee.name}]]*/ 'Tipo - Nome',
+                    title: /*[[${turn.turnType.name == 'StandBy' ? 'S: ' : (turn.turnType.name == 'Backup' ? 'B: ' : 'FS: ')} + ${turn.assignee.name}]]*/ 'S: Nome',
                     start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
                     end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
-
-                    // 💡 Puxa a cor diretamente da Base de Dados!
-                    color: /*[[${turn.turnType.color}]]*/ '#3498db'
+                    className: /*[[${turn.turnType.name == 'StandBy' ? 'event-standby' : (turn.turnType.name == 'Backup' ? 'event-backup' : 'event-finastra')}]]*/ 'event-standby'
                 },
                 /*[/]*/
             ];
@@ -935,38 +724,13 @@
             if (theme === 'light') {
                 icon.classList.replace('fa-moon', 'fa-sun');
                 themeText.innerText = 'Light Mode';
-                mainLogo.src = '/images/blueSequoiaLogo.avif';
+                mainLogo.src = '/blueSequoiaLogo.avif'; 
             } else {
                 icon.classList.replace('fa-sun', 'fa-moon');
                 themeText.innerText = 'Dark Mode';
-                mainLogo.src = '/images/whiteSequoiaLogo.png';
+                mainLogo.src = '/whiteSequoiaLogo.png'; 
             }
         }
-        function toggleMenu() {
-            const lateralMenu = document.querySelector('aside');
-            const menuBtn = document.getElementById('menu-toggle');
-
-            // Alterna a classe que mostra/esconde o menu
-            lateralMenu.classList.toggle('menu-aberto');
-
-            // Muda o ícone do botão para indicar se está aberto ou fechado
-            if (lateralMenu.classList.contains('menu-aberto')) {
-                menuBtn.innerHTML = '✕ <span>Fechar</span>';
-            } else {
-                menuBtn.innerHTML = '☰ <span>Menu</span>';
-            }
-        }
-
-        // Fechar o menu automaticamente se o utilizador clicar fora dele
-        document.addEventListener('click', function(event) {
-            const lateralMenu = document.querySelector('aside');
-            const menuBtn = document.getElementById('menu-toggle');
-
-            if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
-                lateralMenu.classList.remove('menu-aberto');
-                menuBtn.innerHTML = '☰ <span>Menu</span>';
-            }
-        });
     </script>
 </body>
 </html>

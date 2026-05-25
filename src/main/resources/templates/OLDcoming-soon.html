@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StandByTool | Coming Soon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { 50: '#eff6ff', 600: '#2563eb' } } } }
+        }
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center h-screen font-sans antialiased text-gray-800 transition-colors duration-200">
+<div class="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 w-full max-w-lg text-center relative overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-2 bg-brand-600"></div>
+    <div class="w-24 h-24 bg-brand-50 dark:bg-blue-900/30 text-brand-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="ph-fill ph-barricade text-5xl"></i>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">Aplicação em Fase de Testes</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed text-sm">
+        O <strong>StandByTool</strong> está atualmente restrito à equipa de Gestão para validações.
+        <br><br>
+        Aguarde o lançamento oficial! 🚀
+    </p>
+    <form action="/logout" method="post" class="m-0">
+        <button type="submit" class="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white font-medium py-3.5 px-4 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center justify-center shadow-sm">
+            <i class="ph ph-sign-out text-xl mr-2"></i> Mudar de Conta
+        </button>
+    </form>
+</div>
+</body>
+</html>

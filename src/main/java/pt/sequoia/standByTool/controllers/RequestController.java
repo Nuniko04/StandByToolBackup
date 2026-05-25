@@ -44,6 +44,9 @@ public class RequestController {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao submeter troca: " + e.getMessage());
         }
 
+        if(loggedUser.isAssigner()){
+            return "redirect:/employee-view";
+        }
         return "redirect:/dashboard";
     }
 
@@ -75,6 +78,7 @@ public class RequestController {
         if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
 
         try {
+            // 💡 A CORREÇÃO ESTÁ AQUI: Passamos REJECTED em vez de DENIED
             requestService.processRequest(id, assigner.getId(), RequestStatus.DENIED, "Rejeitado via Dashboard", null);
             redirectAttributes.addFlashAttribute("successMsg", "Pedido rejeitado. O turno mantém-se com o titular original.");
         } catch (Exception e) {

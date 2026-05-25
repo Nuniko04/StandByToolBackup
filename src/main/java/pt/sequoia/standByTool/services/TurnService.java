@@ -54,14 +54,15 @@ public class TurnService {
         return false;
     }
 
+    // ==========================================
+    // MÉTODOS DE LISTAGEM (Ocultam os CANCELLED diretamente na BD)
+    // ==========================================
     public List<Turn> getAllTurns() {
-        return turnRepository.findAll();
+        return turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED);
     }
 
     public List<Turn> getMyTurns(UUID userId) {
-        return turnRepository.findAll().stream()
-                .filter(t -> t.getAssignee().getId().equals(userId))
-                .toList();
+        return turnRepository.findByAssigneeIdAndTurnStatusNotOrderByStartTimeAscCreatedAtAsc(userId, TurnStatus.CANCELLED);
     }
 
     @Transactional
@@ -126,8 +127,8 @@ public class TurnService {
                         " não tem elegibilidade para realizar turnos do tipo " + turn.getTurnType().getName() + ".");
             }
 
-            List<Turn> outrosTurnos = turnRepository.findAll().stream()
-                    .filter(t -> t.getAssignee() != null && t.getAssignee().getId().equals(finalAssigneeId))
+            // 💡 Otimização: Vai buscar apenas os turnos da pessoa (já sem os cancelados)
+            List<Turn> outrosTurnos = turnRepository.findByAssigneeIdAndTurnStatusNotOrderByStartTimeAscCreatedAtAsc(finalAssigneeId, TurnStatus.CANCELLED).stream()
                     .filter(t -> !t.getId().equals(turnId))
                     .toList();
 
@@ -189,17 +190,82 @@ public class TurnService {
         return false;
     }
 
+    // ==========================================
+    // MÉTODO APAGAR (Agora usa SOFT DELETE)
+    // ==========================================
     @Transactional
     public boolean deleteTurn(UUID turnId, User assigner) {
-        if (turnRepository.existsById(turnId)) {
-            turnRepository.deleteById(turnId);
-            auditLogService.log(assigner, "DELETE_TURN", "Turn", turnId, "Turn deleted");
+        Optional<Turn> opt = turnRepository.findById(turnId);
+        if (opt.isPresent()) {
+            Turn turn = opt.get();
+
+            // 1º Tenta apagar o evento do Google Calendar (se existir)
+            if (turn.getCalendarEventId() != null && turn.getTurnType().getGoogleCalendarId() != null) {
+                try {
+                    calendarService.deleteTurnFromCalendar(turn);
+                } catch (Exception e) {
+                    System.err.println("Erro ao remover evento do calendário, prosseguindo: " + e.getMessage());
+                }
+                turn.setCalendarEventId(null);
+            }
+
+            // 2º SOFT DELETE: A magia acontece aqui. Muda o status em vez de destruir a linha!
+            turn.setTurnStatus(TurnStatus.CANCELLED);
+            turnRepository.save(turn);
+
+            auditLogService.log(assigner, "DELETE_TURN", "Turn", turnId, "Turn soft-deleted (CANCELLED)");
             return true;
         }
         return false;
     }
 
+    // ==========================================
+    // NOVO MÉTODO: CONCLUIR TURNOS DO PASSADO
+    // ==========================================
+    @Transactional
+    public int markPastTurnsAsCompleted() {
+        // Apenas para os turnos que não estão cancelados
+        List<Turn> turnsToComplete = turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED).stream()
+                .filter(t -> t.getTurnStatus() == TurnStatus.ACCEPTED)
+                .filter(t -> t.getEndTime().isBefore(LocalDateTime.now()))
+                .toList();
+
+        for (Turn t : turnsToComplete) {
+            t.setTurnStatus(TurnStatus.COMPLETED);
+            turnRepository.save(t);
+        }
+
+        return turnsToComplete.size(); // Devolve a quantidade de turnos concluídos com sucesso
+    }
+
     public Optional<Turn> getTurn(UUID id) {
         return turnRepository.findById(id);
+    }
+
+    @Transactional
+    public int acceptAllPendingTurns(User loggedUser) {
+        List<Turn> pendingTurns = turnRepository.findByTurnStatusNot(TurnStatus.CANCELLED).stream()
+                .filter(t -> t.getAssignee().getId().equals(loggedUser.getId())
+                        && t.getTurnStatus() == TurnStatus.PENDING_ACCEPTANCE)
+                .toList();
+
+        int count = 0;
+        for (Turn turn : pendingTurns) {
+            turn.setTurnStatus(TurnStatus.ACCEPTED);
+
+            String eventId = calendarService.addTurnToCalendar(turn);
+            if (eventId != null) {
+                turn.setCalendarEventId(eventId);
+            }
+
+            turnRepository.save(turn);
+            count++;
+        }
+
+        if (count > 0) {
+            auditLogService.log(loggedUser, "ACCEPT_ALL_TURNS", "Turn", loggedUser.getId(), "Accepted " + count + " pending turns");
+        }
+
+        return count;
     }
 }

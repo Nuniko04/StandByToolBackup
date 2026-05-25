@@ -91,25 +91,21 @@
 
         .google-icon { width: 18px; height: 18px; }
         .footer-text { margin-top: 25px; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;}
-        @media (max-width: 768px) {
-            .login-card { padding: 40px 20px; width: 92%; }
-            h1 { font-size: 1.2rem; }
-        }
     </style>
 </head>
 <body>
     <div class="login-card">
-        <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img">
+        <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img">
         <h1>StandByTool</h1>
-        <p class="subtitle">Schedule and Operations Management</p>
+        <p class="subtitle">Gestão de Escalas e Operações</p>
 
         <div th:if="${param.logout}" class="alert-success">
-            <i class="fas fa-check-circle"></i> Logged out successfully. See you soon!
+            <i class="fas fa-check-circle"></i> Sessão terminada com sucesso. Até breve!
         </div>
 
         <a href="/oauth2/authorization/google" class="btn-google">
             <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="google-icon">
-            Continue with Google
+            Continuar com o Google
         </a>
         <p class="footer-text">Sequoia Consulting © 2026</p>
     </div>

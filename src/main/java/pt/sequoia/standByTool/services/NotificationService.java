@@ -43,4 +43,21 @@ public class NotificationService {
             notificationRepository.save(n);
         });
     }
+
+    @Transactional
+    public void marcarTodasComoLidas(UUID userId) {
+        List<Notification> notificacoes = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        boolean algumaAlterada = false;
+
+        for (Notification n : notificacoes) {
+            if (!n.isRead()) {
+                n.setRead(true);
+                algumaAlterada = true;
+            }
+        }
+
+        if (algumaAlterada) {
+            notificationRepository.saveAll(notificacoes);
+        }
+    }
 }

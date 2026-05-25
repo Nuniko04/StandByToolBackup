@@ -31,12 +31,13 @@ public class TurnTypeService {
     }
 
     @Transactional
-    public void createTurnType(String name, String googleCalendarId, LocalTime start, LocalTime end, User adminActor) {
+    public void createTurnType(String name, String googleCalendarId, LocalTime start, LocalTime end, String color, User adminActor) {
         TurnType turnType = new TurnType();
         turnType.setName(name);
         turnType.setGoogleCalendarId(googleCalendarId);
         turnType.setDefaultStartTime(start);
         turnType.setDefaultEndTime(end);
+        turnType.setColor(color);
 
         turnTypeRepository.save(turnType);
         auditLogService.log(adminActor, "CREATE_TURN_TYPE", "TurnType", turnType.getId(), "Created TurnType: " + name);
@@ -44,7 +45,7 @@ public class TurnTypeService {
 
     // --- NOVO: MÉTODO PARA EDITAR TIPO DE TURNO ---
     @Transactional
-    public void updateTurnType(UUID id, String name, String googleCalendarId, LocalTime start, LocalTime end, User adminActor) {
+    public void updateTurnType(UUID id, String name, String googleCalendarId, LocalTime start, LocalTime end, String color, User adminActor) {
         TurnType turnType = turnTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de Turno não encontrado."));
 
@@ -52,6 +53,7 @@ public class TurnTypeService {
         turnType.setGoogleCalendarId(googleCalendarId);
         turnType.setDefaultStartTime(start);
         turnType.setDefaultEndTime(end);
+        turnType.setColor(color);
 
         turnTypeRepository.save(turnType);
         auditLogService.log(adminActor, "UPDATE_TURN_TYPE", "TurnType", turnType.getId(), "Updated TurnType: " + name);
