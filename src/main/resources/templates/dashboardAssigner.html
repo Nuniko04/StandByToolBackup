@@ -375,19 +375,30 @@
                 </div>
                 <div class="panel">
                     <div class="panel-header"><i class="fas fa-history"></i> History</div>
-                    <ul style="list-style:none;">
-                        <li th:each="req : ${historyRequests}" style="padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <ul id="history-list" style="list-style:none;">
+                        <li th:each="req : ${historyRequests}" class="history-item" style="display: none; padding: 15px; border-bottom: 1px solid var(--border); justify-content: space-between; align-items: center;">
                             <div style="font-size: 0.85rem;">
                                 <strong th:text="${req.requester.name}"></strong> <i class="fas fa-arrow-right" style="color:var(--text-muted); margin:0 5px;"></i> <strong th:text="${req.targetUser.name}"></strong>
                             </div>
                             <span th:if="${req.status.name() == 'APPROVED'}" class="status-badge badge-confirmed">Approved</span>
-
                             <span th:if="${req.status.name() == 'DENIED'}" class="status-badge badge-red">Denied</span>
-
-
                         </li>
                         <li th:if="${#lists.isEmpty(historyRequests)}" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No history available.</li>
                     </ul>
+
+                    <div id="history-pagination" style="display: none; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                        <button type="button" id="btn-prev-history" class="btn-action" onclick="changeHistoryPage(-1)">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+
+                        <span id="history-page-info" style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">
+                            Page 1 of 1
+                        </span>
+
+                        <button type="button" id="btn-next-history" class="btn-action" onclick="changeHistoryPage(1)">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -694,6 +705,64 @@
     </div>
 
     <script th:inline="javascript">
+        // ==========================================
+        // PAGINAÇÃO DO HISTÓRICO (CLIENT-SIDE)
+        // ==========================================
+        let currentHistoryPage = 1;
+        const itemsPerPage = 5; // 💡 Podes mudar isto para 10 se quiseres mostrar mais
+
+        function renderHistoryPage() {
+            const items = document.querySelectorAll('.history-item');
+            if (items.length === 0) return;
+
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            // Só mostra os botões de paginação se houver mais de 1 página
+            document.getElementById('history-pagination').style.display = totalPages > 1 ? 'flex' : 'none';
+
+            // Esconde tudo e mostra apenas os da página atual
+            items.forEach((item, index) => {
+                item.style.display = 'none'; // Volta a esconder
+
+                // Lógica matemática para saber se o item pertence à página atual
+                if (index >= (currentHistoryPage - 1) * itemsPerPage && index < currentHistoryPage * itemsPerPage) {
+                    item.style.display = 'flex'; // Mostra (flex por causa do layout)
+                }
+            });
+
+            // Atualiza o texto "Page X of Y"
+            const pageInfo = document.getElementById('history-page-info');
+            if(pageInfo) pageInfo.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
+
+            // Esconde os botões se estivermos na primeira ou última página
+            const btnPrev = document.getElementById('btn-prev-history');
+            const btnNext = document.getElementById('btn-next-history');
+
+            if(btnPrev) btnPrev.style.visibility = currentHistoryPage > 1 ? 'visible' : 'hidden';
+            if(btnNext) btnNext.style.visibility = currentHistoryPage < totalPages ? 'visible' : 'hidden';
+        }
+
+        window.changeHistoryPage = function(direction) {
+            const items = document.querySelectorAll('.history-item');
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            currentHistoryPage += direction;
+
+            // Proteções para não passar dos limites
+            if (currentHistoryPage < 1) currentHistoryPage = 1;
+            if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+
+            renderHistoryPage();
+        }
+
+        // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
+        // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... o teu código existente do FullCalendar ...
+
+            renderHistoryPage(); // 💡 Inicia a paginação na primeira página
+        });
+
         let fcAssignerInstance;
 
         document.addEventListener('DOMContentLoaded', function() {
