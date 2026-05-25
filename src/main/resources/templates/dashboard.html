@@ -134,91 +134,144 @@
         .form-input, select { width: 100%; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.2s; }
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
-        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
-        /* --- REGRAS ULTRA PROFISSIONAIS PARA TELEMÓVEL (768px ou menos) --- */
+        .accept-all-wrapper {
+            padding: 15px 20px 0 20px;
+            display: flex;
+            justify-content: flex-end; /* Encosta à direita no PC */
+        }
         @media (max-width: 768px) {
-            /* Layout Geral e Contentor Principal */
-            body { flex-direction: column; height: auto; overflow-y: auto; }
-            main { padding: 15px; flex: none; width: 100%; overflow-x: hidden; }
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
+            }
 
-            /* --- MENU LATERAL (HAMBURGUER) --- */
+            main {
+                padding: 12px !important;
+                flex: none !important;
+                width: 100% !important;
+                display: flex;
+                flex-direction: column;
+            }
+
             aside {
-                position: fixed; top: 0; left: -100%; width: 290px; height: 100vh;
-                background: var(--panel-bg, #ffffff); z-index: 9999;
-                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 4px 0 25px rgba(0,0,0,0.15);
-                border-right: 1px solid var(--border); padding: 25px;
-            }
-            aside.menu-aberto { left: 0; }
-            .logo-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-
-            /* Botão Hamburguer */
-            .menu-toggle-btn {
-                display: flex; align-items: center; gap: 8px; justify-content: center;
-                width: 100%; padding: 12px; border-radius: 8px; font-weight: 600;
-                margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                position: relative !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: var(--panel-bg, #ffffff) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--border) !important;
+                padding: 15px !important;
+                z-index: 100 !important;
             }
 
-            /* --- CABEÇALHO E BOTÕES (CORREÇÃO TOTAL) --- */
+            .logo-box {
+                display: flex !important;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
+            }
+
+            nav {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                justify-content: center !important;
+            }
+
+            nav a, nav button {
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+                width: auto !important;
+            }
+
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+
             header {
-                flex-direction: column; align-items: stretch; /* Empilha tudo na vertical */
-                gap: 15px; margin-bottom: 20px; width: 100%;
+                order: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+                width: 100% !important;
+                margin-bottom: 20px !important;
+                align-items: stretch !important;
             }
 
-            /* O contentor que junta os botões do topo */
-            header div {
-                display: flex; flex-direction: column; /* Empilha botões verticalmente */
-                gap: 12px; width: 100% !important; margin: 0 !important;
+            #header-actions-master, header div {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                width: 100% !important;
             }
 
-            /* Estilo para todos os botões do topo (Calendário, Filtros, Assign, etc) */
-            header button, .view-toggles, .view-toggles button {
-                width: 100% !important; /* Estica todos os botões a 100% */
-                margin: 0 !important; justify-content: center !important;
-                text-align: center; padding: 12px !important;
-                font-size: 0.95rem !important; display: flex; align-items: center;
+            header button, #header-actions-master button {
+                flex: 1 1 45% !important;
+                width: auto !important;
+                padding: 12px 8px !important;
+                font-size: 0.85rem !important;
+                justify-content: center !important;
             }
 
-            /* --- SECÇÃO DE FILTROS --- */
-            #filters-wrapper, .shifts-wrapper {
-                display: flex; flex-direction: column !important; /* Empilha filtros verticalmente */
-                gap: 12px; width: 100% !important; margin: 0 !important;
-            }
-            .shifts-wrapper label, .shifts-wrapper input, .shifts-wrapper select, #search-shifts {
-                width: 100% !important; /* Filtros ocupam a largura toda */
-                margin: 0 !important;
-            }
-
-            /* --- GRELHAS E CARTÕES (Status, Clashes, etc) --- */
-            .status-grid, .board-container, .grid-2, .grid-3 {
-                grid-template-columns: 1fr !important; /* Força tudo a 1 coluna */
-                gap: 15px;
+            .status-grid, .board-container, .grid-3 {
+                order: 2 !important;
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* Empilhados para leitura profissional */
+                gap: 12px !important;
+                margin-bottom: 25px !important;
+                width: 100% !important;
             }
 
-            /* --- CALENDÁRIO (FullCalendar Fix) --- */
-            .fc .fc-header-toolbar {
-                display: flex !important; flex-direction: column !important; /* Toolbar em coluna */
-                gap: 8px !important; align-items: center !important;
-            }
-            .fc .fc-toolbar-title { font-size: 1.1rem !important; text-align: center; }
-            .fc .fc-button-group { display: flex !important; width: 100% !important; }
-            .fc .fc-button { flex: 1 !important; padding: 8px 4px !important; font-size: 0.8rem !important; }
-
-            /* --- TABELAS E PAINÉIS --- */
-            .panel { padding: 12px; width: 100%; }
-            /* Tabelas ganham scroll horizontal se necessário */
-            .panel table, .table-responsive {
-                display: block; overflow-x: auto; white-space: nowrap;
-                width: 100%; -webkit-overflow-scrolling: touch;
+            .panel {
+                padding: 12px !important;
             }
 
-            /* Cartões de turno individuais */
-            .shift-info { flex-direction: column; gap: 12px; align-items: flex-start; }
-            .shift-actions, .shift-actions button { width: 100%; justify-content: center; }
+            .grid-2, .calendar-section-wrapper, .main-layout-split {
+                order: 3 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 15px !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 10px !important;
+            }
 
-            /* Legenda */
-            .calendar-legend { flex-wrap: wrap; gap: 10px; justify-content: flex-start; }
-            .legend-item { font-size: 0.85rem; }
+            .grid-2 > div, .calendar-wrapper, #calendar, .shifts-list-panel {
+                flex: 0 0 85% !important;
+                scroll-snap-align: start;
+                width: auto !important;
+                min-width: 280px !important;
+            }
+
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 6px !important; }
+            .fc .fc-toolbar-title { font-size: 0.95rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { font-size: 0.75rem !important; padding: 6px 3px !important; }
+        }
+        @media (max-width: 768px) {
+            .accept-all-wrapper {
+                padding: 15px 12px 0 12px;
+            }
+            .accept-all-wrapper form, .accept-all-wrapper button {
+                width: 100%; /* Estica a 100% no telemóvel */
+                justify-content: center;
+            }
+
+        @media (min-width: 769px) {
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+
+            body {
+                flex-direction: row !important;
+            }
         }
     </style>
 </head>
@@ -263,11 +316,6 @@
                 <p th:if="${pendingCount > 0}">You have <strong th:text="${pendingCount} + ' pending shift(s)'"></strong> requiring action.</p>
                 <p th:if="${pendingCount == 0}">You have no pending shifts. Enjoy your week!</p>
             </div>
-            <div th:if="${pendingCount > 0}">
-                <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
-                    <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
-                </form>
-            </div>
         </header>
 
         <div th:if="${successMsg}" class="alert alert-success">
@@ -306,6 +354,12 @@
                     <button class="toggle-btn" id="btn-board" onclick="setView('board')"><i class="fas fa-th-large"></i></button>
                     <button class="toggle-btn" id="btn-calendar" onclick="setView('calendar')"><i class="fas fa-calendar-alt"></i></button>
                 </div>
+            </div>
+
+            <div th:if="${pendingCount > 0}" class="accept-all-wrapper">
+                <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
+                    <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
+                </form>
             </div>
 
             <!-- LIST VIEW -->
