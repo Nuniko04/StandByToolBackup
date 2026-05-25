@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Aplica o bloqueio a tudo, exceto ao login e aos ficheiros de design
         registry.addInterceptor(assignerOnlyInterceptor)
-                .addPathPatterns("/dashboard", "/dashboardAssigner", "/api/**")
+                .addPathPatterns("/dashboard", "/dashboardAssigner", "/api/**", "/feriados/**")
                 .excludePathPatterns("/login", "/coming-soon", "/css/**", "/js/**", "/error");
     }
 }
