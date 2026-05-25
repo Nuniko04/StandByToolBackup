@@ -38,7 +38,7 @@ public class FeriadoService {
     }
 
     @Transactional
-    public void createFeriado(LocalDate data, String nome, TipoFeriado tipo, boolean billable, User adminActor) {
+    public void createFeriado(LocalDate data, String nome, User adminActor) {
         if (feriadoRepository.existsByData(data)) {
             throw new IllegalArgumentException("Já existe um feriado registado nesta data.");
         }
@@ -46,8 +46,6 @@ public class FeriadoService {
         Feriado feriado = new Feriado();
         feriado.setData(data);
         feriado.setNome(nome);
-        feriado.setTipo(tipo);
-        feriado.setBillable(billable);
 
         feriadoRepository.save(feriado);
 
@@ -57,7 +55,7 @@ public class FeriadoService {
     }
 
     @Transactional
-    public void updateFeriado(UUID id, LocalDate data, String nome, TipoFeriado tipo, boolean billable, User adminActor) {
+    public void updateFeriado(UUID id, LocalDate data, String nome, User adminActor) {
         Feriado feriado = feriadoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Feriado não encontrado."));
 
@@ -68,8 +66,6 @@ public class FeriadoService {
 
         feriado.setData(data);
         feriado.setNome(nome);
-        feriado.setTipo(tipo);
-        feriado.setBillable(billable);
 
         feriadoRepository.save(feriado);
 

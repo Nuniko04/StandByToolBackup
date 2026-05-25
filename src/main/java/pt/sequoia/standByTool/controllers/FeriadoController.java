@@ -24,8 +24,6 @@ public class FeriadoController {
     @PostMapping("/save")
     public String saveFeriado(@RequestParam String data,
                               @RequestParam String nome,
-                              @RequestParam String tipo,
-                              @RequestParam(required = false, defaultValue = "false") boolean billable,
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
 
@@ -34,9 +32,8 @@ public class FeriadoController {
 
         try {
             LocalDate localDate = LocalDate.parse(data);
-            TipoFeriado tipoFeriado = TipoFeriado.valueOf(tipo);
 
-            feriadoService.createFeriado(localDate, nome, tipoFeriado, billable, adminActor);
+            feriadoService.createFeriado(localDate, nome, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Feriado registado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao registar feriado: " + e.getMessage());
@@ -48,8 +45,6 @@ public class FeriadoController {
     public String updateFeriado(@PathVariable UUID id,
                                 @RequestParam String data,
                                 @RequestParam String nome,
-                                @RequestParam String tipo,
-                                @RequestParam(required = false, defaultValue = "false") boolean billable,
                                 HttpSession session,
                                 RedirectAttributes redirectAttributes) {
 
@@ -58,9 +53,8 @@ public class FeriadoController {
 
         try {
             LocalDate localDate = LocalDate.parse(data);
-            TipoFeriado tipoFeriado = TipoFeriado.valueOf(tipo);
 
-            feriadoService.updateFeriado(id, localDate, nome, tipoFeriado, billable, adminActor);
+            feriadoService.updateFeriado(id, localDate, nome, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Feriado atualizado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar feriado: " + e.getMessage());
