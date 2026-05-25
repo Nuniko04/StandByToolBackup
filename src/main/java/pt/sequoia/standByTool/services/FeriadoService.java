@@ -99,8 +99,6 @@ public class FeriadoService {
 
                     DayOfWeek diaDaSemana = dto.getDate().getDayOfWeek();
                     boolean isFimDeSemana = (diaDaSemana == DayOfWeek.SATURDAY || diaDaSemana == DayOfWeek.SUNDAY);
-                    feriado.setBillable(!isFimDeSemana);
-                    feriado.setTipo(TipoFeriado.ATIVO);
 
                     if (!feriadoRepository.existsByData(feriado.getData())) {
                         feriadoRepository.save(feriado);

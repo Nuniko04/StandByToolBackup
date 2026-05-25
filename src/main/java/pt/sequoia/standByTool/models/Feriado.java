@@ -23,11 +23,4 @@ public class Feriado {
 
     @Column(nullable = false)
     private String nome; // Ex: Sexta Feira Santa
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoFeriado tipo; // ENUM: PASSIVO, ATIVO
-
-    @Column(nullable = false)
-    private boolean billable; // True para dias de semana, False para fins de semana
 }
