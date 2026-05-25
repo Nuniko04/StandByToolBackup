@@ -1,49 +1,111 @@
 package pt.sequoia.standByTool.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import pt.sequoia.standByTool.models.Feriado;
+import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.TipoFeriado;
 import pt.sequoia.standByTool.repositories.FeriadoRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class FeriadoService {
 
     private final FeriadoRepository feriadoRepository;
+    private final AuditLogService auditLogService; // Injetado para manter o padrão do sistema
     private final RestTemplate restTemplate;
 
-    public FeriadoService(FeriadoRepository feriadoRepository) {
+    public FeriadoService(FeriadoRepository feriadoRepository, AuditLogService auditLogService) {
         this.feriadoRepository = feriadoRepository;
-        this.restTemplate = new RestTemplate(); // Spring Boot HTTP Client
+        this.auditLogService = auditLogService;
+        this.restTemplate = new RestTemplate();
     }
 
+    // --- NOVOS MÉTODOS CRUD ---
+
+    public List<Feriado> getAllFeriados() {
+        return feriadoRepository.findAll();
+    }
+
+    public Optional<Feriado> getFeriadoById(UUID id) {
+        return feriadoRepository.findById(id);
+    }
+
+    @Transactional
+    public void createFeriado(LocalDate data, String nome, TipoFeriado tipo, boolean billable, User adminActor) {
+        if (feriadoRepository.existsByData(data)) {
+            throw new IllegalArgumentException("Já existe um feriado registado nesta data.");
+        }
+
+        Feriado feriado = new Feriado();
+        feriado.setData(data);
+        feriado.setNome(nome);
+        feriado.setTipo(tipo);
+        feriado.setBillable(billable);
+
+        feriadoRepository.save(feriado);
+
+        // Log de auditoria
+        auditLogService.log(adminActor, "CREATE_FERIADO", "Feriado", feriado.getId(),
+                "Feriado criado manualmente: " + nome + " em " + data);
+    }
+
+    @Transactional
+    public void updateFeriado(UUID id, LocalDate data, String nome, TipoFeriado tipo, boolean billable, User adminActor) {
+        Feriado feriado = feriadoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Feriado não encontrado."));
+
+        // Se a data foi alterada, garante que não choca com outro dia já registado
+        if (!feriado.getData().equals(data) && feriadoRepository.existsByData(data)) {
+            throw new IllegalArgumentException("Já existe um feriado registado nesta nova data.");
+        }
+
+        feriado.setData(data);
+        feriado.setNome(nome);
+        feriado.setTipo(tipo);
+        feriado.setBillable(billable);
+
+        feriadoRepository.save(feriado);
+
+        // Log de auditoria
+        auditLogService.log(adminActor, "UPDATE_FERIADO", "Feriado", feriado.getId(),
+                "Feriado atualizado: " + nome + " em " + data);
+    }
+
+    @Transactional
+    public void deleteFeriado(UUID id, User adminActor) {
+        Feriado feriado = feriadoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Feriado não encontrado."));
+
+        feriadoRepository.delete(feriado);
+
+        // Log de auditoria
+        auditLogService.log(adminActor, "DELETE_FERIADO", "Feriado", id,
+                "Feriado eliminado: " + feriado.getNome());
+    }
+
+    // --- MÉTODO DE IMPORTAÇÃO AUTOMÁTICA PRESERVADO ---
     public void importarFeriados(int ano) {
-        // API Pública e Gratuita (Não precisa de API Key)
         String url = "https://date.nager.at/api/v3/PublicHolidays/" + ano + "/PT";
-
         try {
-            // Vai buscar o JSON e converte automaticamente para um Array de FeriadoDTO
             FeriadoDTO[] feriadosAPI = restTemplate.getForObject(url, FeriadoDTO[].class);
-
             if (feriadosAPI != null) {
                 for (FeriadoDTO dto : feriadosAPI) {
                     Feriado feriado = new Feriado();
                     feriado.setData(dto.getDate());
                     feriado.setNome(dto.getLocalName());
 
-                    // Lógica do Billable: Se for fim de semana, é falso. Se for dia de semana, é verdadeiro.
                     DayOfWeek diaDaSemana = dto.getDate().getDayOfWeek();
                     boolean isFimDeSemana = (diaDaSemana == DayOfWeek.SATURDAY || diaDaSemana == DayOfWeek.SUNDAY);
                     feriado.setBillable(!isFimDeSemana);
-
-                    // Assume Nacional (Ativo) por defeito, o Admin pode mudar depois
                     feriado.setTipo(TipoFeriado.ATIVO);
 
-                    // Só guarda se a data ainda não existir na BD
                     if (!feriadoRepository.existsByData(feriado.getData())) {
                         feriadoRepository.save(feriado);
                     }
@@ -54,7 +116,6 @@ public class FeriadoService {
         }
     }
 
-    // Classe DTO auxiliar (Data Transfer Object) para ler o JSON da API
     private static class FeriadoDTO {
         private LocalDate date;
         private String localName;
