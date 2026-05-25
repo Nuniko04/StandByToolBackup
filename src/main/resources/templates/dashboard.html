@@ -130,65 +130,168 @@
         .form-input, select { width: 100%; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.2s; }
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
-        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; overflow-y: auto; }
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
+            }
 
-            /* Estilo do Botão Hamburguer */
+            main {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                padding: 15px !important;
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
             .menu-toggle-btn {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--panel-bg, #ffffff);
-                color: var(--text-main, #333333);
-                border: 1px solid var(--border, #e0e0e0);
-                padding: 10px 16px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-bottom: 15px;
-                width: fit-content;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                background: var(--panel-bg) !important;
+                color: var(--text) !important;
+                border: 1px solid var(--border) !important;
+                padding: 8px 14px !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                width: fit-content !important; /* Garante que fica pequeno, não estica */
+                font-size: 0.85rem !important;
+                order: 0 !important; /* Fica no topo isolado */
+                margin-bottom: 15px !important;
             }
 
-            /* Transformar a Barra Lateral num Menu Flutuante Oculto */
             aside {
-                position: fixed;
-                top: 0;
-                left: -100%; /* Esconde o menu completamente para a esquerda */
-                width: 280px;
-                height: 100vh;
-                background: var(--panel-bg, #ffffff);
-                z-index: 9999; /* Garante que fica por cima de tudo */
-                transition: left 0.3s ease; /* Animação suave ao abrir */
-                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-                border-right: 1px solid var(--border);
-                padding: 25px;
+                position: fixed !important;
+                top: 0 !important;
+                left: -100% !important; /* Totalmente escondido à esquerda */
+                width: 280px !important;
+                height: 100vh !important;
+                background: var(--sidebar-bg) !important;
+                z-index: 9999 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5) !important;
+                border-right: 1px solid var(--border) !important;
+                padding: 25px !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
-
-            /* Classe mágica que o JavaScript vai injetar para abrir o menu */
             aside.menu-aberto {
-                left: 0;
+                left: 0 !important; /* Desliza suavemente ao abrir */
+            }
+            .logo-box { margin-bottom: 30px !important; }
+            nav { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+            nav a, nav button { width: 100% !important; text-align: left !important; }
+
+            header {
+                display: contents !important; /* Liberta os filhos diretos para o Main */
             }
 
-            /* Adicionar um botão de fechar dentro do menu (opcional, mas muito profissional) */
-            .logo-box {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 30px;
+            #header-actions-master:not([style*="display: none"]) {
+                display: contents !important;
             }
 
-            /* Ajustar o resto do conteúdo para não colidir */
-            main { padding: 15px; flex: none; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; }
+            #view-master:not(.hidden) {
+                display: contents !important;
+            }
+
+            .title-group {
+                order: 1 !important;
+                width: 100% !important;
+                margin-bottom: 15px !important;
+            }
+            .title-group h2 { font-size: 1.5rem !important; }
+
+            header .btn-purple, #header-actions-master .btn-purple {
+                order: 2 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
+            header .btn-main:not(.btn-purple), #header-actions-master .btn-main:not(.btn-purple) {
+                order: 3 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                margin-left: 12px !important; /* Separação entre os dois */
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
+
+            .status-grid {
+                order: 4 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                margin-top: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            .status-card { padding: 18px !important; width: 100% !important; }
+
+            .view-toggles {
+                order: 5 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
+                background: var(--bg) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+            }
+            .view-toggles .toggle-btn {
+                flex: 1 !important;
+                text-align: center !important;
+                padding: 10px !important;
+            }
+
+            #master-subview-list, #master-subview-calendar, .panel {
+                order: 6 !important;
+                width: 100% !important;
+                margin-bottom: 25px !important;
+            }
+
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+
+            #view-requests:not(.hidden), #view-assigner:not(.hidden), #view-Assigner:not(.hidden) {
+                order: 10 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+            }
+
+            .grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
+
+            /* Ajustes finos do FullCalendar */
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 8px !important; }
+            .fc .fc-toolbar-title { font-size: 1rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
         }
 
-        /* Ocultar o botão de menu em computadores */
         @media (min-width: 769px) {
-            .menu-toggle-btn { display: none; }
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+            body {
+                flex-direction: row !important;
+            }
         }
     </style>
 </head>
@@ -225,7 +328,7 @@
 
     <main>
         <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
-            ☰ <span>Menu</span>
+            <i class="fas fa-bars"></i> <span>Menu</span>
         </button>
         <header>
             <div class="title-group">
