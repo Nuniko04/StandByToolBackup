@@ -23,9 +23,10 @@ public class TurnTypeController {
     @PostMapping("/save")
     public String saveTurnType(@RequestParam String name,
                                @RequestParam String googleCalendarId,
+                               @RequestParam String color,
                                @RequestParam String defaultStartTime,
                                @RequestParam String defaultEndTime,
-                               @RequestParam(required = false, defaultValue = "#3498db") String color,
+                               @RequestParam(required = false, defaultValue = "false") boolean eligibleForAutoGeneration,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
 
@@ -36,7 +37,7 @@ public class TurnTypeController {
             LocalTime start = LocalTime.parse(defaultStartTime);
             LocalTime end = LocalTime.parse(defaultEndTime);
 
-            turnTypeService.createTurnType(name, googleCalendarId, start, end, color, adminActor);
+            turnTypeService.createTurnType(name, googleCalendarId, start, end, color, eligibleForAutoGeneration, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Turn type created successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Error creating turn type: " + e.getMessage());
@@ -53,6 +54,7 @@ public class TurnTypeController {
                                  @RequestParam String defaultStartTime,
                                  @RequestParam String defaultEndTime,
                                  @RequestParam(required = false, defaultValue = "#3498db") String color,
+                                 @RequestParam(required = false, defaultValue = "false") boolean eligibleForAutoGeneration,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
 
@@ -63,7 +65,7 @@ public class TurnTypeController {
             LocalTime start = LocalTime.parse(defaultStartTime);
             LocalTime end = LocalTime.parse(defaultEndTime);
 
-            turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, color, adminActor);
+            turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, color, eligibleForAutoGeneration, adminActor);
             redirectAttributes.addFlashAttribute("successMsg", "Turn type updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMsg", "Error updating turn type: " + e.getMessage());
