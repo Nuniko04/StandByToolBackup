@@ -1014,22 +1014,24 @@
         if (viewName === 'master') {
             title.innerText = "Master Schedule";
             subtitle.innerText = "Overview & Assignment Management";
-            // Magia: em vez de 'flex', usamos '' para respeitar o CSS (esconde no telemóvel e mostra no PC)
-            if(actions) actions.style.display = "";
+            actions.style.display = "flex";
             if(fcAssignerInstance) setTimeout(() => { fcAssignerInstance.render(); }, 50);
         } else if (viewName === 'requests') {
             title.innerText = "Swap Requests";
             subtitle.innerText = "Pending & Historical Shift Transfers";
-            if(actions) actions.style.display = "none";
+            actions.style.display = "none";
         } else if (viewName === 'Assigner') {
             title.innerText = "Assigner";
             subtitle.innerText = "Employees, Shift Types & Payment Cards";
-            if(actions) actions.style.display = "none";
+            actions.style.display = "none";
         } else if (viewName === 'feriados') {
             title.innerText = "Holidays & Absences";
             subtitle.innerText = "Management of Active and Passive Holidays";
-            if(actions) actions.style.display = "none";
+            actions.style.display = "none";
         }
+
+        // 💡 O TRUQUE: Guardar a aba atual na memória do browser!
+        localStorage.setItem('activeAssignerTab', viewName);
     }
 
     function setMasterView(subView) {
@@ -1179,7 +1181,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        updateHolidayView();
+        updateHolidayView(); // (O teu código existente dos feriados)
+
+        // 💡 LER A MEMÓRIA: Vai buscar a última aba aberta. Se não houver nenhuma, abre o 'master'.
+        // Também verifica se o Backend enviou um ?tab=... no URL (para casos especiais)
+        const urlParams = new URLSearchParams(window.location.search);
+        let tabToOpen = urlParams.get('tab');
+
+        if (!tabToOpen) {
+            tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
+        }
+
+        // Clica "virtualmente" na aba correta!
+        switchMainView(tabToOpen);
     });
 </script>
 </body>
