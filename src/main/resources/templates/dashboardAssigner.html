@@ -1004,6 +1004,22 @@
         }
     });
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateAndTimeInputs = document.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+
+        dateAndTimeInputs.forEach(input => {
+            input.style.cursor = 'pointer';
+
+            input.addEventListener('click', function() {
+                try {
+                    this.showPicker();
+                } catch (e) {
+                    console.log("O browser não suporta showPicker()");
+                }
+            });
+        });
+    });
+
     // --- FUNÇÕES DA INTERFACE ---
 
     function switchMainView(viewName) {
