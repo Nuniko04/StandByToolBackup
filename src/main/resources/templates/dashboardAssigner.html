@@ -904,6 +904,19 @@
 
 <script th:inline="javascript">
     // ==========================================
+    // 1. LER A ABA IMEDIATAMENTE (SEM ESPERAR PELO DOMContentLoaded)
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    let tabToOpen = urlParams.get('tab');
+    if (!tabToOpen) {
+        tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
+    }
+
+    // Troca a aba no exato milissegundo em que o browser lê esta linha,
+    // antes sequer de ter tempo de "pintar" o site no ecrã!
+    switchMainView(tabToOpen);
+
+    // ==========================================
     // PAGINAÇÃO DO HISTÓRICO (CLIENT-SIDE)
     // ==========================================
     let currentHistoryPage = 1;
@@ -952,14 +965,6 @@
 
         renderHistoryPage();
     }
-
-    // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
-    // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... o teu código existente do FullCalendar ...
-
-        renderHistoryPage(); // 💡 Inicia a paginação na primeira página
-    });
 
     let fcAssignerInstance;
 
@@ -1181,19 +1186,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        renderHistoryPage(); // Inicia a paginação do histórico
         updateHolidayView(); // (O teu código existente dos feriados)
-
-        // 💡 LER A MEMÓRIA: Vai buscar a última aba aberta. Se não houver nenhuma, abre o 'master'.
-        // Também verifica se o Backend enviou um ?tab=... no URL (para casos especiais)
-        const urlParams = new URLSearchParams(window.location.search);
-        let tabToOpen = urlParams.get('tab');
-
-        if (!tabToOpen) {
-            tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
-        }
-
-        // Clica "virtualmente" na aba correta!
-        switchMainView(tabToOpen);
     });
 </script>
 </body>

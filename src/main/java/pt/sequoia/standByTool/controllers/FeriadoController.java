@@ -34,9 +34,9 @@ public class FeriadoController {
             LocalDate localDate = LocalDate.parse(data);
 
             feriadoService.createFeriado(localDate, nome, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Feriado registado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Holiday registered successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao registar feriado: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while registering holiday: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }
@@ -55,9 +55,9 @@ public class FeriadoController {
             LocalDate localDate = LocalDate.parse(data);
 
             feriadoService.updateFeriado(id, localDate, nome, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Feriado atualizado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Holiday updated successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar feriado: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while updating holiday: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }
@@ -72,9 +72,9 @@ public class FeriadoController {
 
         try {
             feriadoService.deleteFeriado(id, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Feriado removido com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Holiday deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao remover feriado: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while deleting holiday: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }
@@ -89,9 +89,9 @@ public class FeriadoController {
 
         try {
             feriadoService.importarFeriados(ano);
-            redirectAttributes.addFlashAttribute("successMsg", "Feriados do ano " + ano + " importados com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Holidays from the year " + ano + " successfully imported!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao importar feriados: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while importing holidays: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }

@@ -39,9 +39,9 @@ public class RequestController {
             // Requer que o teu RequestService tenha o método atualizado que recebe o targetUserId
             requestService.createSwapRequest(loggedUser.getId(), turnId, targetUserId, note);
 
-            redirectAttributes.addFlashAttribute("successMsg", "Pedido de troca enviado para aprovação!");
+            redirectAttributes.addFlashAttribute("successMsg", "Swap request sent for approval!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao submeter troca: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while submitting request: " + e.getMessage());
         }
 
         if(loggedUser.isAssigner()){
@@ -60,10 +60,10 @@ public class RequestController {
 
         try {
             // O serviço deve alterar o dono do turno e passar o Request para APPROVED
-            requestService.processRequest(id, assigner.getId(), RequestStatus.APPROVED, "Aprovado via Dashboard", null);
-            redirectAttributes.addFlashAttribute("successMsg", "Pedido aprovado com sucesso! O turno foi transferido.");
+            requestService.processRequest(id, assigner.getId(), RequestStatus.APPROVED, "Approved via dashboard", null);
+            redirectAttributes.addFlashAttribute("successMsg", "Request approved successfully! Turn transferred.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao aprovar pedido: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while approving request: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -79,10 +79,10 @@ public class RequestController {
 
         try {
             // 💡 A CORREÇÃO ESTÁ AQUI: Passamos REJECTED em vez de DENIED
-            requestService.processRequest(id, assigner.getId(), RequestStatus.DENIED, "Rejeitado via Dashboard", null);
-            redirectAttributes.addFlashAttribute("successMsg", "Pedido rejeitado. O turno mantém-se com o titular original.");
+            requestService.processRequest(id, assigner.getId(), RequestStatus.DENIED, "Rejected via Dashboard", null);
+            redirectAttributes.addFlashAttribute("successMsg", "Request rejected. Turn keeps its original worker.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao rejeitar pedido: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error rejecting the request: " + e.getMessage());
         }
 
         return "redirect:/dashboard";

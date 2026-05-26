@@ -38,9 +38,9 @@ public class CardController {
 
         try {
             cardService.createCard(identifier, expirationDate, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Cartão registado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Card registered successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao registar cartão: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while registering card: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }
@@ -58,9 +58,9 @@ public class CardController {
 
         try {
             cardService.updateCard(id, identifier, expirationDate, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Cartão atualizado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Card updated successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar cartão: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while updating card: " + e.getMessage());
         }
         return "redirect:/dashboard";
     }
