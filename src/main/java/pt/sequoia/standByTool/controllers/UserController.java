@@ -41,9 +41,9 @@ public class UserController {
 
         try {
             userService.createUser(name, email, isAssigner, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Colaborador adicionado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Worker added successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar colaborador: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while adding worker: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -63,9 +63,9 @@ public class UserController {
 
         try {
             userService.updateUserDetails(id, name, email, isAssigner, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Dados do colaborador atualizados com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Worker data updated successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar colaborador: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error updating worker data: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -78,9 +78,9 @@ public class UserController {
 
         boolean sucesso = userService.toggleUserStatus(id, adminActor);
         if (sucesso) {
-            redirectAttributes.addFlashAttribute("successMsg", "Estado do colaborador alterado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Worker status updated successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
+            redirectAttributes.addFlashAttribute("errorMsg", "Worker not found.");
         }
 
         return "redirect:/dashboard";
@@ -93,9 +93,9 @@ public class UserController {
 
         boolean sucesso = userService.toggleUserRole(id, adminActor);
         if (sucesso) {
-            redirectAttributes.addFlashAttribute("successMsg", "Permissões do colaborador atualizadas com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Worker permissions updated successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
+            redirectAttributes.addFlashAttribute("errorMsg", "Worker not found.");
         }
 
         return "redirect:/dashboard";
@@ -121,12 +121,12 @@ public class UserController {
         try {
             boolean sucesso = userService.updateEligibility(id, turnTypeIds, adminActor);
             if (sucesso) {
-                redirectAttributes.addFlashAttribute("successMsg", "Matriz de elegibilidade atualizada com sucesso!");
+                redirectAttributes.addFlashAttribute("successMsg", "Eligibility matrix updated successfully!");
             } else {
-                redirectAttributes.addFlashAttribute("errorMsg", "Não foi possível encontrar o colaborador.");
+                redirectAttributes.addFlashAttribute("errorMsg", "Worker not found.");
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar a matriz: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error updating matrix: " + e.getMessage());
         }
 
         return "redirect:/dashboard";

@@ -24,7 +24,7 @@ public class FinanceController {
     public ResponseEntity<String> processWeeklyBilling(@RequestHeader(value = "X-Cloud-Scheduler-Auth", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.equals(CRON_SECRET)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied.");
         }
 
         try {

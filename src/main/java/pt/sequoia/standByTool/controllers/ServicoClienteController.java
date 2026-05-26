@@ -44,13 +44,13 @@ public class ServicoClienteController {
         boolean sucesso = servicoClienteService.updateServico(
                 id, payload.getNomeCliente(), payload.getTipoServico(),
                 payload.getValorStandby(), payload.getValorBackup(), adminActor);
-        return sucesso ? ResponseEntity.ok("Serviço atualizado!") : ResponseEntity.notFound().build();
+        return sucesso ? ResponseEntity.ok("Service updated!") : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}/toggle")
     public ResponseEntity<String> toggleStatus(@PathVariable Long id, jakarta.servlet.http.HttpSession session) {
         User adminActor = (User) session.getAttribute("loggedUser");
         boolean sucesso = servicoClienteService.toggleAtivo(id, adminActor);
-        return sucesso ? ResponseEntity.ok("Estado atualizado.") : ResponseEntity.notFound().build();
+        return sucesso ? ResponseEntity.ok("Status updated.") : ResponseEntity.notFound().build();
     }
 }

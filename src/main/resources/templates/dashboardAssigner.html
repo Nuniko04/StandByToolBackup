@@ -199,6 +199,15 @@
                 box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5) !important;
                 border-right: 1px solid var(--border) !important;
                 padding: 25px !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            nav a, nav button {
+                width: 100% !important;
+                text-align: left !important;
+                padding: 12px 14px !important;
+                font-size: 0.9rem !important;
             }
             aside.menu-aberto { left: 0 !important; }
             .logo-box { margin-bottom: 30px !important; }
@@ -247,6 +256,52 @@
             .fc .fc-toolbar-title { font-size: 1rem !important; }
             .fc .fc-button-group { width: 100% !important; }
             .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
+            #view-master {
+                order: 2 !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            .status-grid, .board-container, .grid-3 {
+                display: grid !important;
+                grid-template-columns: 1fr !important; /* Empilhados um a um */
+                gap: 12px !important;
+                margin-bottom: 25px !important;
+                width: 100% !important;
+            }
+
+            .panel {
+                padding: 12px !important;
+                margin-bottom: 20px !important;
+            }
+
+            /* Correções para a tabela não cortar o ecrã no telemóvel */
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+
+            /* Calendário Mobile Friendly */
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 6px !important; }
+            .fc .fc-toolbar-title { font-size: 0.95rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { font-size: 0.75rem !important; padding: 6px 3px !important; }
+
+            #view-admin, #view-requests, #view-Assigner, #view-feriados {
+                order: 10 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+            }
+
+            .grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
         }
 
         @media (min-width: 769px) {
@@ -344,11 +399,18 @@
             </div>
             <div class="status-card sc-warning">
                 <div class="status-icon"><i class="fas fa-hourglass-half"></i></div>
-                <div><p th:text="${pendingAcceptanceCount}">0</p><span>Pending</span></div>
+                <div><p th:text="${pendingAcceptanceCount != null ? pendingAcceptanceCount : 0}">0</p><span>Pending</span></div>
             </div>
             <div class="status-card sc-success">
                 <div class="status-icon"><i class="fas fa-check-circle"></i></div>
-                <div><p th:text="${confirmedCount}">0</p><span>Confirmed</span></div>
+                <div><p th:text="${confirmedCount != null ? confirmedCount : 0}">0</p><span>Confirmed</span></div>
+            </div>
+        </div>
+
+        <div class="flex justify-center mb-6 md:hidden">
+            <div class="view-toggles w-full flex bg-gray-100 dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                <button class="toggle-btn active flex-1 btn-view-list" onclick="setMasterView('list')"><i class="fas fa-list"></i> List</button>
+                <button class="toggle-btn flex-1 btn-view-calendar" onclick="setMasterView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar</button>
             </div>
         </div>
 
@@ -888,6 +950,19 @@
 
 <script th:inline="javascript">
     // ==========================================
+    // 1. LER A ABA IMEDIATAMENTE (SEM ESPERAR PELO DOMContentLoaded)
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    let tabToOpen = urlParams.get('tab');
+    if (!tabToOpen) {
+        tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
+    }
+
+    // Troca a aba no exato milissegundo em que o browser lê esta linha,
+    // antes sequer de ter tempo de "pintar" o site no ecrã!
+    switchMainView(tabToOpen);
+
+    // ==========================================
     // PAGINAÇÃO DO HISTÓRICO (CLIENT-SIDE)
     // ==========================================
     let currentHistoryPage = 1;
@@ -936,14 +1011,6 @@
 
         renderHistoryPage();
     }
-
-    // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
-    // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... o teu código existente do FullCalendar ...
-
-        renderHistoryPage(); // 💡 Inicia a paginação na primeira página
-    });
 
     let fcAssignerInstance;
 
@@ -1013,15 +1080,22 @@
             subtitle.innerText = "Management of Active and Passive Holidays";
             actions.style.display = "none";
         }
+
+        // 💡 O TRUQUE: Guardar a aba atual na memória do browser!
+        localStorage.setItem('activeAssignerTab', viewName);
     }
+
     function setMasterView(subView) {
         document.getElementById('master-subview-list').classList.add('hidden');
         document.getElementById('master-subview-calendar').classList.add('hidden');
-        document.getElementById('btn-view-list').classList.remove('active');
-        document.getElementById('btn-view-calendar').classList.remove('active');
 
+        // Desativa a aba ativa em TODOS os botões de vista (PC e Telemóvel)
+        document.querySelectorAll('.btn-view-list').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.btn-view-calendar').forEach(btn => btn.classList.remove('active'));
+
+        // Mostra a subview correta e ativa os respetivos botões
         document.getElementById('master-subview-' + subView).classList.remove('hidden');
-        document.getElementById('btn-view-' + subView).classList.add('active');
+        document.querySelectorAll('.btn-view-' + subView).forEach(btn => btn.classList.add('active'));
 
         if (subView === 'calendar' && fcAssignerInstance) {
             setTimeout(() => { fcAssignerInstance.render(); }, 50);
@@ -1158,7 +1232,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        updateHolidayView();
+        renderHistoryPage(); // Inicia a paginação do histórico
+        updateHolidayView(); // (O teu código existente dos feriados)
     });
 </script>
 </body>

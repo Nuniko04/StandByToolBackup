@@ -37,9 +37,9 @@ public class TurnTypeController {
             LocalTime end = LocalTime.parse(defaultEndTime);
 
             turnTypeService.createTurnType(name, googleCalendarId, start, end, color, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno criado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn type created successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar tipo de turno: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error creating turn type: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -64,9 +64,9 @@ public class TurnTypeController {
             LocalTime end = LocalTime.parse(defaultEndTime);
 
             turnTypeService.updateTurnType(id, name, googleCalendarId, start, end, color, adminActor);
-            redirectAttributes.addFlashAttribute("successMsg", "Tipo de turno atualizado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn type updated successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar tipo de turno: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error updating turn type: " + e.getMessage());
         }
 
         return "redirect:/dashboard";

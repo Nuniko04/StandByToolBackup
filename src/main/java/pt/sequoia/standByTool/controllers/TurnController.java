@@ -44,7 +44,7 @@ public class TurnController {
             LocalDate end = LocalDate.parse(endDate);
 
             TurnType type = turnTypeService.findById(turnTypeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Tipo de turno não encontrado"));
+                    .orElseThrow(() -> new IllegalArgumentException("Turn type not found"));
 
             LocalTime sTime = type.getDefaultStartTime() != null ? type.getDefaultStartTime() : LocalTime.MIDNIGHT;
             LocalTime eTime = type.getDefaultEndTime() != null ? type.getDefaultEndTime() : LocalTime.MIDNIGHT;
@@ -55,9 +55,9 @@ public class TurnController {
             // Passamos o cardId para o serviço
             turnService.createManualTurn(assigneeId, turnTypeId, cardId, finalStart, finalEnd, assigner);
 
-            redirectAttributes.addFlashAttribute("successMsg", "Turno manual criado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn created successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao criar turno: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while creating turn: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -74,9 +74,9 @@ public class TurnController {
         boolean sucesso = turnService.acceptTurn(id, loggedUser);
 
         if (sucesso) {
-            redirectAttributes.addFlashAttribute("successMsg", "Turno aceite com sucesso e sincronizado no calendário!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn accepted successfully and synchronized in the calendar!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao aceitar o turno. O turno pode já não estar pendente.");
+            redirectAttributes.addFlashAttribute("errorMsg", "Error accepting turn. Turn can already be not pending.");
         }
 
         String referer = request.getHeader("Referer");
@@ -97,7 +97,7 @@ public class TurnController {
 
         try {
             Turn turn = turnService.getTurn(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Turno não encontrado"));
+                    .orElseThrow(() -> new IllegalArgumentException("Turn not found"));
 
             TurnType type = turn.getTurnType();
 
@@ -117,9 +117,9 @@ public class TurnController {
             // Passamos o cardId para o serviço atualizar
             turnService.updateTurn(id, assigneeId, cardId, start, end, assigner);
 
-            redirectAttributes.addFlashAttribute("successMsg", "Turno atualizado com sucesso!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn updated successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao atualizar turno: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error updating turn: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -132,9 +132,9 @@ public class TurnController {
 
         boolean sucesso = turnService.deleteTurn(id, assigner);
         if (sucesso) {
-            redirectAttributes.addFlashAttribute("successMsg", "Turno apagado!");
+            redirectAttributes.addFlashAttribute("successMsg", "Turn deleted!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Turno não encontrado.");
+            redirectAttributes.addFlashAttribute("errorMsg", "Turn not found.");
         }
 
         return "redirect:/dashboard";
@@ -151,12 +151,12 @@ public class TurnController {
         try {
             int count = turnService.acceptAllPendingTurns(loggedUser);
             if (count > 0) {
-                redirectAttributes.addFlashAttribute("successMsg", count + " turno(s) aceite(s) com sucesso!");
+                redirectAttributes.addFlashAttribute("successMsg", count + " turn(s) accepted successfully!");
             } else {
-                redirectAttributes.addFlashAttribute("errorMsg", "Não existiam turnos pendentes para aceitar.");
+                redirectAttributes.addFlashAttribute("errorMsg", "No pending turns to accept");
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Erro ao aceitar os turnos: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMsg", "Error while accepting turns: " + e.getMessage());
         }
 
         String referer = request.getHeader("Referer");

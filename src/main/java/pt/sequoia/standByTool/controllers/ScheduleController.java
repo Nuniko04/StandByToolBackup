@@ -27,7 +27,7 @@ public class ScheduleController {
 
         User adminActor = (User) session.getAttribute("loggedUser");
         if (adminActor == null || !adminActor.isAssigner()) {
-            return ResponseEntity.status(403).body("Acesso negado. Apenas Assigners podem gerar escalas.");
+            return ResponseEntity.status(403).body("Access Denied. Only Assigners can generate the schedule.");
         }
 
         LocalDate start = LocalDate.parse(startDate);
