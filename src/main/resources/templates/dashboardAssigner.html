@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['DM Sans', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb' }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         :root {
             --bg: #0a0a0a; --sidebar-bg: #111111; --panel-bg: #161616; --border: #262626;
@@ -98,8 +114,6 @@
         .legend-item { display: flex; align-items: center; gap: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px;}
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
 
-        .hidden { display: none !important; }
-
         /* Modals */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto;}
         .modal-box { background: var(--panel-bg); border: 1px solid var(--border); padding: 30px; border-radius: var(--radius); width: 100%; max-width: 500px; border-top: 4px solid var(--finastra-shift);}
@@ -129,11 +143,22 @@
         .toggle-btn.active { background: var(--text); color: var(--bg); }
         .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
 
+        .desktop-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column !important;
                 height: auto !important;
                 overflow-y: auto !important;
+            }
+
+            /* Esconde definitivamente os botões de PC no Mobile */
+            .desktop-actions {
+                display: none !important;
             }
 
             main {
@@ -144,7 +169,7 @@
                 overflow-x: hidden !important;
             }
 
-            /* 1. MOSTRAR O BOTÃO DE MENU COM BOM ASPETO */
+            /* 1. BOTÃO MENU HAMBÚRGUER */
             .menu-toggle-btn {
                 display: inline-flex !important;
                 align-items: center !important;
@@ -158,15 +183,14 @@
                 cursor: pointer !important;
                 width: fit-content !important;
                 font-size: 0.85rem !important;
-                order: 0 !important; /* Mantém o botão no topo */
                 margin-bottom: 15px !important;
             }
 
-            /* 2. ESCONDER O MENU E FAZÊ-LO DESLIZAR */
+            /* 2. MENU LATERAL DESLIZANTE */
             aside {
                 position: fixed !important;
                 top: 0 !important;
-                left: -100% !important; /* Escondido totalmente à esquerda */
+                left: -100% !important;
                 width: 280px !important;
                 height: 100vh !important;
                 background: var(--sidebar-bg) !important;
@@ -174,26 +198,7 @@
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5) !important;
                 border-right: 1px solid var(--border) !important;
-                border-bottom: none !important;
                 padding: 25px !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-
-            /* Classe adicionada pelo JavaScript para abrir o menu */
-            aside.menu-aberto {
-                left: 0 !important;
-            }
-
-            .logo-box {
-                display: flex !important;
-                justify-content: center !important;
-                margin-bottom: 30px !important;
-            }
-
-            nav {
-                display: flex !important;
-                flex-direction: column !important;
                 gap: 8px !important;
                 width: 100% !important;
             }
@@ -204,18 +209,53 @@
                 padding: 12px 14px !important;
                 font-size: 0.9rem !important;
             }
+            aside.menu-aberto { left: 0 !important; }
+            .logo-box { margin-bottom: 30px !important; }
+            nav { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+            nav a, nav button { width: 100% !important; text-align: left !important; }
 
-            /* 3. REORGANIZAR O RESTO DA PÁGINA (Títulos e Tabelas) */
+            /* 3. HEADER / CABEÇALHO */
             header {
-                order: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
-                gap: 10px !important;
-                width: 100% !important;
-                margin-bottom: 20px !important;
                 align-items: stretch !important;
+                gap: 10px !important;
+                margin-bottom: 20px !important;
+            }
+            .title-group { margin-bottom: 10px !important; }
+
+            /* 4. AJUSTE DE GRELHAS (Passa tudo a 1 coluna) */
+            .status-grid, .grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
             }
 
+            .panel { padding: 15px !important; margin-bottom: 20px !important; }
+
+            /* 5. TABELAS RESPONSIVAS (Para não cortarem o ecrã) */
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+
+            table thead, table tbody {
+                display: table !important;
+                width: 100% !important;
+            }
+
+            /* 6. BOTÕES DE VISTA NO MOBILE */
+            .view-toggles { width: 100% !important; }
+            .toggle-btn { flex: 1 !important; text-align: center !important; }
+
+            /* 7. CALENDÁRIO */
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 8px !important; }
+            .fc .fc-toolbar-title { font-size: 1rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
             #view-master {
                 order: 2 !important;
                 display: flex !important;
@@ -322,17 +362,13 @@
     <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
         ☰ <span>Menu</span>
     </button>
-    <header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-8 shrink-0 z-10 transition-colors duration-200">
+    <header class="flex items-center justify-between shrink-0 z-10">
         <div class="title-group">
-            <h2 id="header-title" class="text-xl font-semibold text-gray-800 dark:text-white mr-4">Master Schedule</h2>
-            <p id="header-subtitle" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Overview & Assignment Management</p>
+            <h2 id="header-title" class="text-xl font-semibold mr-4" style="color: var(--text);">Master Schedule</h2>
+            <p id="header-subtitle" class="text-sm mt-1" style="color: var(--text-muted);">Overview & Assignment Management</p>
         </div>
 
-        <div id="header-actions-master" class="hidden md:flex gap-3 items-center">
-            <div class="view-toggles">
-                <button class="toggle-btn active btn-view-list" onclick="setMasterView('list')"><i class="fas fa-list"></i> List</button>
-                <button class="toggle-btn btn-view-calendar" onclick="setMasterView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar</button>
-            </div>
+        <div id="header-actions-master" class="desktop-actions">
             <button class="btn-main btn-purple" onclick="toggleModal('autoGenerateModal')"><i class="fas fa-magic"></i> Auto-Generate</button>
             <button class="btn-main" onclick="toggleModal('assignModal')"><i class="fas fa-plus"></i> Assign Shift</button>
         </div>
@@ -346,7 +382,8 @@
     </div>
 
     <div id="view-master">
-        <div class="flex flex-col gap-3 mb-6 md:hidden">
+
+        <div class="flex flex-col md:hidden gap-3 mb-6">
             <button class="btn-main btn-purple w-full justify-center" onclick="toggleModal('autoGenerateModal')">
                 <i class="fas fa-magic"></i> Auto-Generate
             </button>
@@ -377,53 +414,62 @@
             </div>
         </div>
 
-        <div id="master-subview-list" class="panel">
-            <table>
-                <thead>
-                <tr>
-                    <th>Assignee</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th style="text-align: right;">Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="turn : ${allTurns}">
-                    <td><strong><i class="fas fa-user-circle" style="color:var(--text-muted); margin-right:8px;"></i> [[${turn.assignee.name}]]</strong></td>
-                    <td th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Date</td>
-                    <td th:text="${turn.turnType.name}">Type</td>
-                    <td>
-                        <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
-                        <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
-                        <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge badge-swap"><i class="fas fa-sync-alt"></i> Swap Req.</span>
-                    </td>
-                    <td style="text-align: right;">
-                        <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
-                            <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Apagar este turno?');">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(allTurns)}">
-                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No shifts assigned yet.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="master-subview-calendar" class="panel hidden">
-            <div class="calendar-legend">
-                <div th:each="type : ${turnTypes}" class="legend-item">
-                    <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
-                    <span th:text="${type.name}">Nome do Cargo</span>
+        <div class="panel">
+            <div class="panel-header">
+                <span>Schedule View</span>
+                <div class="view-toggles">
+                    <button id="btn-view-list" class="toggle-btn active btn-view-list" onclick="setMasterView('list')"><i class="fas fa-list"></i></button>
+                    <button id="btn-view-calendar" class="toggle-btn btn-view-calendar" onclick="setMasterView('calendar')"><i class="fas fa-calendar-alt"></i></button>
                 </div>
             </div>
-            <div id="calendar" class="calendar-wrapper"></div>
+
+            <div id="master-subview-list">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="turn : ${allTurns}">
+                        <td><strong><i class="fas fa-user-circle" style="color:var(--text-muted); margin-right:8px;"></i> [[${turn.assignee.name}]]</strong></td>
+                        <td th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Date</td>
+                        <td th:text="${turn.turnType.name}">Type</td>
+                        <td>
+                            <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge badge-pending">Pending</span>
+                            <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge badge-confirmed">Confirmed</span>
+                            <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge badge-swap"><i class="fas fa-sync-alt"></i> Swap Req.</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <form th:action="@{/turns/{id}/delete(id=${turn.id})}" method="POST" style="margin:0;">
+                                <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Apagar este turno?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(allTurns)}">
+                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No shifts assigned yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="master-subview-calendar" class="hidden">
+                <div class="calendar-legend">
+                    <div th:each="type : ${turnTypes}" class="legend-item">
+                        <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
+                        <span th:text="${type.name}">Nome do Cargo</span>
+                    </div>
+                </div>
+                <div id="calendar" class="calendar-wrapper"></div>
+            </div>
         </div>
     </div>
-
 
     <div id="view-requests" class="hidden">
         <div class="grid-2">
