@@ -24,12 +24,6 @@ public class ServicoCliente {
     private String tipoServico; // Ex: Passive Holiday, Standby 24/7, COB
 
     @Column(nullable = false)
-    private BigDecimal valorStandby; // Ex: 125.00
-
-    @Column(nullable = false)
-    private BigDecimal valorBackup; // Ex: 25.00
-
-    @Column(nullable = false)
     private boolean ativo = true; // Para desativar quando perdem o cliente
 
     // ADICIONA ISTO:

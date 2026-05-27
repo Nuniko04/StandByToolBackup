@@ -34,16 +34,14 @@ public class ServicoClienteController {
     public ResponseEntity<ServicoCliente> create(@RequestBody ServicoCliente payload, jakarta.servlet.http.HttpSession session) {
         User adminActor = (User) session.getAttribute("loggedUser");
         return ResponseEntity.ok(servicoClienteService.createServico(
-                payload.getNomeCliente(), payload.getTipoServico(),
-                payload.getValorStandby(), payload.getValorBackup(), adminActor));
+                payload.getNomeCliente(), payload.getTipoServico(), adminActor));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody ServicoCliente payload, jakarta.servlet.http.HttpSession session) {
         User adminActor = (User) session.getAttribute("loggedUser");
         boolean sucesso = servicoClienteService.updateServico(
-                id, payload.getNomeCliente(), payload.getTipoServico(),
-                payload.getValorStandby(), payload.getValorBackup(), adminActor);
+                id, payload.getNomeCliente(), payload.getTipoServico(), adminActor);
         return sucesso ? ResponseEntity.ok("Service updated!") : ResponseEntity.notFound().build();
     }
 

@@ -6,7 +6,6 @@ import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.repositories.ServicoClienteRepository;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,12 +24,10 @@ public class ServicoClienteService {
     public List<ServicoCliente> getServicosAtivos() { return servicoClienteRepository.findByAtivoTrue(); }
 
     @Transactional
-    public ServicoCliente createServico(String nome, String tipo, BigDecimal valorStandby, BigDecimal valorBackup, User adminActor) {
+    public ServicoCliente createServico(String nome, String tipo, User adminActor) {
         ServicoCliente servico = new ServicoCliente();
         servico.setNomeCliente(nome);
         servico.setTipoServico(tipo);
-        servico.setValorStandby(valorStandby);
-        servico.setValorBackup(valorBackup);
         servico.setAtivo(true);
         ServicoCliente saved = servicoClienteRepository.save(servico);
 
@@ -39,14 +36,12 @@ public class ServicoClienteService {
     }
 
     @Transactional
-    public boolean updateServico(Long id, String nome, String tipo, BigDecimal valorStandby, BigDecimal valorBackup, User adminActor) {
+    public boolean updateServico(Long id, String nome, String tipo, User adminActor) {
         Optional<ServicoCliente> opt = servicoClienteRepository.findById(id);
         if (opt.isPresent()) {
             ServicoCliente servico = opt.get();
             if (nome != null && !nome.isBlank()) servico.setNomeCliente(nome);
             if (tipo != null && !tipo.isBlank()) servico.setTipoServico(tipo);
-            if (valorStandby != null) servico.setValorStandby(valorStandby);
-            if (valorBackup != null) servico.setValorBackup(valorBackup);
 
             servicoClienteRepository.save(servico);
             auditLogService.log(adminActor, "UPDATE_SERVICO_CLIENTE", "ServicoCliente", servico.getId(), "Values updated for: " + servico.getNomeCliente());

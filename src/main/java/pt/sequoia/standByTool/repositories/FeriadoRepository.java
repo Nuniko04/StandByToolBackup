@@ -5,12 +5,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.sequoia.standByTool.models.Feriado;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public interface FeriadoRepository extends JpaRepository<Feriado, UUID> { // Corrigido de Long para UUID
 
     boolean existsByData(LocalDate data);
 
-    @Query("SELECT COUNT(f) > 0 FROM Feriado f WHERE f.data BETWEEN :start AND :end")
-    boolean existsFeriadoInPeriod(@Param("start") LocalDate start, @Param("end") LocalDate end);
+    // 💡 Retorna a lista para filtragem em memória
+    List<Feriado> findByDataBetween(LocalDate dataInicio, LocalDate dataFim);
+
+
 }

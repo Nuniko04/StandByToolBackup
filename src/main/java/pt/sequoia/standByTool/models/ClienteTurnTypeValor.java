@@ -2,6 +2,8 @@ package pt.sequoia.standByTool.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -22,5 +24,9 @@ public class ClienteTurnTypeValor {
     private TurnType turnType;
 
     @Column(name = "valor_contribuicao", nullable = false)
-    private double valorContribuicao;
+    private BigDecimal valorContribuicao; // 💡 Rigor nos cêntimos
+
+    // 💡 NOVO CAMPO: Valor específico se o turno apanhar um Feriado
+    @Column(name = "valor_contribuicao_feriado")
+    private BigDecimal valorContribuicaoFeriado;
 }

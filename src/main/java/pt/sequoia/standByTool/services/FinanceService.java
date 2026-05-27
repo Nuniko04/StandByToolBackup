@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import pt.sequoia.standByTool.models.ClienteTurnTypeValor;
 import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.Turn;
+import pt.sequoia.standByTool.models.TurnType;
 import pt.sequoia.standByTool.repositories.ClienteTurnTypeValorRepository;
 import pt.sequoia.standByTool.repositories.ServicoClienteRepository;
 import pt.sequoia.standByTool.repositories.TurnRepository;
@@ -12,17 +13,18 @@ import pt.sequoia.standByTool.repositories.TurnRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FinanceService {
 
     private final ServicoClienteRepository servicoClienteRepository;
-    private final ClienteTurnTypeValorRepository precarioRepository;
+    private final ClienteTurnTypeValorRepository valorRepository;
     private final TurnRepository turnRepository;
 
     public FinanceService(ServicoClienteRepository servicoClienteRepository, ClienteTurnTypeValorRepository precarioRepository, TurnRepository turnRepository) {
         this.servicoClienteRepository = servicoClienteRepository;
-        this.precarioRepository = precarioRepository;
+        this.valorRepository = precarioRepository;
         this.turnRepository = turnRepository;
     }
 
@@ -49,29 +51,47 @@ public class FinanceService {
         }
     }
 
-    public double calcularValorTurno(Turn turn) {
-        if (turn == null || turn.getTurnType() == null) {
-            return 0.0;
+    public BigDecimal calcularValorTurno(Turn turno) {
+        TurnType tipoTurno = turno.getTurnType();
+        List<ServicoCliente> clientesDoTurno = turno.getServicosAlocados();
+
+        if (clientesDoTurno == null || clientesDoTurno.isEmpty()) {
+            return BigDecimal.ZERO;
         }
 
-        // Data em que o turno acabou
-        LocalDateTime dataFimTurno = turn.getEndTime();
+        LocalDate dataInicio = turno.getStartTime().toLocalDate();
+        LocalDate dataFim = turno.getEndTime().toLocalDate();
 
-        // Quais clientes estavam ativos neste dia?
-        List<ServicoCliente> clientesAtivos = servicoClienteRepository.findAtivosNaData(dataFimTurno.toLocalDate());
+        // 💡 CONTAGEM RESTRITA A DIAS ÚTEIS (Segunda a Sexta)
+        long numeroDeFeriadosUteis = feriadoRepository.findByDataBetween(dataInicio, dataFim).stream()
+                .filter(f -> {
+                    java.time.DayOfWeek dia = f.getData().getDayOfWeek();
+                    return dia != java.time.DayOfWeek.SATURDAY && dia != java.time.DayOfWeek.SUNDAY;
+                })
+                .count();
 
-        // Somar os valores específicos no preçário
-        double valorTotalClientes = 0.0;
-        for (ServicoCliente cliente : clientesAtivos) {
-            // Vai à tabela de preçário ver quanto este cliente paga por este tipo de turno
-            ClienteTurnTypeValor precario = precarioRepository.findByClienteAndTurnType(cliente, turn.getTurnType());
+        BigDecimal totalDoTurno = BigDecimal.ZERO;
 
-            if (precario != null) {
-                valorTotalClientes += precario.getValorContribuicao();
+        for (ServicoCliente cliente : clientesDoTurno) {
+
+            Optional<ClienteTurnTypeValor> contribuicaoOpt = valorRepository.findByClienteAndTurnType(cliente, tipoTurno);
+
+            if (contribuicaoOpt.isPresent()) {
+                ClienteTurnTypeValor precos = contribuicaoOpt.get();
+
+                BigDecimal valorACobrarDesteCliente = precos.getValorContribuicao();
+
+                // 💡 Multiplicador ativado apenas por numeroDeFeriadosUteis
+                if (numeroDeFeriadosUteis > 0 && precos.getValorContribuicaoFeriado() != null && precos.getValorContribuicaoFeriado().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal multiplicador = new BigDecimal(numeroDeFeriadosUteis);
+                    BigDecimal extraFeriados = precos.getValorContribuicaoFeriado().multiply(multiplicador);
+                    valorACobrarDesteCliente = valorACobrarDesteCliente.add(extraFeriados);
+                }
+
+                totalDoTurno = totalDoTurno.add(valorACobrarDesteCliente);
             }
         }
 
-        // O valor final é a soma da faturação cruzada dos clientes
-        return valorTotalClientes;
+        return totalDoTurno;
     }
 }
