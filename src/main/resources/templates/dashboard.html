@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sequoia — My Schedule</title>
 
-    <link rel="icon" type="image/avif" href="/sequoiaLogo.avif">
+    <link rel="icon" sizes="192x192" href="https://static.wixstatic.com/media/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/443bcd_4caed72de3b24bc684aa22805cc55415%7Emv2.jpg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -16,6 +16,7 @@
             --text: #ffffff; --text-muted: #888888; --danger: #ff4d4d; --success: #4cd137;
             --warning: #f1c40f; --radius: 12px;
             --finastra-shift: #3498db;
+            --purple: #9b59b6; /* <-- ADICIONA ISTO */
         }
         [data-theme="light"] {
             --bg: #f5f5f5; --sidebar-bg: #ffffff; --panel-bg: #ffffff; --border: #e0e0e0;
@@ -74,6 +75,7 @@
         .shift-card:hover { border-color: var(--text-muted); }
         .shift-card.pending { border-left: 4px solid var(--warning); }
         .shift-card.confirmed { border-left: 4px solid var(--success); }
+        .shift-card.swap { border-left: 4px solid var(--purple); } /* NOVO */
 
         .shift-info { display: flex; gap: 30px; align-items: center; }
         .shift-date-box { text-align: center; background: var(--panel-bg); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; min-width: 100px; }
@@ -85,6 +87,7 @@
         .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         .status-badge.pending { background: rgba(241, 196, 15, 0.1); color: var(--warning); border: 1px solid var(--warning); }
         .status-badge.confirmed { background: rgba(76, 209, 55, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .status-badge.swap { background: rgba(155, 89, 182, 0.1); color: var(--purple); border: 1px solid var(--purple); } /* NOVO */
 
         .btn-main { background: var(--text); color: var(--bg); border: none; padding: 12px 24px; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;}
         .btn-main:hover { opacity: 0.8; transform: translateY(-2px); }
@@ -101,6 +104,7 @@
         .board-card:hover { border-color: var(--text-muted); }
         .board-card.pending { border-top: 3px solid var(--warning); }
         .board-card.confirmed { border-top: 3px solid var(--success); }
+        .board-card.swap { border-top: 3px solid var(--purple); } /* NOVO */
 
         .hidden { display: none !important; }
         .calendar-wrapper { padding: 20px; min-height: 500px; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); }
@@ -115,8 +119,6 @@
         .event-standby { background-color: #4cd137 !important; color: #000 !important; }
         .event-backup { background-color: #f1c40f !important; color: #000 !important; }
         .event-finastra { background-color: #3498db !important; color: #000 !important; }
-        .event-sub-standby { background-color: #9b59b6 !important; color: #fff !important; }
-        .event-sub-finastra { background-color: #e84393 !important; color: #fff !important; }
         .fc-toolbar-title { font-family: 'Syne', sans-serif; text-transform: uppercase; font-weight: 800 !important; letter-spacing: 1px; color: #fff; font-size: 1.2rem !important; }
         .fc .fc-button-primary { background-color: transparent !important; border: 1px solid #333 !important; color: #fff !important; text-transform: uppercase !important; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.75rem !important; border-radius: 6px !important; padding: 8px 16px !important;}
         .fc .fc-button-primary:hover { background-color: #333 !important; border-color: #444 !important; }
@@ -132,45 +134,187 @@
         .form-input, select { width: 100%; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; transition: 0.2s; }
         .form-input:focus { border-color: var(--text-muted); outline: none; }
         .theme-btn { position: fixed; bottom: 30px; right: 30px; padding: 0 25px; height: 50px; border-radius: 25px; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.3); z-index: 9999; }
-        /* --- REGRAS PARA TELEMÓVEIS (DASHBOARDS) --- */
+        .accept-all-wrapper {
+            padding: 15px 20px 0 20px;
+            display: flex;
+            justify-content: flex-end; /* Encosta à direita no PC */
+        }
         @media (max-width: 768px) {
-            /* Passar o layout de lado-a-lado para coluna (cima para baixo) */
-            body { flex-direction: column; height: auto; overflow-y: auto; }
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
+            }
 
-            /* Ajustar a barra lateral para ocupar o ecrã todo no topo */
-            aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; z-index: 10; }
-            .logo-box { margin-bottom: 20px; }
-            nav { display: flex; flex-direction: column; gap: 5px; }
+            main {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                padding: 15px !important;
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
 
-            /* Ajustar o conteúdo principal */
-            main { padding: 20px; flex: none; overflow: visible; }
-            header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 25px; }
+            .menu-toggle-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                background: var(--panel-bg) !important;
+                color: var(--text) !important;
+                border: 1px solid var(--border) !important;
+                padding: 8px 14px !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                width: fit-content !important; /* Garante que fica pequeno, não estica */
+                font-size: 0.85rem !important;
+                order: 0 !important; /* Fica no topo isolado */
+                margin-bottom: 15px !important;
+            }
 
-            /* Ajustar cabeçalho com botões no Assigner */
-            #header-actions-master { flex-wrap: wrap; width: 100%; }
-            #header-actions-master button, .view-toggles { flex-grow: 1; text-align: center; justify-content: center; }
+            aside {
+                position: fixed !important;
+                top: 0 !important;
+                left: -100% !important; /* Totalmente escondido à esquerda */
+                width: 280px !important;
+                height: 100vh !important;
+                background: var(--sidebar-bg) !important;
+                z-index: 9999 !important;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5) !important;
+                border-right: 1px solid var(--border) !important;
+                padding: 25px !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            aside.menu-aberto {
+                left: 0 !important; /* Desliza suavemente ao abrir */
+            }
+            .logo-box { margin-bottom: 30px !important; }
+            nav { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+            nav a, nav button { width: 100% !important; text-align: left !important; }
 
-            /* Grelhas (Passar de 2/3 colunas para 1 coluna) */
-            .board-container, .status-grid, .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+            header {
+                display: contents !important; /* Liberta os filhos diretos para o Main */
+            }
 
-            /* Cartões de turno */
-            .shift-info { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .shift-actions button { width: 100%; justify-content: center; margin-top: 10px; }
+            #header-actions-master:not([style*="display: none"]) {
+                display: contents !important;
+            }
 
-            /* Tabelas não podem quebrar o ecrã, adicionamos um scroll nativo */
-            .panel table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
+            #view-master:not(.hidden) {
+                display: contents !important;
+            }
 
-            /* Ajustes no calendário e nos painéis */
-            .panel { padding: 15px; }
-            .calendar-wrapper, #calendar { padding: 10px; min-height: auto; }
-            .fc-toolbar-title { font-size: 1rem !important; }
-            .fc-header-toolbar { flex-direction: column; gap: 10px; }
+            .title-group {
+                order: 1 !important;
+                width: 100% !important;
+                margin-bottom: 15px !important;
+            }
+            .title-group h2 { font-size: 1.5rem !important; }
 
-            /* Botão de tema escuro flutuante */
-            .theme-btn { bottom: 15px; right: 15px; padding: 0 15px; height: 40px; font-size: 0.65rem; }
+            header .btn-purple, #header-actions-master .btn-purple {
+                order: 2 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
+            header .btn-main:not(.btn-purple), #header-actions-master .btn-main:not(.btn-purple) {
+                order: 3 !important;
+                width: calc(50% - 6px) !important;
+                margin: 0 !important;
+                margin-left: 12px !important; /* Separação entre os dois */
+                justify-content: center !important;
+                padding: 12px 6px !important;
+                font-size: 0.8rem !important;
+            }
 
-            /* Modais */
-            .modal-box { padding: 20px; max-height: 90vh; overflow-y: auto; margin: 10px; }
+            .status-grid {
+                order: 4 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                margin-top: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            .status-card { padding: 18px !important; width: 100% !important; }
+
+            .view-toggles {
+                order: 5 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
+                background: var(--bg) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+            }
+            .view-toggles .toggle-btn {
+                flex: 1 !important;
+                text-align: center !important;
+                padding: 10px !important;
+            }
+
+            #master-subview-list, #master-subview-calendar, .panel {
+                order: 6 !important;
+                width: 100% !important;
+                margin-bottom: 25px !important;
+            }
+
+            table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+
+            #view-requests:not(.hidden), #view-assigner:not(.hidden), #view-Assigner:not(.hidden) {
+                order: 10 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+            }
+
+            .grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
+
+            /* Ajustes finos do FullCalendar */
+            .fc .fc-header-toolbar { flex-direction: column !important; gap: 8px !important; }
+            .fc .fc-toolbar-title { font-size: 1rem !important; }
+            .fc .fc-button-group { width: 100% !important; }
+            .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
+        }
+
+        @media (max-width: 768px) {
+            .accept-all-wrapper {
+                padding: 15px 12px 0 12px;
+            }
+            .accept-all-wrapper form, .accept-all-wrapper button {
+                width: 100%; /* Estica a 100% no telemóvel */
+                justify-content: center;
+            }
+
+            .menu-toggle-btn * {
+                pointer-events: none !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .menu-toggle-btn, #menu-toggle {
+                display: none !important;
+            }
+            body {
+                flex-direction: row !important;
+            }
         }
     </style>
 </head>
@@ -179,7 +323,7 @@
 <aside>
     <div class="sidebar-top">
         <div class="logo-box">
-            <img src="/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
+            <img src="/images/whiteSequoiaLogo.png" alt="Sequoia Logo" class="logo-img" id="main-logo">
         </div>
 
         <div class="user-profile">
@@ -191,7 +335,9 @@
         </div>
 
         <nav>
-            <a href="/employee-view" class="active"><i class="fas fa-calendar-alt"></i> My Schedule</a>
+            <a th:href="${session.loggedUser?.assigner ? '/employee-view' : '/dashboard'}" class="active">
+                <i class="fas fa-calendar-alt"></i> My Schedule
+            </a>
             <a href="/dashboard" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Assigner</a>
         </nav>
     </div>
@@ -204,16 +350,14 @@
 </aside>
 
 <main>
+    <button id="menu-toggle" class="menu-toggle-btn" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i> <span>Menu</span>
+    </button>
     <header>
         <div class="title-group">
             <h2>Welcome back, <span th:text="${#strings.substringBefore(user.name, ' ')}">User</span></h2>
             <p th:if="${pendingCount > 0}">You have <strong th:text="${pendingCount} + ' pending shift(s)'"></strong> requiring action.</p>
             <p th:if="${pendingCount == 0}">You have no pending shifts. Enjoy your week!</p>
-        </div>
-        <div th:if="${pendingCount > 0}">
-            <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
-                <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
-            </form>
         </div>
     </header>
 
@@ -255,9 +399,17 @@
             </div>
         </div>
 
+        <div th:if="${pendingCount > 0}" class="accept-all-wrapper">
+            <form th:action="@{/turns/accept-all}" method="POST" style="margin:0;">
+                <button type="submit" class="btn-main btn-success"><i class="fas fa-check-double"></i> Accept All</button>
+            </form>
+        </div>
+
         <!-- LIST VIEW -->
         <div id="view-list" class="shifts-grid">
-            <div th:each="turn : ${myTurns}" class="shift-card" th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : 'confirmed'">
+            <div th:each="turn : ${myTurns}" class="shift-card"
+                 th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : (${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed')">
+
                 <div class="shift-info">
                     <div class="shift-date-box">
                         <span class="month" th:text="${#temporals.format(turn.startTime, 'MMM')}">MMM</span>
@@ -269,6 +421,7 @@
                         <p style="margin-top: 8px;">
                             <span th:if="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'}" class="status-badge pending">Pending</span>
                             <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed"><i class="fas fa-check"></i> Confirmed</span>
+                            <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap"><i class="fas fa-sync-alt fa-spin"></i> Swap Requested</span>
                         </p>
                     </div>
                 </div>
@@ -299,11 +452,19 @@
                 </div>
             </div>
             <div class="board-column">
-                <h4 class="column-title">Confirmed <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
-                <div th:each="turn : ${myTurns}" th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="board-card confirmed">
+                <h4 class="column-title">Confirmed & Swaps <span class="badge" style="background:var(--success); color:#000;"><i class="fas fa-check"></i></span></h4>
+
+                <div th:each="turn : ${myTurns}"
+                     th:if="${turn.turnStatus.name() == 'ACCEPTED' or turn.turnStatus.name() == 'SWAP_REQUESTED'}"
+                     class="board-card"
+                     th:classappend="${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed'">
+
                     <h4 th:text="${turn.turnType.name}" style="margin-bottom: 5px;">Shift</h4>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;" th:text="${#temporals.format(turn.startTime, 'MMM dd')} + ' - ' + ${#temporals.format(turn.endTime, 'MMM dd')}">Dates</p>
-                    <span class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                    <span th:if="${turn.turnStatus.name() == 'ACCEPTED'}" class="status-badge confirmed" style="font-size: 0.6rem; padding: 2px 6px;">Accepted</span>
+
+                    <span th:if="${turn.turnStatus.name() == 'SWAP_REQUESTED'}" class="status-badge swap" style="font-size: 0.6rem; padding: 2px 6px;">Swap Pending</span>
                 </div>
             </div>
         </div>
@@ -311,11 +472,10 @@
         <!-- CALENDAR VIEW -->
         <div id="view-calendar" class="hidden">
             <div class="calendar-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:#4cd137"></div> Standby</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#f1c40f"></div> Backup</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Finastra Shift</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#9b59b6"></div> Sub Standby</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#e84393"></div> Sub Finastra</div>
+                <div th:each="type : ${turnTypes}" class="legend-item">
+                    <div class="legend-dot" th:style="'background:' + ${type.color}"></div>
+                    <span th:text="${type.name}">Turn Name </span>
+                </div>
             </div>
             <div id="calendar" class="calendar-wrapper"></div>
         </div>
@@ -425,30 +585,37 @@
         if (theme === 'light') {
             icon.classList.replace('fa-moon', 'fa-sun');
             themeText.innerText = 'Light Mode';
-            mainLogo.src = '/blueSequoiaLogo.avif';
+            mainLogo.src = '/images/blueSequoiaLogo.avif';
         } else {
             icon.classList.replace('fa-sun', 'fa-moon');
             themeText.innerText = 'Dark Mode';
-            mainLogo.src = '/whiteSequoiaLogo.png';
+            mainLogo.src = '/images/whiteSequoiaLogo.png';
         }
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateAndTimeInputs = document.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+    function toggleMenu() {
+        const lateralMenu = document.querySelector('aside');
+        const menuBtn = document.getElementById('menu-toggle');
 
-        dateAndTimeInputs.forEach(input => {
-            // Muda o cursor para a mãozinha indicando que toda a caixa é clicável
-            input.style.cursor = 'pointer';
+        // Alterna a classe que mostra/esconde o menu
+        lateralMenu.classList.toggle('menu-aberto');
 
-            input.addEventListener('click', function() {
-                try {
-                    // Força o navegador a abrir o calendário/relógio nativo
-                    this.showPicker();
-                } catch (e) {
-                    // Prevenção caso alguém use um browser muito antigo
-                    console.log("O browser não suporta showPicker()");
-                }
-            });
-        });
+        // Muda o ícone do botão para indicar se está aberto ou fechado
+        if (lateralMenu.classList.contains('menu-aberto')) {
+            menuBtn.innerHTML = '✕ <span>Fechar</span>';
+        } else {
+            menuBtn.innerHTML = '☰ <span>Menu</span>';
+        }
+    }
+
+    // Fechar o menu automaticamente se o utilizador clicar fora dele
+    document.addEventListener('click', function(event) {
+        const lateralMenu = document.querySelector('aside');
+        const menuBtn = document.getElementById('menu-toggle');
+
+        if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
+            lateralMenu.classList.remove('menu-aberto');
+            menuBtn.innerHTML = '☰ <span>Menu</span>';
+        }
     });
 </script>
 </body>
