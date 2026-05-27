@@ -34,18 +34,24 @@ public class Main {
                 standBy.setName("StandBy");
                 standBy.setDefaultValue(new BigDecimal("50.00"));
                 standBy.setGoogleCalendarId("c_7cf870a9228bcccfb004bec53419bf49c263498b3bc1e8f57f8036efa762de3d@group.calendar.google.com");
+                standBy.setEligibleForAutoGeneration(true);
+                standBy.setDeleted(false);
                 typeRepo.save(standBy);
 
                 TurnType backup = new TurnType();
                 backup.setName("Backup");
                 backup.setDefaultValue(new BigDecimal("30.00"));
                 backup.setGoogleCalendarId("c_7cf870a9228bcccfb004bec53419bf49c263498b3bc1e8f57f8036efa762de3d@group.calendar.google.com");
+                backup.setEligibleForAutoGeneration(true);
+                backup.setDeleted(false);
                 typeRepo.save(backup);
 
                 TurnType finastra = new TurnType();
                 finastra.setName("Finastra Shift");
                 finastra.setDefaultValue(new BigDecimal("0.00"));
                 finastra.setGoogleCalendarId("c_dd2dd795931a4ea7f07a5cde6c3c98ac971cba85a14cfc5cea985136e0a13729@group.calendar.google.com");
+                finastra.setEligibleForAutoGeneration(true);
+                finastra.setDeleted(false);
                 typeRepo.save(finastra);
 
                 System.out.println("🔧 Tipos de Turno criados com sucesso!");

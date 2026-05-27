@@ -191,8 +191,8 @@
         </div>
 
         <nav>
-            <a href="/dashboard" class="active"><i class="fas fa-calendar-alt"></i> My Schedule</a>
-            <a href="/dashboardAssigner" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Assigner</a>
+            <a href="/employee-view" class="active"><i class="fas fa-calendar-alt"></i> My Schedule</a>
+            <a href="/dashboard" th:if="${session.loggedUser != null && session.loggedUser.assigner}"><i class="fas fa-shield-alt"></i> Back to Assigner</a>
         </nav>
     </div>
     <div class="sidebar-footer">

@@ -60,4 +60,15 @@ public class TurnTypeService {
         turnTypeRepository.save(turnType);
         auditLogService.log(adminActor, "UPDATE_TURN_TYPE", "TurnType", turnType.getId(), "Updated TurnType: " + name);
     }
+
+    @Transactional
+    public void toggleStatus(UUID id, User adminActor) {
+        TurnType turnType = turnTypeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tipo de Turno não encontrado."));
+
+        turnType.setDeleted(!turnType.isDeleted());
+
+        turnTypeRepository.save(turnType);
+        auditLogService.log(adminActor, "TOGGLE_TURN_TYPE_STATUS", "TurnType", turnType.getId(), "Toggling TurnType status: " + turnType.getName());
+    }
 }

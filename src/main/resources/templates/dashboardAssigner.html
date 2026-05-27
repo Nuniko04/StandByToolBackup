@@ -505,7 +505,7 @@
                         <th>Name</th>
                         <th>Default Hours</th>
                         <th style="text-align: center;">Edit</th>
-                        <th style="text-align: center;">Action</th>
+                        <th style="text-align: center;">Status</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -522,9 +522,9 @@
                         <td style="text-align: center;">
                             <form th:action="@{/turntypes/{id}/toggle(id=${type.id})}" method="POST" style="margin: 0; display: inline-flex; justify-content: center; width: 100%;">
                                 <button type="submit" class="btn-action"
-                                        th:style="${type.eligibleForAutoGeneration} ? 'color: var(--danger); border-color: var(--danger); min-width: 95px; justify-content: center;' : 'color: var(--success); border-color: var(--success); min-width: 95px; justify-content: center;'">
-                                    <i th:class="${type.eligibleForAutoGeneration} ? 'fas fa-ban' : 'fas fa-check-circle'"></i>
-                                    <span th:text="${type.eligibleForAutoGeneration ? 'Disable' : 'Enable'}"></span>
+                                        th:style="${type.deleted} ? 'color: var(--danger); border-color: var(--danger); min-width: 95px; justify-content: center;' : 'color: var(--success); border-color: var(--success); min-width: 95px; justify-content: center;'">
+                                    <i th:class="${type.deleted} ? 'fas fa-ban' : 'fas fa-check-circle'"></i>
+                                    <span th:text="${type.deleted ? 'Disable' : 'Enable'}"></span>
                                 </button>
                             </form>
                         </td>
@@ -588,27 +588,27 @@
             </div>
 
             <table>
-                <thead class="bg-gray-50 dark:bg-gray-800/50 uppercase font-bold text-xs">
+                <thead class="dark:bg-gray-800/50 uppercase font-bold text-xs">
                 <tr>
-                    <th class="px-4 py-3">Name</th>
-                    <th class="px-4 py-3">Default Hours</th>
-                    <th class="px-4 py-3 text-center">Auto-Gen</th> <th class="px-4 py-3 text-right">Edit</th>
+                    <th>Date</th>
+                    <th>Holiday Name</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                <tr th:each="type : ${turnTypes}" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td class="px-4 py-3 font-medium text-gray-900 dark:text-white" th:text="${type.name}">StandBy</td>
-                    <td class="px-4 py-3">
-                        <span th:text="${type.defaultStartTime != null ? type.defaultStartTime + ' - ' + type.defaultEndTime : 'N/A'}">18:00 - 09:00</span>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        <span th:if="${type.eligibleForAutoGeneration}" class="px-2 py-1 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold">Enabled</span>
-                        <span th:unless="${type.eligibleForAutoGeneration}" class="px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold">Disabled</span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        <button type="button" th:data-target="'editTurnTypeModal-' + ${type.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 transition-colors">
-                            <i class="ph-bold ph-pencil-simple text-base"></i>
-                        </button>
+                <tbody>
+                <tr th:each="feriado : ${feriados}"
+                    class="holiday-row hidden"
+                    th:attr="data-year=${#temporals.format(feriado.data, 'yyyy')}, data-month=${#temporals.format(feriado.data, 'M')}">
+
+                    <td th:text="${#temporals.format(feriado.data, 'dd/MM/yyyy')}" style="color: var(--text-muted);">01/01/2026</td>
+                    <td><strong th:text="${feriado.nome}">Holiday Name</strong></td>
+                    <td style="text-align: right;">
+                        <button class="btn-action" th:data-target="'editFeriadoModal-' + ${feriado.id}" onclick="toggleModal(this.getAttribute('data-target'))"><i class="fas fa-edit"></i></button>
+                        <form th:action="@{/feriados/{id}/delete(id=${feriado.id})}" method="POST" style="margin:0; display:inline-block;">
+                            <button type="submit" class="btn-action" style="color: var(--danger); border-color: var(--danger);" onclick="return confirm('Are you sure you want to remove this holiday?');">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>
@@ -659,7 +659,7 @@
                     <option value="" disabled selected>Select a shift type...</option>
 
                     <option th:each="type : ${turnTypes}"
-                            th:if="${type.eligibleForAutoGeneration}"
+                            th:if="${!type.deleted}"
                             th:value="${type.id}"
                             th:text="${type.name}">Type</option>
                 </select>
@@ -969,28 +969,23 @@
         renderHistoryPage();
     }
 
-    // Não te esqueças de chamar o renderHistoryPage() quando o site carrega!
-    // (Adiciona isto dentro do teu document.addEventListener('DOMContentLoaded', function() { ... })
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... o teu código existente do FullCalendar ...
-
-        renderHistoryPage(); // 💡 Inicia a paginação na primeira página
-    });
-
     let fcAssignerInstance;
 
     document.addEventListener('DOMContentLoaded', function() {
-        var eventsList = [
-            /*[# th:each="turn : ${allTurns}"]*/
-            {
-                id: /*[[${turn.id}]]*/ '1',
-                title: /*[[${turn.turnType.name} + ' - ' + ${turn.assignee.name}]]*/ 'Tipo - Nome',
-                start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
-                end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+        var eventsList = [];
 
-                color: /*[[${turn.turnType.color}]]*/ '#3498db'
-            },
-        ];
+        /*[# th:each="turn : ${allTurns}"]*/
+        eventsList.push({
+            id: /*[[${turn.id}]]*/ '1',
+
+            // 💡 LÓGICA CORRIGIDA: Junta tudo dentro do mesmo ${ }
+            title: /*[[${turn.turnType.name + ' - ' + turn.assignee.name}]]*/ 'Tipo - Nome',
+
+            start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
+            end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+            color: /*[[${turn.turnType.color}]]*/ '#3498db'
+        });
+        /*[/]*/
 
         var calendarEl = document.getElementById('calendar');
         if(calendarEl) {
@@ -1003,7 +998,9 @@
                 displayEventTime: false
             });
         }
+        renderHistoryPage(); // 💡 Inicia a paginação na primeira página
     });
+
     document.addEventListener('DOMContentLoaded', function() {
         const dateAndTimeInputs = document.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
 
@@ -1021,6 +1018,9 @@
     });
 
     function switchMainView(viewName) {
+        // 💡 NOVA LINHA: Grava a aba escolhida na memória IMEDIATAMENTE!
+        localStorage.setItem('activeAssignerTab', viewName);
+
         ['master', 'requests', 'Assigner', 'feriados'].forEach(v => {
             const el = document.getElementById('view-' + v);
             if(el) el.classList.add('hidden');
@@ -1058,6 +1058,7 @@
             actions.style.display = "none";
         }
     }
+
     function setMasterView(subView) {
         document.getElementById('master-subview-list').classList.add('hidden');
         document.getElementById('master-subview-calendar').classList.add('hidden');
@@ -1168,12 +1169,18 @@
     let currentHolidayDate = new Date(); // Começa no dia de hoje
 
     function updateHolidayView() {
+        const yearDisplay = document.getElementById('current-year-display');
+        const monthDisplay = document.getElementById('current-month-display');
+
+        // Proteção: Se não houver display de ano ou mês na página, pára aqui
+        if (!yearDisplay || !monthDisplay) return;
+
         const year = currentHolidayDate.getFullYear();
         const month = currentHolidayDate.getMonth() + 1; // JS vai de 0-11, o Thymeleaf 'M' vai de 1-12
 
-        document.getElementById('current-year-display').innerText = year;
+        yearDisplay.innerText = year;
         const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        document.getElementById('current-month-display').innerText = monthNames[month - 1];
+        monthDisplay.innerText = monthNames[month - 1];
 
         const rows = document.querySelectorAll('.holiday-row');
         let visibleCount = 0;
@@ -1190,11 +1197,14 @@
             }
         });
 
+        // 💡 PROTEÇÃO CRUCIAL AQUI: Só tenta mexer na mensagem se ela realmente existir no HTML
         const noHolidaysMsg = document.getElementById('no-holidays-msg');
-        if (visibleCount === 0) {
-            noHolidaysMsg.classList.remove('hidden');
-        } else {
-            noHolidaysMsg.classList.add('hidden');
+        if (noHolidaysMsg) {
+            if (visibleCount === 0) {
+                noHolidaysMsg.classList.remove('hidden');
+            } else {
+                noHolidaysMsg.classList.add('hidden');
+            }
         }
     }
 
@@ -1203,8 +1213,27 @@
         updateHolidayView();
     }
 
+    // ==========================================
+    // INITIALIZATION (ARRANQUE DA PÁGINA)
+    // ==========================================
     document.addEventListener('DOMContentLoaded', function() {
-        updateHolidayView();
+
+        // 1. Inicializa a aba ativa
+        const urlParams = new URLSearchParams(window.location.search);
+        let tabToOpen = urlParams.get('tab');
+        if (!tabToOpen) {
+            tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
+        }
+        switchMainView(tabToOpen);
+
+        // 2. Só DEPOIS de a página carregar é que tentamos atualizar a UI
+        if (typeof renderHistoryPage === "function") {
+            renderHistoryPage();
+        }
+
+        if (typeof updateHolidayView === "function") {
+            updateHolidayView();
+        }
     });
 </script>
 </body>

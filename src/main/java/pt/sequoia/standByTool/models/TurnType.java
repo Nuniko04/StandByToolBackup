@@ -37,6 +37,9 @@ public class TurnType {
     @Column(name = "eligible_for_auto_generation", nullable = false)
     private boolean eligibleForAutoGeneration = true;
 
+    @Column(name = "deleted", columnDefinition = "boolean default false")
+    private boolean deleted = false;
+
     @Column(nullable = false)
     private String color = "#3498db"; // Valor azul por defeito
 

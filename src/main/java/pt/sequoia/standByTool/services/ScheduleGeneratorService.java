@@ -113,7 +113,7 @@ public class ScheduleGeneratorService {
             }
 
             // 3. FASE DE SCORING (Equidade e Cadência)
-            boolean isSemanaComFeriado = feriadoRepository.existsFeriadoInPeriod(inicioSemana, fimSemana);
+            boolean isSemanaComFeriado = !feriadoRepository.findByDataBetween(inicioSemana, fimSemana).isEmpty();
             boolean isSemanaFechoMes = checkFechoDeMes(inicioSemana, fimSemana);
 
             for (ColaboradorScore candidato : candidatos) {

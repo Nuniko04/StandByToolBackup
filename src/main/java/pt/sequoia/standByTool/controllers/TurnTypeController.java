@@ -73,4 +73,20 @@ public class TurnTypeController {
 
         return "redirect:/dashboard";
     }
+
+    @PostMapping("/{id}/toggle")
+    public String toggleStatus(@PathVariable UUID id,
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes){
+
+        User adminActor = (User) session.getAttribute("loggedUser");
+        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+
+        try {
+            turnTypeService.toggleStatus(id, adminActor);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Error toggling turn type status: " + e.getMessage());
+        }
+        return "redirect:/dashboard";
+    }
 }
