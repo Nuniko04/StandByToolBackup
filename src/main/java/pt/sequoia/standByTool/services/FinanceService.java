@@ -7,10 +7,12 @@ import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.Turn;
 import pt.sequoia.standByTool.models.TurnType;
 import pt.sequoia.standByTool.repositories.ClienteTurnTypeValorRepository;
+import pt.sequoia.standByTool.repositories.FeriadoRepository;
 import pt.sequoia.standByTool.repositories.ServicoClienteRepository;
 import pt.sequoia.standByTool.repositories.TurnRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,14 +20,14 @@ import java.util.Optional;
 @Service
 public class FinanceService {
 
-    private final ServicoClienteRepository servicoClienteRepository;
+    private final FeriadoRepository feriadoRepository;
     private final ClienteTurnTypeValorRepository valorRepository;
     private final TurnRepository turnRepository;
 
-    public FinanceService(ServicoClienteRepository servicoClienteRepository, ClienteTurnTypeValorRepository precarioRepository, TurnRepository turnRepository) {
-        this.servicoClienteRepository = servicoClienteRepository;
+    public FinanceService(ServicoClienteRepository servicoClienteRepository, FeriadoRepository feriadoRepository, ClienteTurnTypeValorRepository precarioRepository, TurnRepository turnRepository) {
         this.valorRepository = precarioRepository;
         this.turnRepository = turnRepository;
+        this.feriadoRepository = feriadoRepository;
     }
 
     @Transactional
@@ -45,8 +47,8 @@ public class FinanceService {
 
         // Calcular o valor de cada um e "trancar" na base de dados
         for(Turn t : turnosDaSemana) {
-            double valorFinal = calcularValorTurno(t);
-            t.setTurnValue(BigDecimal.valueOf(valorFinal));
+            BigDecimal valorFinal = calcularValorTurno(t);
+            t.setTurnValue(valorFinal);
             turnRepository.save(t);
         }
     }
