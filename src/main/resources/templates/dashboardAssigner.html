@@ -642,8 +642,8 @@
         </div>
         <form id="autoGenerateForm">
             <div class="grid-2">
-                <div class="form-group"><label>Start Date</label><input type="date" name="startDate" required class="form-input"></div>
-                <div class="form-group"><label>End Date</label><input type="date" name="endDate" required class="form-input"></div>
+                <div class="form-group"><label for="autoGenStartDate">Start Date</label><input type="date" id="autoGenStartDate" name="startDate" required class="form-input"></div>
+                <div class="form-group"><label for="autoGenEndDate">End Date</label><input type="date" id="autoGenEndDate" name="endDate" required class="form-input"></div>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="button" id="btnRunAlgorithm" onclick="runAutoGeneration()" class="btn-main btn-purple" style="flex:1; justify-content:center;"><i class="fas fa-play"></i> Run Algorithm</button>
