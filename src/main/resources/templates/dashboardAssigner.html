@@ -939,126 +939,68 @@
 </div>
 
 <script th:inline="javascript">
-
+    // ==========================================
+    // VARIÁVEIS GLOBAIS E CALENDÁRIO
+    // ==========================================
     let fcAssignerInstance;
-    let currentHolidayDate = new Date();
     let currentHistoryPage = 1;
     const itemsPerPage = 5;
+    let currentHolidayDate = new Date(); // Começa no dia de hoje
 
-    let currentMasterDate = new Date(); // Nova: Controla o mês/ano da Master Schedule
-    let currentTurnFilter = 'ALL';      // Nova: Guarda o filtro ativo
-
-    // NO DOM CONTENT LOADED (Adicionar a chamada updateMasterListView())
+    // ==========================================
+    // INICIALIZAÇÃO DA PÁGINA (DOM CONTENT LOADED)
+    // ==========================================
     document.addEventListener('DOMContentLoaded', function() {
-        renderHistoryPage();
-        updateHolidayView();
-        updateMasterListView(); // Inicia a lista de turnos organizada
-    });
+        // 1. Lógica do Calendário (FullCalendar)
+        var eventsList = [];
+        /*[# th:each="turn : ${allTurns}"]*/
+        eventsList.push({
+            id: /*[[${turn.id}]]*/ '1',
+            title: /*[[${turn.turnType.name + ' - ' + turn.assignee.name}]]*/ 'Tipo - Nome',
+            start: /*[[${turn.startTime}]]*/ '2024-01-01T00:00:00',
+            end: /*[[${turn.endTime}]]*/ '2024-01-02T00:00:00',
+            color: /*[[${turn.turnType.color}]]*/ '#3498db'
+        });
+        /*[/]*/
 
-    // ==========================================
-    // FUNÇÕES DA MASTER SCHEDULE LIST (Filtros e Semanas)
-    // ==========================================
-    function toggleTurnFilter(status) {
-        if (currentTurnFilter === status) {
-            currentTurnFilter = 'ALL';
-        } else {
-            currentTurnFilter = status;
+        var calendarEl = document.getElementById('calendar');
+        if(calendarEl) {
+            fcAssignerInstance = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                events: eventsList,
+                firstDay: 1,
+                height: '100%',
+                displayEventTime: false
+            });
         }
 
-        ['CLASHES', 'PENDING_ACCEPTANCE', 'ACCEPTED'].forEach(s => {
-            const card = document.getElementById('card-filter-' + s);
-            if(card) {
-                if (currentTurnFilter === 'ALL') {
-                    card.style.opacity = '1';
-                    card.style.transform = 'scale(1)';
-                } else if (currentTurnFilter === s) {
-                    card.style.opacity = '1';
-                    card.style.transform = 'scale(1.02)';
-                } else {
-                    card.style.opacity = '0.4';
-                    card.style.transform = 'scale(0.98)';
-                }
-            }
-        });
-
-        updateMasterListView();
-    }
-
-    function updateMasterListView() {
-        const year = currentMasterDate.getFullYear();
-        const month = currentMasterDate.getMonth() + 1;
-
-        const yearDisplay = document.getElementById('master-year-display');
-        const monthDisplay = document.getElementById('master-month-display');
-
-        if(yearDisplay) yearDisplay.innerText = year;
-        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        if(monthDisplay) monthDisplay.innerText = monthNames[month - 1];
-
-        const tbody = document.getElementById('master-table-body');
-        if(!tbody) return;
-
-        // Limpar barras de semana antigas
-        document.querySelectorAll('.week-separator').forEach(el => el.remove());
-
-        const rows = document.querySelectorAll('.master-turn-row');
-        let visibleCount = 0;
-        let weeksMap = {};
-
-        rows.forEach(row => {
-            const rowYear = parseInt(row.getAttribute('data-year'));
-            const rowMonth = parseInt(row.getAttribute('data-month'));
-            const rowWeek = parseInt(row.getAttribute('data-week'));
-            const rowStatus = row.getAttribute('data-status');
-
-            const isDateMatch = (rowYear === year && rowMonth === month);
-            const isFilterMatch = (currentTurnFilter === 'ALL' ||
-                rowStatus === currentTurnFilter ||
-                (currentTurnFilter === 'ACCEPTED' && rowStatus === 'COMPLETED'));
-
-            if (isDateMatch && isFilterMatch) {
-                if(!weeksMap[rowWeek]) weeksMap[rowWeek] = [];
-                weeksMap[rowWeek].push(row);
-                visibleCount++;
-            } else {
-                row.classList.add('hidden');
-            }
-        });
-
-        const sortedWeeks = Object.keys(weeksMap).sort((a,b) => parseInt(a) - parseInt(b));
-
-        sortedWeeks.forEach(week => {
-            const tr = document.createElement('tr');
-            tr.className = 'week-separator';
-            tr.innerHTML = `<td colspan="5" style="padding: 15px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); background: rgba(128,128,128,0.05);"><i class="fas fa-calendar-week" style="margin-right: 8px;"></i> Week ${week}</td>`;
-            tbody.appendChild(tr);
-
-            weeksMap[week].forEach(row => {
-                row.classList.remove('hidden');
-                tbody.appendChild(row);
+        // 2. Comportamento para inputs de Data e Hora no Telemóvel/PC
+        const dateAndTimeInputs = document.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+        dateAndTimeInputs.forEach(input => {
+            input.style.cursor = 'pointer';
+            input.addEventListener('click', function() {
+                try { this.showPicker(); } catch (e) { }
             });
         });
 
-        const noTurnsMsg = document.getElementById('no-turns-msg');
-        if(noTurnsMsg) {
-            if (visibleCount === 0) {
-                noTurnsMsg.classList.remove('hidden');
-                tbody.appendChild(noTurnsMsg);
-            } else {
-                noTurnsMsg.classList.add('hidden');
-            }
+        // 3. Renderiza a aba ativa
+        let tabToOpen = localStorage.getItem('activeAssignerTab');
+        if (!tabToOpen) {
+            const urlParams = new URLSearchParams(window.location.search);
+            tabToOpen = urlParams.get('tab') || 'master';
         }
-    }
+        switchMainView(tabToOpen);
 
-    function changeMasterMonth(offset) {
-        currentMasterDate.setMonth(currentMasterDate.getMonth() + offset);
-        updateMasterListView();
-    }
+        // 4. Inicia views secundárias (Páginas de Histórico e Feriados)
+        renderHistoryPage();
+        updateHolidayView();
+    });
+
     // ==========================================
-    // FUNÇÕES DE NAVEGAÇÃO (Abas e Calendário)
+    // FUNÇÕES DE NAVEGAÇÃO E UI
     // ==========================================
     function switchMainView(viewName) {
-        // Grava a aba escolhida na memória IMEDIATAMENTE!
         localStorage.setItem('activeAssignerTab', viewName);
 
         ['master', 'requests', 'Assigner', 'feriados'].forEach(v => {
@@ -1083,77 +1025,128 @@
             title.innerText = "Master Schedule";
             subtitle.innerText = "Overview & Assignment Management";
             actions.style.display = "flex";
-
-            // 💡 NOVA LINHA: Força a renderização inicial da lista!
-            setMasterView('list');
-            updateMasterListView();
-
+            setMasterView('list'); // 💡 Garante que a lista é mostrada
         } else if (viewName === 'requests') {
-            if(title) title.innerText = "Swap Requests";
-            if(subtitle) subtitle.innerText = "Pending & Historical Shift Transfers";
-            if(actions) actions.style.display = "none";
+            title.innerText = "Swap Requests";
+            subtitle.innerText = "Pending & Historical Shift Transfers";
+            actions.style.display = "none";
         } else if (viewName === 'Assigner') {
-            if(title) title.innerText = "Assigner";
-            if(subtitle) subtitle.innerText = "Employees, Shift Types & Payment Cards";
-            if(actions) actions.style.display = "none";
+            title.innerText = "Assigner";
+            subtitle.innerText = "Employees, Shift Types & Payment Cards";
+            actions.style.display = "none";
         } else if (viewName === 'feriados') {
-            if(title) title.innerText = "Organizational Holidays";
-            if(subtitle) subtitle.innerText = "Manage Company Holidays";
-            if(actions) actions.style.display = "none";
+            title.innerText = "Holidays & Absences";
+            subtitle.innerText = "Management of Active and Passive Holidays";
+            actions.style.display = "none";
         }
     }
 
     function setMasterView(subView) {
-        // Esconder ambas as vistas e remover classe active dos botões
-        const listDiv = document.getElementById('master-subview-list');
-        const calDiv = document.getElementById('master-subview-calendar');
-        const btnList = document.getElementById('btn-view-list');
-        const btnCal = document.getElementById('btn-view-calendar');
+        document.getElementById('master-subview-list').classList.add('hidden');
+        document.getElementById('master-subview-calendar').classList.add('hidden');
+        document.getElementById('btn-view-list').classList.remove('active');
+        document.getElementById('btn-view-calendar').classList.remove('active');
 
-        if(listDiv) listDiv.classList.add('hidden');
-        if(calDiv) calDiv.classList.add('hidden');
-        if(btnList) btnList.classList.remove('active');
-        if(btnCal) btnCal.classList.remove('active');
+        document.getElementById('master-subview-' + subView).classList.remove('hidden');
+        document.getElementById('btn-view-' + subView).classList.add('active');
 
-        // Mostrar a selecionada
-        const targetDiv = document.getElementById('master-subview-' + subView);
-        const targetBtn = document.getElementById('btn-view-' + subView);
-
-        if(targetDiv) targetDiv.classList.remove('hidden');
-        if(targetBtn) targetBtn.classList.add('active');
-
-        // Forçar o calendário a desenhar se a vista for 'calendar'
-        if (subView === 'calendar' && typeof fcAssignerInstance !== 'undefined') {
-            setTimeout(() => {
-                fcAssignerInstance.render();
-                fcAssignerInstance.updateSize();
-            }, 50);
-        }
-    }
-
-    function toggleMenu() {
-        const lateralMenu = document.querySelector('aside');
-        const menuBtn = document.getElementById('menu-toggle');
-
-        // Alterna a classe que mostra/esconde o menu
-        lateralMenu.classList.toggle('menu-aberto');
-
-        // Muda o ícone do botão para indicar se está aberto ou fechado
-        if (lateralMenu.classList.contains('menu-aberto')) {
-            menuBtn.innerHTML = '✕ <span>Fechar</span>';
-        } else {
-            menuBtn.innerHTML = '☰ <span>Menu</span>';
+        if (subView === 'calendar' && fcAssignerInstance) {
+            setTimeout(() => { fcAssignerInstance.render(); }, 50);
         }
     }
 
     function toggleModal(modalId) {
         const modal = document.getElementById(modalId);
         if(modal) {
-            if(modal.style.display === 'flex') modal.style.display = 'none';
-            else modal.style.display = 'flex';
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         }
     }
 
+    // ==========================================
+    // FUNÇÕES DE FERIADOS
+    // ==========================================
+    window.updateHolidayView = function() {
+        const yearDisplay = document.getElementById('current-year-display');
+        const monthDisplay = document.getElementById('current-month-display');
+
+        if (!yearDisplay || !monthDisplay) return;
+
+        const year = currentHolidayDate.getFullYear();
+        const month = currentHolidayDate.getMonth() + 1;
+
+        yearDisplay.innerText = year;
+        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        monthDisplay.innerText = monthNames[month - 1];
+
+        const rows = document.querySelectorAll('.holiday-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowYear = parseInt(row.getAttribute('data-year'));
+            const rowMonth = parseInt(row.getAttribute('data-month'));
+
+            if (rowYear === year && rowMonth === month) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        const noHolidaysMsg = document.getElementById('no-holidays-msg');
+        if (noHolidaysMsg) {
+            if (visibleCount === 0) noHolidaysMsg.classList.remove('hidden');
+            else noHolidaysMsg.classList.add('hidden');
+        }
+    };
+
+    window.changeMonth = function(offset) {
+        currentHolidayDate.setMonth(currentHolidayDate.getMonth() + offset);
+        window.updateHolidayView();
+    };
+
+    // ==========================================
+    // FUNÇÕES DE HISTÓRICO
+    // ==========================================
+    window.renderHistoryPage = function() {
+        const items = document.querySelectorAll('.history-item');
+        if (items.length === 0) return;
+
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const paginationBox = document.getElementById('history-pagination');
+        if(paginationBox) paginationBox.style.display = totalPages > 1 ? 'flex' : 'none';
+
+        items.forEach((item, index) => {
+            item.style.display = 'none';
+            if (index >= (currentHistoryPage - 1) * itemsPerPage && index < currentHistoryPage * itemsPerPage) {
+                item.style.display = 'flex';
+            }
+        });
+
+        const pageInfo = document.getElementById('history-page-info');
+        if(pageInfo) pageInfo.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
+
+        const btnPrev = document.getElementById('btn-prev-history');
+        const btnNext = document.getElementById('btn-next-history');
+
+        if(btnPrev) btnPrev.style.visibility = currentHistoryPage > 1 ? 'visible' : 'hidden';
+        if(btnNext) btnNext.style.visibility = currentHistoryPage < totalPages ? 'visible' : 'hidden';
+    };
+
+    window.changeHistoryPage = function(direction) {
+        const items = document.querySelectorAll('.history-item');
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+
+        currentHistoryPage += direction;
+        if (currentHistoryPage < 1) currentHistoryPage = 1;
+        if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+
+        window.renderHistoryPage();
+    };
+
+    // ==========================================
+    // OUTRAS FUNÇÕES (API E MENU)
+    // ==========================================
     async function runAutoGeneration() {
         const form = document.getElementById('autoGenerateForm');
         const formData = new FormData(form);
@@ -1184,42 +1177,11 @@
             btn.disabled = false;
         }
     }
-    const toggleBtn = document.getElementById('theme-toggle');
-    const themeText = document.getElementById('theme-text');
-    const mainLogo = document.getElementById('main-logo');
-    const htmlElement = document.documentElement;
 
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    applyTheme(savedTheme);
-
-    toggleBtn.addEventListener('click', () => {
-        const currentTheme = htmlElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        applyTheme(newTheme);
-    });
-
-    function applyTheme(theme) {
-        htmlElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        const icon = toggleBtn.querySelector('i');
-        if (theme === 'light') {
-            icon.classList.replace('fa-moon', 'fa-sun');
-            themeText.innerText = 'Light Mode';
-            mainLogo.src = '/images/blueSequoiaLogo.avif';
-        } else {
-            icon.classList.replace('fa-sun', 'fa-moon');
-            themeText.innerText = 'Dark Mode';
-            mainLogo.src = '/images/whiteSequoiaLogo.png';
-        }
-    }
     function toggleMenu() {
         const lateralMenu = document.querySelector('aside');
         const menuBtn = document.getElementById('menu-toggle');
-
-        // Alterna a classe que mostra/esconde o menu
         lateralMenu.classList.toggle('menu-aberto');
-
-        // Muda o ícone do botão para indicar se está aberto ou fechado
         if (lateralMenu.classList.contains('menu-aberto')) {
             menuBtn.innerHTML = '✕ <span>Fechar</span>';
         } else {
@@ -1230,65 +1192,43 @@
     document.addEventListener('click', function(event) {
         const lateralMenu = document.querySelector('aside');
         const menuBtn = document.getElementById('menu-toggle');
-
-        if (!lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
+        if (lateralMenu && menuBtn && !lateralMenu.contains(event.target) && !menuBtn.contains(event.target) && lateralMenu.classList.contains('menu-aberto')) {
             lateralMenu.classList.remove('menu-aberto');
             menuBtn.innerHTML = '☰ <span>Menu</span>';
         }
     });
 
-    function changeMonth(offset) {
-        currentHolidayDate.setMonth(currentHolidayDate.getMonth() + offset);
-        updateHolidayView();
+    // Theme logic
+    const toggleBtn = document.getElementById('theme-toggle');
+    const themeText = document.getElementById('theme-text');
+    const mainLogo = document.getElementById('main-logo');
+    const htmlElement = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    if(toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
     }
 
-    // ==========================================
-    // INITIALIZATION (ARRANQUE DA PÁGINA)
-    // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // 1. Inicializa a aba ativa
-        const urlParams = new URLSearchParams(window.location.search);
-        let tabToOpen = urlParams.get('tab');
-        if (!tabToOpen) {
-            tabToOpen = localStorage.getItem('activeAssignerTab') || 'master';
+    function applyTheme(theme) {
+        htmlElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        if(!toggleBtn) return;
+        const icon = toggleBtn.querySelector('i');
+        if (theme === 'light') {
+            icon.classList.replace('fa-moon', 'fa-sun');
+            themeText.innerText = 'Light Mode';
+            mainLogo.src = '/images/blueSequoiaLogo.avif';
+        } else {
+            icon.classList.replace('fa-sun', 'fa-moon');
+            themeText.innerText = 'Dark Mode';
+            mainLogo.src = '/images/whiteSequoiaLogo.png';
         }
-        switchMainView(tabToOpen);
-
-        // 2. Só DEPOIS de a página carregar é que tentamos atualizar a UI
-        if (typeof renderHistoryPage === "function") {
-            renderHistoryPage();
-        }
-
-        if (typeof updateHolidayView === "function") {
-            updateHolidayView();
-        }
-    });
-
-    function renderHistoryPage() {
-        const items = document.querySelectorAll('.history-item');
-        if (items.length === 0) return;
-        const totalPages = Math.ceil(items.length / itemsPerPage);
-        // Só mostra os botões de paginação se houver mais de 1 página
-        document.getElementById('history-pagination').style.display = totalPages > 1 ? 'flex' : 'none';
-        // Esconde tudo e mostra apenas os da página atual
-        items.forEach((item, index) => {
-            item.style.display = 'none'; // Volta a esconder
-            // Lógica matemática para saber se o item pertence à página atual
-            if (index >= (currentHistoryPage - 1) * itemsPerPage && index < currentHistoryPage * itemsPerPage) {
-                item.style.display = 'flex'; // Mostra (flex por causa do layout)
-            }
-        });
-        // Atualiza o texto "Page X of Y"
-        const pageInfo = document.getElementById('history-page-info');
-        if(pageInfo) pageInfo.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
-
-        // Esconde os botões se estivermos na primeira ou última página
-        const btnPrev = document.getElementById('btn-prev-history');
-        const btnNext = document.getElementById('btn-next-history');
-
-        if(btnPrev) btnPrev.style.visibility = currentHistoryPage > 1 ? 'visible' : 'hidden';
-        if(btnNext) btnNext.style.visibility = currentHistoryPage < totalPages ? 'visible' : 'hidden';
     }
 </script>
 </body>
