@@ -292,9 +292,7 @@
             .fc .fc-toolbar-title { font-size: 1rem !important; }
             .fc .fc-button-group { width: 100% !important; }
             .fc .fc-button { padding: 6px !important; font-size: 0.75rem !important; }
-        }
 
-        @media (max-width: 768px) {
             .accept-all-wrapper {
                 padding: 15px 12px 0 12px;
             }
@@ -408,7 +406,7 @@
         <!-- LIST VIEW -->
         <div id="view-list" class="shifts-grid">
             <div th:each="turn : ${myTurns}" class="shift-card"
-                 th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE'} ? 'pending' : (${turn.turnStatus.name() == 'SWAP_REQUESTED'} ? 'swap' : 'confirmed')">
+                 th:classappend="${turn.turnStatus.name() == 'PENDING_ACCEPTANCE' ? 'pending' : (turn.turnStatus.name() == 'SWAP_REQUESTED' ? 'swap' : 'confirmed')}">
 
                 <div class="shift-info">
                     <div class="shift-date-box">
@@ -494,8 +492,8 @@
             <input type="hidden" id="swapTurnId" name="turnId" value="">
 
             <div class="form-group">
-                <label>Select Colleague</label>
-                <select name="targetUserId" required class="form-input">
+                <label for="targetID">Select Colleague</label>
+                <select name="targetUserId" id="targetID" required class="form-input">
                     <option value="" disabled selected>Choose substitute...</option>
                     <option th:each="emp : ${colleagues}" th:value="${emp.id}" th:text="${emp.name}"></option>
                 </select>

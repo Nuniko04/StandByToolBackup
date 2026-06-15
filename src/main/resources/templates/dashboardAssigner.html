@@ -9,22 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['DM Sans', 'sans-serif'] },
-                    colors: {
-                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb' }
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
         :root {
             --bg: #0a0a0a; --sidebar-bg: #111111; --panel-bg: #161616; --border: #262626;
@@ -66,6 +50,7 @@
         .btn-purple { background: var(--purple); color: #fff; }
         .btn-action { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; font-family: 'Syne'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;}
         .btn-action:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.05); }
+        .btn-success { background: var(--success); color: #000; }
 
         .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
         .status-card { background: var(--panel-bg); border: 1px solid var(--border); padding: 25px; border-radius: var(--radius); display: flex; align-items: center; gap: 20px; transition: 0.3s;}
@@ -143,6 +128,13 @@
         .toggle-btn.active { background: var(--text); color: var(--bg); }
         .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
 
+        .mobile-actions {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
         .desktop-actions {
             display: flex;
             gap: 12px;
@@ -155,6 +147,8 @@
                 height: auto !important;
                 overflow-y: auto !important;
             }
+
+            .mobile-actions { display: flex !important; }
 
             /* Esconde definitivamente os botões de PC no Mobile */
             .desktop-actions {
@@ -331,7 +325,7 @@
 
     <div id="view-master">
 
-        <div class="flex flex-col md:hidden gap-3 mb-6">
+        <div class="mobile-actions">
             <button class="btn-main btn-purple w-full justify-center" onclick="toggleModal('autoGenerateModal')">
                 <i class="fas fa-magic"></i> Auto-Generate
             </button>
@@ -370,7 +364,7 @@
                     <h2 id="master-year-display" style="font-size: 1.8rem; font-family: 'Syne', sans-serif; color: var(--text-muted); margin-bottom: 5px;">2026</h2>
                     <div style="display: flex; align-items: center; gap: 20px;">
                         <button type="button" class="btn-action" onclick="changeMasterMonth(-1)" style="padding: 8px 15px; font-size: 1rem;"><i class="fas fa-chevron-left"></i></button>
-                        <h3 id="master-month-display" style="font-size: 1.2rem; font-family: 'Syne', sans-serif; min-width: 160px; text-align: center; color: var(--text);">MAY</h3>
+                        <h3 id="master-month-display" style="font-size: 1.2rem; font-family: 'Syne', sans-serif; min-width: 160px; text-align: center; color: var(--text);">-</h3>
                         <button type="button" class="btn-action" onclick="changeMasterMonth(1)" style="padding: 8px 15px; font-size: 1rem;"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
@@ -608,7 +602,7 @@
             </div>
 
             <table>
-                <thead class="dark:bg-gray-800/50 uppercase font-bold text-xs">
+                <thead>
                 <tr>
                     <th>Date</th>
                     <th>Holiday Name</th>
@@ -787,8 +781,8 @@
                 <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" required class="form-input"></div>
             </div>
 
-            <div class="flex items-center gap-2 mb-5 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
-                <input type="checkbox" id="autoGenCreate" name="eligibleForAutoGeneration" value="true" checked class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+            <div class="checkbox-label" style="margin-bottom: 20px;">
+                <input type="checkbox" id="autoGenCreate" name="eligibleForAutoGeneration" value="true" checked>
                 <label for="autoGenCreate" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer flex-1">Enable for Auto-Generation</label>
             </div>
 
@@ -819,8 +813,8 @@
                 <div class="form-group"><label>End Time</label><input type="time" name="defaultEndTime" th:value="${type.defaultEndTime}" required class="form-input"></div>
             </div>
 
-            <div class="flex items-center gap-2 mb-5 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
-                <input type="checkbox" th:id="'autoGenEdit-' + ${type.id}" name="eligibleForAutoGeneration" value="true" th:checked="${type.eligibleForAutoGeneration}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+            <div class="checkbox-label" style="margin-bottom: 20px;">
+                <input type="checkbox" th:id="'autoGenEdit-' + ${type.id}" name="eligibleForAutoGeneration" value="true" th:checked="${type.eligibleForAutoGeneration}">
                 <label th:for="'autoGenEdit-' + ${type.id}" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer flex-1">Enable for Auto-Generation</label>
             </div>
 
@@ -899,11 +893,8 @@
                 <input type="text" name="nome" required class="form-input" placeholder="Ex: Good Friday">
             </div>
             <div class="form-group">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" name="data" required class="form-input">
-                </div>
-
+                <label>Date</label>
+                <input type="date" name="data" required class="form-input">
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
@@ -946,6 +937,75 @@
     let currentHistoryPage = 1;
     const itemsPerPage = 5;
     let currentHolidayDate = new Date(); // Começa no dia de hoje
+
+    let currentMasterDate = new Date(); // Nova: Controla o mês/ano da Master Schedule
+    let currentTurnFilter = 'ALL';      // Nova: Guarda o filtro ativo
+
+    function updateMasterListView() {
+        const year = currentMasterDate.getFullYear();
+        const month = currentMasterDate.getMonth() + 1;
+
+        const yearDisplay = document.getElementById('master-year-display');
+        const monthDisplay = document.getElementById('master-month-display');
+
+        if(yearDisplay) yearDisplay.innerText = year;
+        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        if(monthDisplay) monthDisplay.innerText = monthNames[month - 1];
+
+        const tbody = document.getElementById('master-table-body');
+        if(!tbody) return;
+
+        // Limpar barras de semana antigas
+        document.querySelectorAll('.week-separator').forEach(el => el.remove());
+
+        const rows = document.querySelectorAll('.master-turn-row');
+        let visibleCount = 0;
+        let weeksMap = {};
+
+        rows.forEach(row => {
+            const rowYear = parseInt(row.getAttribute('data-year'));
+            const rowMonth = parseInt(row.getAttribute('data-month'));
+            const rowWeek = parseInt(row.getAttribute('data-week'));
+            const rowStatus = row.getAttribute('data-status');
+
+            const isDateMatch = (rowYear === year && rowMonth === month);
+            const isFilterMatch = (currentTurnFilter === 'ALL' ||
+            rowStatus === currentTurnFilter ||
+            (currentTurnFilter === 'ACCEPTED' && rowStatus === 'COMPLETED'));
+
+            if (isDateMatch && isFilterMatch) {
+                if(!weeksMap[rowWeek]) weeksMap[rowWeek] = [];
+                weeksMap[rowWeek].push(row);
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        const sortedWeeks = Object.keys(weeksMap).sort((a,b) => parseInt(a) - parseInt(b));
+
+        sortedWeeks.forEach(week => {
+            const tr = document.createElement('tr');
+            tr.className = 'week-separator';
+            tr.innerHTML = `<td colspan="5" style="padding: 15px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); background: rgba(128,128,128,0.05);"><i class="fas fa-calendar-week" style="margin-right: 8px;"></i> Week ${week}</td>`;
+            tbody.appendChild(tr);
+
+            weeksMap[week].forEach(row => {
+                row.classList.remove('hidden');
+                tbody.appendChild(row);
+            });
+        });
+
+        const noTurnsMsg = document.getElementById('no-turns-msg');
+        if(noTurnsMsg) {
+            if (visibleCount === 0) {
+                noTurnsMsg.classList.remove('hidden');
+                tbody.appendChild(noTurnsMsg);
+            } else {
+                noTurnsMsg.classList.add('hidden');
+            }
+        }
+    }
 
     // ==========================================
     // INICIALIZAÇÃO DA PÁGINA (DOM CONTENT LOADED)
@@ -991,7 +1051,7 @@
             tabToOpen = urlParams.get('tab') || 'master';
         }
         switchMainView(tabToOpen);
-
+        updateMasterListView(); // 👈 add this explicitly
         // 4. Inicia views secundárias (Páginas de Histórico e Feriados)
         renderHistoryPage();
         updateHolidayView();
@@ -1229,6 +1289,11 @@
             themeText.innerText = 'Dark Mode';
             mainLogo.src = '/images/whiteSequoiaLogo.png';
         }
+    }
+
+    function changeMasterMonth(offset) {
+        currentMasterDate.setMonth(currentMasterDate.getMonth() + offset);
+        updateMasterListView();
     }
 </script>
 </body>
