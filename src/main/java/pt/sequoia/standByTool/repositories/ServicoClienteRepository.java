@@ -6,10 +6,10 @@ import org.springframework.data.repository.query.Param;
 import pt.sequoia.standByTool.models.ServicoCliente;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
-public interface ServicoClienteRepository extends JpaRepository<ServicoCliente, Long> {
+public interface ServicoClienteRepository extends JpaRepository<ServicoCliente, UUID> {
 
     // O Spring Data JPA cria a query automaticamente por causa do nome do método!
     List<ServicoCliente> findByAtivoTrue();
