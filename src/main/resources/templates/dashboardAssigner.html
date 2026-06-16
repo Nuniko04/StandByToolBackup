@@ -485,7 +485,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th style="text-align: right;">Action</th>
+                    <th style="text-align: right;">Edit</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -513,8 +513,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Default Hours</th>
-                        <th style="text-align: center;">Status</th>
-                        <th style="text-align: center;">Action</th>
+                        <th style="text-align: center;">Auto-Generation</th>
+                        <th style="text-align: center;">Edit/Disable</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -772,7 +772,7 @@
         </div>
         <form method="POST" action="/turntypes/save">
             <div class="form-group"><label>Name (Ex: StandBy)</label><input type="text" name="name" required class="form-input"></div>
-            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" required class="form-input"></div>
+            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" class="form-input"></div>
             <div class="form-group">
                 <label>Cor Identificativa</label> <input type="color" name="color" value="#3498db" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">
             </div>
@@ -803,7 +803,7 @@
         </div>
         <form method="POST" th:action="@{/turntypes/{id}/update(id=${type.id})}">
             <div class="form-group"><label>Name</label><input type="text" name="name" th:value="${type.name}" required class="form-input"></div>
-            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" required class="form-input"></div>
+            <div class="form-group"><label>Google Calendar ID</label><input type="text" name="googleCalendarId" th:value="${type.googleCalendarId}" class="form-input"></div>
             <div class="form-group">
                 <label>Cor Identificativa</label>
                 <input type="color" name="color" th:value="${type.color}" class="form-input" style="height: 45px; cursor: pointer; padding: 5px;">

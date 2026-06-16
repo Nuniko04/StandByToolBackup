@@ -22,7 +22,7 @@ public class TurnTypeController {
 
     @PostMapping("/save")
     public String saveTurnType(@RequestParam String name,
-                               @RequestParam String googleCalendarId,
+                               @RequestParam(required = false) String googleCalendarId,
                                @RequestParam String color,
                                @RequestParam String defaultStartTime,
                                @RequestParam String defaultEndTime,
@@ -50,7 +50,7 @@ public class TurnTypeController {
     @PostMapping("/{id}/update")
     public String updateTurnType(@PathVariable UUID id,
                                  @RequestParam String name,
-                                 @RequestParam String googleCalendarId,
+                                 @RequestParam(required = false) String googleCalendarId,
                                  @RequestParam String defaultStartTime,
                                  @RequestParam String defaultEndTime,
                                  @RequestParam(required = false, defaultValue = "#3498db") String color,
