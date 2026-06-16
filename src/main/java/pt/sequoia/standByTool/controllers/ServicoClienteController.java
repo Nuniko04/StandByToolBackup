@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
 import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.User;
-import pt.sequoia.standByTool.services.AuditLogService;
 import pt.sequoia.standByTool.services.ServicoClienteService;
 import pt.sequoia.standByTool.services.UserService;
 

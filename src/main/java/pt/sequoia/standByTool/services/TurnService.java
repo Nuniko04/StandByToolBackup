@@ -21,17 +21,15 @@ public class TurnService {
     private final CalendarService calendarService;
     private final UserRepository userRepository;
     private final TurnTypeRepository turnTypeRepository;
-    private final AuditLogService auditLogService;
     private final CardRepository cardRepository;
 
     public TurnService(TurnRepository turnRepository, CalendarService calendarService,
                        UserRepository userRepository, TurnTypeRepository turnTypeRepository,
-                       AuditLogService auditLogService, CardRepository cardRepository) {
+                       CardRepository cardRepository) {
         this.turnRepository = turnRepository;
         this.calendarService = calendarService;
         this.userRepository = userRepository;
         this.turnTypeRepository = turnTypeRepository;
-        this.auditLogService = auditLogService;
         this.cardRepository = cardRepository;
     }
 
@@ -48,7 +46,6 @@ public class TurnService {
             }
             turnRepository.save(turn);
 
-            auditLogService.log(loggedUser, "ACCEPT_TURN", "Turn", turnId, "Status changed to ACCEPTED");
             return true;
         }
         return false;
@@ -102,7 +99,6 @@ public class TurnService {
         }
 
         Turn saved = turnRepository.save(turn);
-        auditLogService.log(assigner, "CREATE_MANUAL_TURN", "Turn", saved.getId(), "Manual assignment created");
         return saved;
     }
 
@@ -184,7 +180,6 @@ public class TurnService {
             }
 
             turnRepository.save(turn);
-            auditLogService.log(assigner, "UPDATE_TURN", "Turn", turnId, changes.toString());
             return true;
         }
         return false;
@@ -213,7 +208,6 @@ public class TurnService {
             turn.setTurnStatus(TurnStatus.CANCELLED);
             turnRepository.save(turn);
 
-            auditLogService.log(assigner, "DELETE_TURN", "Turn", turnId, "Turn soft-deleted (CANCELLED)");
             return true;
         }
         return false;
@@ -260,10 +254,6 @@ public class TurnService {
 
             turnRepository.save(turn);
             count++;
-        }
-
-        if (count > 0) {
-            auditLogService.log(loggedUser, "ACCEPT_ALL_TURNS", "Turn", loggedUser.getId(), "Accepted " + count + " pending turns");
         }
 
         return count;

@@ -3,13 +3,20 @@ package pt.sequoia.standByTool.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalTime; // <-- Só precisas deste import novo
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "turn_types")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class TurnType {
@@ -27,7 +34,6 @@ public class TurnType {
     @Column(name = "default_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal defaultValue = BigDecimal.ZERO;
 
-    // --- NOVOS CAMPOS (O Lombok gera os Getters/Setters sozinho) ---
     @Column(name = "default_start_time")
     private LocalTime defaultStartTime;
 
@@ -41,6 +47,22 @@ public class TurnType {
     private boolean deleted = false;
 
     @Column(nullable = false)
-    private String color = "#3498db"; // Valor azul por defeito
+    private String color = "#3498db";
 
+    // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
+    @CreatedBy
+    @Column(name = "criado_por", updatable = false)
+    private String criadoPor;
+
+    @CreatedDate
+    @Column(name = "data_criacao", updatable = false)
+    private LocalDateTime dataCriacao;
+
+    @LastModifiedBy
+    @Column(name = "modificado_por")
+    private String modificadoPor;
+
+    @LastModifiedDate
+    @Column(name = "data_modificacao")
+    private LocalDateTime dataModificacao;
 }

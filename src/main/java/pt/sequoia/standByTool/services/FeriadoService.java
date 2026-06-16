@@ -21,12 +21,10 @@ import java.util.UUID;
 public class FeriadoService {
 
     private final FeriadoRepository feriadoRepository;
-    private final AuditLogService auditLogService; // Injetado para manter o padrão do sistema
     private final RestTemplate restTemplate;
 
-    public FeriadoService(FeriadoRepository feriadoRepository, AuditLogService auditLogService) {
+    public FeriadoService(FeriadoRepository feriadoRepository) {
         this.feriadoRepository = feriadoRepository;
-        this.auditLogService = auditLogService;
         this.restTemplate = new RestTemplate();
     }
 
@@ -51,10 +49,6 @@ public class FeriadoService {
         feriado.setNome(nome);
 
         feriadoRepository.save(feriado);
-
-        // Log de auditoria
-        auditLogService.log(adminActor, "CREATE_FERIADO", "Feriado", feriado.getId(),
-                "Feriado criado manualmente: " + nome + " em " + data);
     }
 
     @Transactional
@@ -71,10 +65,6 @@ public class FeriadoService {
         feriado.setNome(nome);
 
         feriadoRepository.save(feriado);
-
-        // Log de auditoria
-        auditLogService.log(adminActor, "UPDATE_FERIADO", "Feriado", feriado.getId(),
-                "Feriado atualizado: " + nome + " em " + data);
     }
 
     @Transactional
@@ -83,10 +73,6 @@ public class FeriadoService {
                 .orElseThrow(() -> new IllegalArgumentException("Feriado não encontrado."));
 
         feriadoRepository.delete(feriado);
-
-        // Log de auditoria
-        auditLogService.log(adminActor, "DELETE_FERIADO", "Feriado", id,
-                "Feriado eliminado: " + feriado.getNome());
     }
 
     public void importarFeriados(int ano) {

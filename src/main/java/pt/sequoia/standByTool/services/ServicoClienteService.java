@@ -19,14 +19,12 @@ import java.util.UUID;
 public class ServicoClienteService {
 
     private final ServicoClienteRepository servicoClienteRepository;
-    private final AuditLogService auditLogService;
     private final ClienteTurnTypeValorRepository valorRepository; // 💡 Injetado no Service!
     private final TurnTypeRepository turnTypeRepository;
 
-    public ServicoClienteService(ServicoClienteRepository servicoClienteRepository, AuditLogService auditLogService, ClienteTurnTypeValorRepository valorRepository,
+    public ServicoClienteService(ServicoClienteRepository servicoClienteRepository, ClienteTurnTypeValorRepository valorRepository,
                                  TurnTypeRepository turnTypeRepository) {
         this.servicoClienteRepository = servicoClienteRepository;
-        this.auditLogService = auditLogService;
         this.valorRepository = valorRepository;
         this.turnTypeRepository = turnTypeRepository;
     }
@@ -42,7 +40,6 @@ public class ServicoClienteService {
         servico.setAtivo(true);
         ServicoCliente saved = servicoClienteRepository.save(servico);
 
-        auditLogService.log(adminActor, "CREATE_SERVICO_CLIENTE", "ServicoCliente", saved.getId(), "Created client: " + nome);
         return saved;
     }
 
@@ -55,7 +52,6 @@ public class ServicoClienteService {
             if (tipo != null && !tipo.isBlank()) servico.setTipoServico(tipo);
 
             servicoClienteRepository.save(servico);
-            auditLogService.log(adminActor, "UPDATE_SERVICO_CLIENTE", "ServicoCliente", servico.getId(), "Values updated for: " + servico.getNomeCliente());
             return true;
         }
         return false;
@@ -69,7 +65,6 @@ public class ServicoClienteService {
             servico.setAtivo(!servico.isAtivo());
             servicoClienteRepository.save(servico);
 
-            auditLogService.log(adminActor, "TOGGLE_SERVICO_CLIENTE", "ServicoCliente", servico.getId(), "Status changed to Active=" + servico.isAtivo());
             return true;
         }
         return false;
@@ -93,8 +88,6 @@ public class ServicoClienteService {
         preco.setValorContribuicaoFeriado(valorFeriado);
 
         valorRepository.save(preco);
-
-        auditLogService.log(adminActor, "SAVE_CLIENT_PRICE", "ServicoCliente", clienteId, "Price saved/updated for: " + cliente.getNomeCliente());
     }
 
     // 💡 LÓGICA DE APAGAR
@@ -103,7 +96,6 @@ public class ServicoClienteService {
         if (valorRepository.existsById(precoId)) {
             ServicoCliente cliente = valorRepository.findById(precoId).get().getCliente();
             valorRepository.deleteById(precoId);
-            auditLogService.log(adminActor, "CLEAR_CLIENT_PRICE", "ServicoCliente", precoId, "Price cleared for: " + cliente.getNomeCliente());
         }
     }
 }

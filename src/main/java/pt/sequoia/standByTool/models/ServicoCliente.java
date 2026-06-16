@@ -3,12 +3,19 @@ package pt.sequoia.standByTool.models;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "servicos_cliente")
+@EntityListeners(AuditingEntityListener.class) // 💡 OBRIGATÓRIO PARA A AUDITORIA
 @Data
 @NoArgsConstructor
 public class ServicoCliente {
@@ -26,7 +33,24 @@ public class ServicoCliente {
     @Column(nullable = false)
     private boolean ativo = true; // Para desativar quando perdem o cliente
 
-    // ADICIONA ISTO:
     @Column(name = "data_fim")
     private LocalDate dataFim;
+
+    // ==========================================
+    // 💡 CAMPOS DE AUDITORIA AUTOMÁTICA
+    // ==========================================
+
+    @CreatedBy
+    @Column(updatable = false)
+    private String criadoPor; // Email do Assigner que criou o cliente
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime dataCriacao; // Data e hora em que foi guardado
+
+    @LastModifiedBy
+    private String modificadoPor; // Email do último Assigner a editar o cliente
+
+    @LastModifiedDate
+    private LocalDateTime dataModificacao; // Data e hora da última edição
 }

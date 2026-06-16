@@ -5,6 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.sequoia.standByTool.models.enums.UserStatus;
 
 import java.time.OffsetDateTime;
@@ -13,6 +18,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class User {
@@ -21,8 +27,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // ANTES: @Column(name = "google_oauth_id", unique = true, nullable = false)
-    // DEPOIS:
     @Column(name = "google_oauth_id", unique = true)
     private String googleOauthId;
 
@@ -38,11 +42,9 @@ public class User {
     @Column(name = "is_employee")
     private boolean isEmployee = true;
 
-    // 💡 A VERDADEIRA MATRIZ DE ELEGIBILIDADE 💡
-    // Uma lista de tipos de turno que este utilizador está autorizado a fazer
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "user_turn_eligibility", // Nome da nova tabela de junção (Matriz)
+            name = "user_turn_eligibility",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "turn_type_id")
     )
@@ -53,29 +55,26 @@ public class User {
     private UserStatus status = UserStatus.ACTIVE;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "default_payment_method", columnDefinition = "json") // Mudar jsonb para json
+    @Column(name = "default_payment_method", columnDefinition = "json")
     private String defaultPaymentMethod;
 
-    // Opcional, para ajudar nas queries de bloqueio de férias:
     @OneToMany(mappedBy = "requester")
     private List<Request> pedidos;
 
+    // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    // --- Lifecycle Methods ---
-    @PrePersist
-    protected void onCreate() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
+    @CreatedBy
+    @Column(name = "criado_por", updatable = false)
+    private String criadoPor;
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
-
+    @LastModifiedBy
+    @Column(name = "modificado_por")
+    private String modificadoPor;
 }

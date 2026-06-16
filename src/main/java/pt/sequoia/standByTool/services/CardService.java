@@ -13,11 +13,9 @@ import java.util.UUID;
 public class CardService {
 
     private final CardRepository cardRepository;
-    private final AuditLogService auditLogService;
 
-    public CardService(CardRepository cardRepository, AuditLogService auditLogService) {
+    public CardService(CardRepository cardRepository) {
         this.cardRepository = cardRepository;
-        this.auditLogService = auditLogService;
     }
 
     public List<Card> getAllCards() {
@@ -38,9 +36,6 @@ public class CardService {
         card.setExpirationDate(expirationDate);
 
         cardRepository.save(card);
-
-        auditLogService.log(adminActor, "CREATE_CARD", "Card", card.getId(),
-                "Card registered: " + identifier);
     }
 
     // --- NOVO: MÉTODO PARA EDITAR O CARTÃO ---
@@ -57,8 +52,5 @@ public class CardService {
         card.setExpirationDate(expirationDate); // A validade pode ser atualizada
 
         cardRepository.save(card);
-
-        auditLogService.log(adminActor, "UPDATE_CARD", "Card", card.getId(),
-                "Card updated to: " + identifier);
     }
 }

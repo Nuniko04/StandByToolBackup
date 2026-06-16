@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,6 +16,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "notifications")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class Notification {
@@ -31,8 +37,22 @@ public class Notification {
     @Column(nullable = false)
     private boolean isRead = false;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @CreatedBy
+    @Column(name = "criado_por", updatable = false)
+    private String criadoPor;
+
+    @LastModifiedBy
+    @Column(name = "modificado_por")
+    private String modificadoPor;
 
     // Construtor vazio (obrigatório para o JPA)
     public Notification() {}
@@ -41,7 +61,6 @@ public class Notification {
     public Notification(User user, String message) {
         this.user = user;
         this.message = message;
-        this.createdAt = LocalDateTime.now();
         this.isRead = false;
     }
 }

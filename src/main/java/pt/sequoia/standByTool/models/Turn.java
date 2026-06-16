@@ -5,6 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.sequoia.standByTool.models.enums.PaymentMethod;
 import pt.sequoia.standByTool.models.enums.PaymentStatus;
 import pt.sequoia.standByTool.models.enums.TurnStatus;
@@ -18,6 +23,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "turns")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class Turn {
@@ -57,7 +63,6 @@ public class Turn {
     private PaymentMethod paymentMethod;
 
     // --- LIGAÇÃO COM O CARTÃO ---
-    // Relação ManyToOne correta para permitir reutilização em semanas distintas
     @ManyToOne
     @JoinColumn(name = "payment_card_id")
     private Card paymentCard;
@@ -66,11 +71,11 @@ public class Turn {
     @Column(name = "one_off_payment")
     private String oneOffPayment;
 
+    // MANTIDO: O teu link antigo manual para o utilizador
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    // Vinculação de múltiplos serviços associados (Ex: Itaú + MG)
     @ManyToMany
     @JoinTable(
             name = "turno_servicos",
@@ -82,21 +87,20 @@ public class Turn {
     // ID do evento gerado automaticamente no Google Calendar
     private String calendarEventId;
 
+    // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    // --- Lifecycle Methods ---
-    @PrePersist
-    protected void onCreate() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
+    @CreatedBy
+    @Column(name = "criado_por_email", updatable = false)
+    private String criadoPor;
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
+    @LastModifiedBy
+    @Column(name = "modificado_por_email")
+    private String modificadoPor;
 }

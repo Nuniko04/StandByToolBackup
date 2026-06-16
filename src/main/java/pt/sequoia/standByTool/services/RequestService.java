@@ -26,16 +26,14 @@ public class RequestService {
     private final TurnRepository turnRepository;
     private final UserRepository userRepository;
     private final CalendarService calendarService;
-    private final AuditLogService auditLogService;
     public final NotificationService notificationService;
 
     public RequestService(RequestRepository requestRepository, TurnRepository turnRepository,
-                          UserRepository userRepository, CalendarService calendarService, AuditLogService auditLogService, NotificationService notificationService) {
+                          UserRepository userRepository, CalendarService calendarService, NotificationService notificationService) {
         this.requestRepository = requestRepository;
         this.turnRepository = turnRepository;
         this.userRepository = userRepository;
         this.calendarService = calendarService;
-        this.auditLogService = auditLogService;
         this.notificationService = notificationService;
     }
 
@@ -136,7 +134,6 @@ public class RequestService {
             }
 
             requestRepository.save(request);
-            auditLogService.log(assigner, "PROCESS_REQUEST", "Request", requestId, logDetails);
             return true;
         }
         return false;

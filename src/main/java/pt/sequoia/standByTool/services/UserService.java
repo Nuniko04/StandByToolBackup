@@ -23,13 +23,11 @@ public class UserService extends OidcUserService {
     private final UserRepository userRepository;
     private final TurnTypeRepository turnTypeRepository;
     private final HttpSession httpSession;
-    private final AuditLogService auditLogService;
 
-    public UserService(UserRepository userRepository, TurnTypeRepository turnTypeRepository, HttpSession httpSession, AuditLogService auditLogService) {
+    public UserService(UserRepository userRepository, TurnTypeRepository turnTypeRepository, HttpSession httpSession) {
         this.userRepository = userRepository;
         this.turnTypeRepository = turnTypeRepository;
         this.httpSession = httpSession;
-        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -71,8 +69,6 @@ public class UserService extends OidcUserService {
         newUser.setStatus(UserStatus.ACTIVE);
 
         userRepository.save(newUser);
-
-        auditLogService.log(adminActor, "CREATE_USER", "User", newUser.getId(), "Admin created user: " + email);
     }
 
     // --- NOVO: MÉTODO PARA EDITAR OS DADOS DO COLABORADOR ---
@@ -86,7 +82,6 @@ public class UserService extends OidcUserService {
         user.setAssigner(isAssigner);
 
         userRepository.save(user);
-        auditLogService.log(adminActor, "UPDATE_USER", "User", user.getId(), "Updated user: " + email);
     }
 
     @Transactional
@@ -101,8 +96,6 @@ public class UserService extends OidcUserService {
             }
             userRepository.save(user);
 
-            auditLogService.log(adminActor, "TOGGLE_USER_STATUS", "User", id,
-                    "User status changed to: " + user.getStatus() + " for " + user.getEmail());
             return true;
         }
         return false;
@@ -116,8 +109,6 @@ public class UserService extends OidcUserService {
             user.setAssigner(!user.isAssigner());
             userRepository.save(user);
 
-            auditLogService.log(adminActor, "TOGGLE_USER_ROLE", "User", id,
-                    "User role changed. Assigner: " + user.isAssigner() + " for " + user.getEmail());
             return true;
         }
         return false;
@@ -139,7 +130,6 @@ public class UserService extends OidcUserService {
             user.setEligibleTurnTypes(turnTypes);
             userRepository.save(user);
 
-            auditLogService.log(adminActor, "UPDATE_ELIGIBILITY", "User", userId, "Updated eligibility matrix for " + user.getName());
             return true;
         }
         return false;

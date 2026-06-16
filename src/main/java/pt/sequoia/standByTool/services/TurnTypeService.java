@@ -15,11 +15,9 @@ import java.util.UUID;
 public class TurnTypeService {
 
     private final TurnTypeRepository turnTypeRepository;
-    private final AuditLogService auditLogService;
 
-    public TurnTypeService(TurnTypeRepository turnTypeRepository, AuditLogService auditLogService) {
+    public TurnTypeService(TurnTypeRepository turnTypeRepository) {
         this.turnTypeRepository = turnTypeRepository;
-        this.auditLogService = auditLogService;
     }
 
     public List<TurnType> getAllTurnTypes() {
@@ -41,7 +39,6 @@ public class TurnTypeService {
         turnType.setEligibleForAutoGeneration(autoGenerate);
 
         turnTypeRepository.save(turnType);
-        auditLogService.log(adminActor, "CREATE_TURN_TYPE", "TurnType", turnType.getId(), "Created TurnType: " + name);
     }
 
     // --- NOVO: MÉTODO PARA EDITAR TIPO DE TURNO ---
@@ -58,7 +55,6 @@ public class TurnTypeService {
         turnType.setEligibleForAutoGeneration(autoGenerate);
 
         turnTypeRepository.save(turnType);
-        auditLogService.log(adminActor, "UPDATE_TURN_TYPE", "TurnType", turnType.getId(), "Updated TurnType: " + name);
     }
 
     @Transactional
@@ -69,6 +65,5 @@ public class TurnTypeService {
         turnType.setDeleted(!turnType.isDeleted());
 
         turnTypeRepository.save(turnType);
-        auditLogService.log(adminActor, "TOGGLE_TURN_TYPE_STATUS", "TurnType", turnType.getId(), "Toggling TurnType status: " + turnType.getName());
     }
 }

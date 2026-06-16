@@ -22,20 +22,17 @@ public class ScheduleGeneratorService {
     private final RequestRepository requestRepository;
     private final FeriadoRepository feriadoRepository;
     private final TurnTypeRepository turnTypeRepository;
-    private final AuditLogService auditLogService; // <-- Novo serviço injetado
 
     public ScheduleGeneratorService(UserRepository userRepository,
                                     TurnRepository turnRepository,
                                     RequestRepository requestRepository,
                                     FeriadoRepository feriadoRepository,
-                                    TurnTypeRepository turnTypeRepository,
-                                    AuditLogService auditLogService) {
+                                    TurnTypeRepository turnTypeRepository) {
         this.userRepository = userRepository;
         this.turnRepository = turnRepository;
         this.requestRepository = requestRepository;
         this.feriadoRepository = feriadoRepository;
         this.turnTypeRepository = turnTypeRepository;
-        this.auditLogService = auditLogService;
     }
 
     // Classe interna para guardar a pontuação
@@ -211,10 +208,6 @@ public class ScheduleGeneratorService {
             // Avança para a próxima semana
             semanaAtual = semanaAtual.plusDays(7);
         }
-
-        // Registo da ação de auditoria no final do processo usando o ID do Assigner
-        auditLogService.log(adminActor, "GENERATE_SCHEDULE", "System", adminActor.getId(),
-                String.format("Automatic generation triggered for period %s to %s", dataInicio, dataFim));
 
         return alertasGerados;
     }
