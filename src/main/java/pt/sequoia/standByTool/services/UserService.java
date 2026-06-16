@@ -163,4 +163,8 @@ public class UserService extends OidcUserService {
         }
         return map;
     }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 }

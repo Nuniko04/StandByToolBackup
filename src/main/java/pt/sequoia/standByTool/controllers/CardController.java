@@ -1,12 +1,15 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.Card;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.CardService;
+import pt.sequoia.standByTool.services.UserService;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,9 +19,12 @@ import java.util.UUID;
 public class CardController {
 
     private final CardService cardService;
+    private final UserService userService;
 
-    public CardController(CardService cardService) {
+    public CardController(CardService cardService, UserService userService) {
         this.cardService = cardService;
+        this.userService = userService;
+
     }
 
     @GetMapping("/api")
@@ -30,11 +36,18 @@ public class CardController {
     @PostMapping("/save")
     public String saveCard(@RequestParam String identifier,
                            @RequestParam String expirationDate,
-                           HttpSession session,
+                           @AuthenticationPrincipal OidcUser principal,
                            RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             cardService.createCard(identifier, expirationDate, adminActor);
@@ -50,11 +63,18 @@ public class CardController {
     public String updateCard(@PathVariable UUID id,
                              @RequestParam String identifier,
                              @RequestParam String expirationDate,
-                             HttpSession session,
+                             @AuthenticationPrincipal OidcUser principal,
                              RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             cardService.updateCard(id, identifier, expirationDate, adminActor);

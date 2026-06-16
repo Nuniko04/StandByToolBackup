@@ -1,12 +1,15 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.TipoFeriado;
 import pt.sequoia.standByTool.services.FeriadoService;
+import pt.sequoia.standByTool.services.UserService;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -16,19 +19,28 @@ import java.util.UUID;
 public class FeriadoController {
 
     private final FeriadoService feriadoService;
+    private final UserService userService;
 
-    public FeriadoController(FeriadoService feriadoService) {
+    public FeriadoController(FeriadoService feriadoService, UserService userService) {
         this.feriadoService = feriadoService;
+        this.userService = userService;
     }
 
     @PostMapping("/save")
     public String saveFeriado(@RequestParam String data,
                               @RequestParam String nome,
-                              HttpSession session,
+                              @AuthenticationPrincipal OidcUser principal,
                               RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             LocalDate localDate = LocalDate.parse(data);
@@ -45,11 +57,18 @@ public class FeriadoController {
     public String updateFeriado(@PathVariable UUID id,
                                 @RequestParam String data,
                                 @RequestParam String nome,
-                                HttpSession session,
+                                @AuthenticationPrincipal OidcUser principal,
                                 RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             LocalDate localDate = LocalDate.parse(data);
@@ -64,11 +83,18 @@ public class FeriadoController {
 
     @PostMapping("/{id}/delete")
     public String deleteFeriado(@PathVariable UUID id,
-                                HttpSession session,
+                                @AuthenticationPrincipal OidcUser principal,
                                 RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             feriadoService.deleteFeriado(id, adminActor);
@@ -81,11 +107,18 @@ public class FeriadoController {
 
     @PostMapping("/import")
     public String importFeriados(@RequestParam int ano,
-                                 HttpSession session,
+                                 @AuthenticationPrincipal OidcUser principal,
                                  RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
-        if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
 
         try {
             feriadoService.importarFeriados(ano);

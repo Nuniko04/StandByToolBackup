@@ -1,6 +1,7 @@
 package pt.sequoia.standByTool.controllers;
 
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -9,6 +10,7 @@ import pt.sequoia.standByTool.models.TurnType;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.TurnService;
 import pt.sequoia.standByTool.services.TurnTypeService;
+import pt.sequoia.standByTool.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,10 +23,12 @@ public class TurnController {
 
     private final TurnService turnService;
     private final TurnTypeService turnTypeService;
+    private final UserService userService;
 
-    public TurnController(TurnService turnService, TurnTypeService turnTypeService) {
+    public TurnController(TurnService turnService, TurnTypeService turnTypeService, UserService userService) {
         this.turnService = turnService;
         this.turnTypeService = turnTypeService;
+        this.userService = userService;
     }
 
     @PostMapping("/assign")
@@ -33,11 +37,18 @@ public class TurnController {
                                    @RequestParam(required = false) UUID cardId, // NOVO PARÂMETRO
                                    @RequestParam String startDate,
                                    @RequestParam String endDate,
-                                   HttpSession session,
+                                   @AuthenticationPrincipal OidcUser principal,
                                    RedirectAttributes redirectAttributes) {
 
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User assigner = userService.findByEmail(email).orElse(null);
 
         try {
             LocalDate start = LocalDate.parse(startDate);
@@ -64,12 +75,16 @@ public class TurnController {
     }
 
     @PostMapping("/{id}/accept")
-    public String acceptTurn(@PathVariable UUID id, jakarta.servlet.http.HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
-        User loggedUser = (User) session.getAttribute("loggedUser");
-
-        if (loggedUser == null) {
+    public String acceptTurn(@PathVariable UUID id, jakarta.servlet.http.HttpServletRequest request, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
             return "redirect:/login";
         }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User loggedUser = userService.findByEmail(email).orElse(null);
 
         boolean sucesso = turnService.acceptTurn(id, loggedUser);
 
@@ -89,11 +104,18 @@ public class TurnController {
                              @RequestParam(required = false) UUID cardId, // NOVO PARÂMETRO
                              @RequestParam(required = false) String startDate,
                              @RequestParam(required = false) String endDate,
-                             HttpSession session,
+                             @AuthenticationPrincipal OidcUser principal,
                              RedirectAttributes redirectAttributes) {
 
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User assigner = userService.findByEmail(email).orElse(null);
 
         try {
             Turn turn = turnService.getTurn(id)
@@ -126,9 +148,16 @@ public class TurnController {
     }
 
     @PostMapping("/{id}/delete")
-    public String deleteTurn(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+    public String deleteTurn(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User assigner = userService.findByEmail(email).orElse(null);
 
         boolean sucesso = turnService.deleteTurn(id, assigner);
         if (sucesso) {
@@ -141,12 +170,16 @@ public class TurnController {
     }
 
     @PostMapping("/accept-all")
-    public String acceptAllTurns(jakarta.servlet.http.HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
-        User loggedUser = (User) session.getAttribute("loggedUser");
-
-        if (loggedUser == null) {
+    public String acceptAllTurns(jakarta.servlet.http.HttpServletRequest request, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
             return "redirect:/login";
         }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User loggedUser = userService.findByEmail(email).orElse(null);
 
         try {
             int count = turnService.acceptAllPendingTurns(loggedUser);

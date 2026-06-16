@@ -1,6 +1,8 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -31,10 +33,19 @@ public class UserController {
     public String saveUser(@RequestParam String name,
                            @RequestParam String email,
                            @RequestParam(required = false) boolean isAssigner,
-                           HttpSession session,
+                           @AuthenticationPrincipal OidcUser principal,
                            RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String emailG = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(emailG).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) {
             return "redirect:/login";
         }
@@ -55,10 +66,19 @@ public class UserController {
                              @RequestParam String name,
                              @RequestParam String email,
                              @RequestParam(required = false) boolean isAssigner,
-                             HttpSession session,
+                             @AuthenticationPrincipal OidcUser principal,
                              RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String emailG = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(emailG).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         try {
@@ -72,8 +92,17 @@ public class UserController {
     }
 
     @PostMapping("/{id}/toggle-status")
-    public String toggleUserStatus(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
-        User adminActor = (User) session.getAttribute("loggedUser");
+    public String toggleUserStatus(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         boolean sucesso = userService.toggleUserStatus(id, adminActor);
@@ -87,8 +116,17 @@ public class UserController {
     }
 
     @PostMapping("/{id}/toggle-role")
-    public String toggleUserRole(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
-        User adminActor = (User) session.getAttribute("loggedUser");
+    public String toggleUserRole(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         boolean sucesso = userService.toggleUserRole(id, adminActor);
@@ -107,10 +145,19 @@ public class UserController {
     @PostMapping("/{id}/eligibility")
     public String updateEligibility(@PathVariable UUID id,
                                     @RequestParam(required = false) List<UUID> turnTypeIds,
-                                    HttpSession session,
+                                    @AuthenticationPrincipal OidcUser principal,
                                     RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         // Se o Gestor desmarcar todas as opções, previne NullPointerException

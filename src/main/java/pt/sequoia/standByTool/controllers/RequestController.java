@@ -1,12 +1,14 @@
 package pt.sequoia.standByTool.controllers;
 
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.services.RequestService;
+import pt.sequoia.standByTool.services.UserService;
 
 import java.util.UUID;
 
@@ -15,9 +17,11 @@ import java.util.UUID;
 public class RequestController {
 
     private final RequestService requestService;
+    private final UserService userService;
 
-    public RequestController(RequestService requestService) {
+    public RequestController(RequestService requestService, UserService userService) {
         this.requestService = requestService;
+        this.userService = userService;
     }
 
     // ==========================================
@@ -26,11 +30,18 @@ public class RequestController {
     @PostMapping("/swap")
     public String requestSwap(@RequestParam UUID turnId,
                               @RequestParam UUID targetUserId,
-                              HttpSession session,
+                              @AuthenticationPrincipal OidcUser principal,
                               RedirectAttributes redirectAttributes) {
 
-        User loggedUser = (User) session.getAttribute("loggedUser");
-        if (loggedUser == null) return "redirect:/login";
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User loggedUser = userService.findByEmail(email).orElse(null);
 
         try {
             // Nota padrão, já que o modal não pede texto justificativo
@@ -54,9 +65,16 @@ public class RequestController {
     // 2. ASSIGNER APROVA A TROCA
     // ==========================================
     @PostMapping("/{id}/approve")
-    public String approveRequest(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+    public String approveRequest(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User assigner = userService.findByEmail(email).orElse(null);
 
         try {
             // O serviço deve alterar o dono do turno e passar o Request para APPROVED
@@ -73,9 +91,16 @@ public class RequestController {
     // 3. ASSIGNER REJEITA A TROCA
     // ==========================================
     @PostMapping("/{id}/reject")
-    public String rejectRequest(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
-        User assigner = (User) session.getAttribute("loggedUser");
-        if (assigner == null || !assigner.isAssigner()) return "redirect:/login";
+    public String rejectRequest(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User assigner = userService.findByEmail(email).orElse(null);
 
         try {
             // 💡 A CORREÇÃO ESTÁ AQUI: Passamos REJECTED em vez de DENIED

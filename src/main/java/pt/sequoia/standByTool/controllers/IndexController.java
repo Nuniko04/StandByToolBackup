@@ -1,6 +1,8 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,12 +44,16 @@ public class IndexController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session) {
-        User loggedUser = (User) session.getAttribute("loggedUser");
-
-        if (loggedUser == null) {
+    public String dashboard(Model model, @AuthenticationPrincipal OidcUser principal) {
+        if (principal == null) {
             return "redirect:/login";
         }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User loggedUser = userService.findByEmail(email).orElse(null);
 
         // ==========================================
         // ROTA 1: SE FOR UM ASSIGNER (RH / GESTOR)
@@ -105,9 +111,16 @@ public class IndexController {
     }
 
     @GetMapping("/employee-view")
-    public String employeeView(Model model, HttpSession session) {
-        User user = (User) session.getAttribute("loggedUser");
-        if (user == null) return "redirect:/login";
+    public String employeeView(Model model, @AuthenticationPrincipal OidcUser principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User user = userService.findByEmail(email).orElse(null);
 
         List<Turn> myTurns = turnService.getMyTurns(user.getId());
 

@@ -1,11 +1,14 @@
 package pt.sequoia.standByTool.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pt.sequoia.standByTool.models.User;
 import pt.sequoia.standByTool.services.TurnTypeService;
+import pt.sequoia.standByTool.services.UserService;
 
 import java.time.LocalTime;
 import java.util.UUID;
@@ -15,9 +18,11 @@ import java.util.UUID;
 public class TurnTypeController {
 
     private final TurnTypeService turnTypeService;
+    private final UserService userService;
 
-    public TurnTypeController(TurnTypeService turnTypeService) {
+    public TurnTypeController(TurnTypeService turnTypeService, UserService userService) {
         this.turnTypeService = turnTypeService;
+        this.userService = userService;
     }
 
     @PostMapping("/save")
@@ -27,10 +32,19 @@ public class TurnTypeController {
                                @RequestParam String defaultStartTime,
                                @RequestParam String defaultEndTime,
                                @RequestParam(required = false, defaultValue = "false") boolean eligibleForAutoGeneration,
-                               HttpSession session,
+                               @AuthenticationPrincipal OidcUser principal,
                                RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         try {
@@ -55,10 +69,19 @@ public class TurnTypeController {
                                  @RequestParam String defaultEndTime,
                                  @RequestParam(required = false, defaultValue = "#3498db") String color,
                                  @RequestParam(required = false, defaultValue = "false") boolean eligibleForAutoGeneration,
-                                 HttpSession session,
+                                 @AuthenticationPrincipal OidcUser principal,
                                  RedirectAttributes redirectAttributes) {
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         try {
@@ -76,10 +99,19 @@ public class TurnTypeController {
 
     @PostMapping("/{id}/toggle")
     public String toggleStatus(@PathVariable UUID id,
-                               HttpSession session,
+                               @AuthenticationPrincipal OidcUser principal,
                                RedirectAttributes redirectAttributes){
 
-        User adminActor = (User) session.getAttribute("loggedUser");
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        // O Google garante que o email vem sempre
+        String email = principal.getEmail();
+
+        // Vais buscar à BD o utilizador completo (com as roles)
+        User adminActor = userService.findByEmail(email).orElse(null);
+
         if (adminActor == null || !adminActor.isAssigner()) return "redirect:/login";
 
         try {
