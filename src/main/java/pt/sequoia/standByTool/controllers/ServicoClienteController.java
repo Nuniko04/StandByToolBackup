@@ -56,7 +56,7 @@ public class ServicoClienteController {
         return "redirect:/dashboard?tab=Assigner";
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public String update(@PathVariable UUID id, @RequestParam String nomeCliente, @RequestParam String tipoServico, @AuthenticationPrincipal OidcUser principal) {
         if (principal == null) {
             return "redirect:/login";
@@ -73,7 +73,7 @@ public class ServicoClienteController {
         return "redirect:/dashboard?tab=Assigner";
     }
 
-    @PutMapping("/{id}/toggle")
+    @PostMapping("/{id}/toggle")
     public String toggleStatus(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal) {
         if (principal == null) {
             return "redirect:/login";
