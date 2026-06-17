@@ -373,18 +373,36 @@
                 <button type="submit" class="btn-action" style="padding: 4px 10px; font-size: 0.65rem;"><i class="fas fa-check"></i> Mark Read</button>
             </form>
         </div>
-        <ul class="notif-list">
-            <li th:each="notif : ${notificacoes}" class="notif-item" th:classappend="${!notif.isRead} ? 'unread' : ''">
+        <ul class="notif-list" id="notifications-list">
+            <!-- Items da Notificação -->
+            <li th:each="notif : ${notificacoes}"
+                class="notif-item notif-item-pageable"
+                style="display: none;"
+                th:classappend="${!notif.isRead} ? 'unread' : ''">
                 <div class="notif-msg">
                     <span th:if="${!notif.isRead}" class="notif-dot"></span>
                     <span th:text="${notif.message}">Notification msg</span>
                 </div>
                 <span class="notif-date" th:text="${#temporals.format(notif.createdAt, 'dd MMM HH:mm')}">Date</span>
             </li>
-            <li th:if="${#lists.isEmpty(notificacoes)}" class="empty-state" style="padding: 20px;">
+
+            <!-- Empty State -->
+            <li th:if="${#lists.isEmpty(notificacoes)}" class="empty-state" style="padding: 20px; text-align: center;">
                 <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>All caught up! No new notifications.
             </li>
         </ul>
+
+        <div id="notif-pagination" style="display: none; justify-content: space-between; align-items: center; padding: 15px 20px; border-top: 1px solid var(--border);">
+            <button type="button" id="btn-prev-notif" class="btn-action" onclick="changeNotifPage(-1)">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span id="notif-page-info" style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">
+                Page 1 of 1
+            </span>
+            <button type="button" id="btn-next-notif" class="btn-action" onclick="changeNotifPage(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
     </section>
 
     <section class="panel">
@@ -510,6 +528,41 @@
 <script th:inline="javascript">
     let fcInstance;
 
+    let currentNotifPage = 1;
+    const notifsPerPage = 5;
+
+    function renderNotifPage() {
+        const items = document.querySelectorAll('.notif-item-pageable');
+        if (items.length === 0) return;
+
+        const totalPages = Math.ceil(items.length / notifsPerPage);
+
+        document.getElementById('notif-pagination').style.display = totalPages > 1 ? 'flex' : 'none';
+
+        items.forEach((item, index) => {
+            item.style.display = 'none';
+
+            if (index >= (currentNotifPage - 1) * notifsPerPage && index < currentNotifPage * notifsPerPage) {
+                item.style.display = 'flex';
+            }
+        });
+
+        // Atualizar o texto da página
+        const pageInfo = document.getElementById('notif-page-info');
+        if(pageInfo) pageInfo.innerText = `Page ${currentNotifPage} of ${totalPages}`;
+
+        // Esconder/Mostrar botões Previous e Next
+        const btnPrev = document.getElementById('btn-prev-notif');
+        const btnNext = document.getElementById('btn-next-notif');
+        if(btnPrev) btnPrev.style.visibility = currentNotifPage > 1 ? 'visible' : 'hidden';
+        if(btnNext) btnNext.style.visibility = currentNotifPage < totalPages ? 'visible' : 'hidden';
+    }
+
+    function changeNotifPage(offset) {
+        currentNotifPage += offset;
+        renderNotifPage();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         var eventsList = [
             /*[# th:each="turn : ${allTurns}"]*/
@@ -537,6 +590,7 @@
             displayEventTime: false,
         });
         fcInstance.render();
+        renderNotifPage();
     });
 
     function setView(viewName) {
