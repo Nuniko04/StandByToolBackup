@@ -890,6 +890,62 @@
         </form>
     </div>
 </div>
+
+<div id="clientModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-briefcase"></i> Register New Client</h3>
+            <button type="button" onclick="toggleModal('clientModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="/clientes/save">
+            <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" name="nomeCliente" required class="form-input" placeholder="Ex: Finastra">
+            </div>
+            <div class="form-group">
+                <label>Service Type</label>
+                <input type="text" name="tipoServico" required class="form-input" placeholder="Ex: Support 24/7">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Save</button>
+                <button type="button" onclick="toggleModal('clientModal')" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:each="cliente : ${clientes}" th:id="'editClientModal-' + ${cliente.id}" class="modal-overlay">
+    <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;"><i class="fas fa-edit"></i> Edit Client</h3>
+            <button type="button" th:data-target="'editClientModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" th:action="@{/clientes/{id}/update(id=${cliente.id})}">
+
+            <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" name="nomeCliente" th:value="${cliente.nomeCliente}" required class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>Service Type</label>
+                <input type="text" name="tipoServico" th:value="${cliente.tipoServico}" required class="form-input">
+            </div>
+
+            <div class="flex items-center gap-2 mb-5 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
+                <input type="checkbox" th:id="'clientActiveEdit-' + ${cliente.id}" name="ativo" value="true" th:checked="${cliente.ativo}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+                <label th:for="'clientActiveEdit-' + ${cliente.id}" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer flex-1">Active Client</label>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
+                <button type="button" th:data-target="'editClientModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 <!-- Client Eligibility Matrix Modals -->
 <div th:each="cliente : ${clientes}" th:id="'clientMatrixModal-' + ${cliente.id}" class="modal-overlay">
     <div class="modal-box" style="border-top-color: var(--finastra-shift); max-width: 650px;">
