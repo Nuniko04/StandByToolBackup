@@ -1378,6 +1378,35 @@
         currentMasterDate.setMonth(currentMasterDate.getMonth() + offset);
         updateMasterListView();
     }
+
+    // ==========================================
+    // FUNÇÕES DA MASTER SCHEDULE LIST (Filtros e Semanas)
+    // ==========================================
+    function toggleTurnFilter(status) {
+        if (currentTurnFilter === status) {
+            currentTurnFilter = 'ALL';
+        } else {
+            currentTurnFilter = status;
+        }
+
+        ['CLASHES', 'PENDING_ACCEPTANCE', 'ACCEPTED'].forEach(s => {
+            const card = document.getElementById('card-filter-' + s);
+            if(card) {
+                if (currentTurnFilter === 'ALL') {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                } else if (currentTurnFilter === s) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1.02)';
+                } else {
+                    card.style.opacity = '0.4';
+                    card.style.transform = 'scale(0.98)';
+                }
+            }
+        });
+
+        updateMasterListView();
+    }
 </script>
 </body>
 </html>
