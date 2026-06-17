@@ -31,7 +31,7 @@ public class FeriadoService {
     // --- NOVOS MÉTODOS CRUD ---
 
     public List<Feriado> getAllFeriados() {
-        return feriadoRepository.findAll();
+        return feriadoRepository.findAllOrdered();
     }
 
     public Optional<Feriado> getFeriadoById(UUID id) {

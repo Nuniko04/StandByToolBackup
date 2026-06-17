@@ -15,5 +15,6 @@ public interface FeriadoRepository extends JpaRepository<Feriado, UUID> { // Cor
     // 💡 Retorna a lista para filtragem em memória
     List<Feriado> findByDataBetween(LocalDate dataInicio, LocalDate dataFim);
 
-
+    @Query("Select f from Feriado f order by data ASC")
+    List<Feriado> findAllOrdered();
 }
