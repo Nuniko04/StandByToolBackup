@@ -291,7 +291,7 @@
                 <div class="nav-inner"><i class="fas fa-cog"></i> Assigner</div>
             </button>
             <button id="btn-nav-feriados" onclick="switchMainView('feriados')">
-                <div class="nav-inner"><i class="fas fa-umbrella-beach"></i> Feriados</div>
+                <div class="nav-inner"><i class="fas fa-umbrella-beach"></i> Holidays</div>
             </button>
             <a href="/employee-view" style="margin-top: 20px; border: 1px solid var(--border); justify-content: center;">
                 <div class="nav-inner"><i class="fas fa-user-switch"></i> Employee View</div>
@@ -579,8 +579,37 @@
                 </table>
             </div>
         </div>
+        <div class="panel" style="grid-column: 1 / -1; width: 100%;">
+        <div class="panel-header">
+            <span><i class="fas fa-briefcase"></i> Client & Service Management</span>
+            <button class="btn-action" onclick="toggleModal('clientModal')"><i class="fas fa-plus"></i> Add Client</button>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Client Name</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cliente : ${clientes}">
+                <td><strong th:text="${cliente.nomeCliente}">Nome do Cliente</strong></td>
+                <td style="text-align: right;">
+                    <button type="button" class="btn-action" th:data-target="'editClientModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button type="button" class="btn-action" th:data-target="'clientMatrixModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="color: var(--finastra-shift); border-color: var(--finastra-shift);">
+                        <i class="fas fa-table"></i> Matrix
+                    </button>
+                </td>
+            </tr>
+            <tr th:if="${clientes == null or #lists.isEmpty(clientes)}">
+                <td colspan="2" style="text-align: center; padding: 20px; color: var(--text-muted);">No clients registered.</td>
+            </tr>
+            </tbody>
+        </table>
     </div>
-
+    </div>
 
     <div id="view-feriados" class="hidden">
         <div class="panel">
@@ -863,6 +892,60 @@
             <div style="display: flex; gap: 10px;">
                 <button type="submit" class="btn-main" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> Update</button>
                 <button type="button" th:data-target="'editCardModal-' + ${card.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Client Eligibility Matrix Modals -->
+<div th:each="cliente : ${clientes}" th:id="'clientMatrixModal-' + ${cliente.id}" class="modal-overlay">
+    <div class="modal-box" style="border-top-color: var(--finastra-shift); max-width: 650px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--finastra-shift);">
+                <i class="fas fa-table"></i> Matriz do Cliente: <span th:text="${cliente.nomeCliente}"></span>
+            </h3>
+            <button type="button" th:data-target="'clientMatrixModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <form method="POST" th:action="@{/clientes/{id}/matrix(id=${cliente.id})}">
+            <p style="font-size: 0.85rem; margin-bottom: 15px; color: var(--text-muted);">
+                Ative e configure os valores para os tipos de turno aplicáveis a este cliente:
+            </p>
+
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; margin: 0;">
+                    <thead style="background: var(--bg); position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-align: center;">Ativo</th>
+                        <th style="padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem;">TurnType</th>
+                        <th style="padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem;">Valor Base ( )</th>
+                        <th style="padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem;">Valor Feriado ( )</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Iterar sobre todos os TurnTypes disponíveis no sistema -->
+                    <tr th:each="type : ${turnTypes}" style="border-bottom: 1px solid var(--border); background: var(--panel-bg);">
+                        <td style="padding: 10px; text-align: center;">
+                            <!-- Exemplo: validação se está checkado consoante a info do backend -->
+                            <input type="checkbox" th:name="'turnTypesAtivos'" th:value="${type.id}" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer">
+                        </td>
+                        <td style="padding: 10px;">
+                            <strong th:text="${type.name}" style="font-size: 0.85rem;">StandBy</strong>
+                        </td>
+                        <td style="padding: 10px;">
+                            <input type="number" step="0.01" th:name="'valorBase_' + ${type.id}" class="form-input" style="padding: 8px; font-size: 0.8rem;" placeholder="0.00">
+                        </td>
+                        <td style="padding: 10px;">
+                            <input type="number" step="0.01" th:name="'valorFeriado_' + ${type.id}" class="form-input" style="padding: 8px; font-size: 0.8rem;" placeholder="0.00">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-main" style="flex:1; justify-content:center; background-color: var(--finastra-shift); color: #fff;">
+                    <i class="fas fa-save"></i> Gravar Matriz
+                </button>
+                <button type="button" th:data-target="'clientMatrixModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" class="btn-action" style="flex:1; justify-content:center;">Cancelar</button>
             </div>
         </form>
     </div>
