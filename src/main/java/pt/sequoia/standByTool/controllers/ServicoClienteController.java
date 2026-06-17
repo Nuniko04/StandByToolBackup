@@ -1,11 +1,9 @@
 package pt.sequoia.standByTool.controllers;
 
-import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import pt.sequoia.standByTool.models.ServicoCliente;
 import pt.sequoia.standByTool.models.User;
@@ -16,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-@RestController
+@Controller
 @RequestMapping("/api/servicos-cliente")
 public class ServicoClienteController {
 
@@ -41,9 +39,9 @@ public class ServicoClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ServicoCliente> create(@RequestBody ServicoCliente payload, @AuthenticationPrincipal OidcUser principal) {
+    public String create(@RequestParam String nomeCliente, @RequestParam String tipoServico, @AuthenticationPrincipal OidcUser principal) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return "redirect:/login";
         }
 
         // O Google garante que o email vem sempre
@@ -52,14 +50,16 @@ public class ServicoClienteController {
         // Vais buscar à BD o utilizador completo (com as roles)
         User adminActor = userService.findByEmail(email).orElse(null);
 
-        return ResponseEntity.ok(servicoClienteService.createServico(
-                payload.getNomeCliente(), payload.getTipoServico(), adminActor));
+        servicoClienteService.createServico(
+                nomeCliente, tipoServico, adminActor);
+
+        return "redirect:/dashboard?tab=Assigner";
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable UUID id, @RequestBody ServicoCliente payload, @AuthenticationPrincipal OidcUser principal) {
+    public String update(@PathVariable UUID id, @RequestParam String nomeCliente, @RequestParam String tipoServico, @AuthenticationPrincipal OidcUser principal) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return "redirect:/login";
         }
 
         // O Google garante que o email vem sempre
@@ -69,14 +69,14 @@ public class ServicoClienteController {
         User adminActor = userService.findByEmail(email).orElse(null);
 
         boolean sucesso = servicoClienteService.updateServico(
-                id, payload.getNomeCliente(), payload.getTipoServico(), adminActor);
-        return sucesso ? ResponseEntity.ok("Service updated!") : ResponseEntity.notFound().build();
+                id, nomeCliente, tipoServico, adminActor);
+        return "redirect:/dashboard?tab=Assigner";
     }
 
     @PutMapping("/{id}/toggle")
-    public ResponseEntity<String> toggleStatus(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal) {
+    public String toggleStatus(@PathVariable UUID id, @AuthenticationPrincipal OidcUser principal) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return "redirect:/login";
         }
 
         // O Google garante que o email vem sempre
@@ -86,7 +86,7 @@ public class ServicoClienteController {
         User adminActor = userService.findByEmail(email).orElse(null);
 
         boolean sucesso = servicoClienteService.toggleAtivo(id, adminActor);
-        return sucesso ? ResponseEntity.ok("Status updated.") : ResponseEntity.notFound().build();
+        return "redirect:/dashboard?tab=Assigner";
     }
 
     @PostMapping("/{clienteId}/precos/save")

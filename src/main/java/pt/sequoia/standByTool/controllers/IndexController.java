@@ -27,8 +27,16 @@ public class IndexController {
     private final NotificationService notificationService;
     private final CardService cardService;
     private final FeriadoService feriadoService;
+    private final ServicoClienteService servicoClienteService;
 
-    public IndexController(FeriadoService feriadoService, TurnService turnService, RequestService requestService, UserService userService, TurnTypeService turnTypeService, NotificationService notificationService, CardService cardService) {
+    public IndexController(FeriadoService feriadoService,
+                           TurnService turnService,
+                           RequestService requestService,
+                           UserService userService,
+                           TurnTypeService turnTypeService,
+                           NotificationService notificationService,
+                           CardService cardService,
+                           ServicoClienteService servicoClienteService) {
         this.turnService = turnService;
         this.requestService = requestService;
         this.userService = userService;
@@ -36,6 +44,7 @@ public class IndexController {
         this.notificationService = notificationService;
         this.cardService = cardService;
         this.feriadoService = feriadoService;
+        this.servicoClienteService = servicoClienteService;
     }
 
     @GetMapping("/")
@@ -78,6 +87,8 @@ public class IndexController {
 
             model.addAttribute("user", loggedUser);
             model.addAttribute("allTurns", allTurns);
+
+            model.addAttribute("clientes", servicoClienteService.getAllServicos());
 
             model.addAttribute("feriados", feriadoService.getAllFeriados());
             return "dashboardAssigner";
