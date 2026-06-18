@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.sequoia.standByTool.models.enums.UserStatus;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -64,11 +65,11 @@ public class User {
     // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt; // 💡 Mudou de OffsetDateTime para LocalDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
+    private LocalDateTime updatedAt; // 💡 Mudou de OffsetDateTime para LocalDateTime
 
     @CreatedBy
     @Column(name = "criado_por", updatable = false)

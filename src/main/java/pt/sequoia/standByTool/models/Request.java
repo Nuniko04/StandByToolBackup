@@ -12,6 +12,7 @@ import pt.sequoia.standByTool.models.enums.RequestStatus;
 import pt.sequoia.standByTool.models.enums.RequestType;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -65,11 +66,11 @@ public class Request {
     // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt; // 💡 Mudou aqui
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
+    private LocalDateTime updatedAt; // 💡 Mudou aqui
 
     @CreatedBy
     @Column(name = "criado_por", updatable = false)

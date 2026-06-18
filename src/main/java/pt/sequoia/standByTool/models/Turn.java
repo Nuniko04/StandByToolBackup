@@ -90,11 +90,11 @@ public class Turn {
     // --- CAMPOS DE AUDITORIA AUTOMÁTICA ---
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt; // 💡 Mudou aqui
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
+    private LocalDateTime updatedAt; // 💡 Mudou aqui
 
     @CreatedBy
     @Column(name = "criado_por_email", updatable = false)

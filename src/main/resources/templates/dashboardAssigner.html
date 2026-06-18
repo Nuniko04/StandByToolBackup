@@ -506,7 +506,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <span><i class="fas fa-clock"></i> Shift Types</span>
-                    <button class="btn-action" onclick="toggleModal('turnTypeModal')"><i class="fas fa-plus"></i> Add Type</button>
+                    <button class="btn-action" onclick="toggleModal('turnTypeModal')"><i class="fas fa-plus"></i> Add Shift Type</button>
                 </div>
                 <table>
                     <thead>
@@ -582,18 +582,18 @@
             <thead>
             <tr>
                 <th>Client Name</th>
-                <th style="text-align: right;">Action</th>
+                <th style="text-align: right;">Edit</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="cliente : ${clientes}">
-                <td><strong th:text="${cliente.nomeCliente}">Nome do Cliente</strong></td>
+                <td><strong th:text="${cliente.nomeCliente}">Client Name</strong></td>
                 <td style="text-align: right;">
                     <button type="button" class="btn-action" th:data-target="'editClientModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))">
-                        <i class="fas fa-edit"></i> Editar
+                        <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button type="button" class="btn-action" th:data-target="'clientMatrixModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))" style="color: var(--finastra-shift); border-color: var(--finastra-shift);">
-                        <i class="fas fa-table"></i> Matrix
+                    <button type="button" class="btn-action" th:data-target="'clientMatrixModal-' + ${cliente.id}" onclick="toggleModal(this.getAttribute('data-target'))">
+                        <i class="fas fa-tasks"></i> Matrix
                     </button>
                 </td>
             </tr>
@@ -612,7 +612,7 @@
                     <span><i class="fas fa-umbrella-beach"></i> Organizational Holidays</span>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn-action" onclick="toggleModal('importFeriadoModal')">
-                            <i class="fas fa-cloud-download-alt"></i> Import
+                            <i class="fas fa-cloud-download-alt"></i> Import Holidays
                         </button>
                         <button class="btn-action" onclick="toggleModal('feriadoModal')">
                             <i class="fas fa-plus"></i> Add Holiday
@@ -635,7 +635,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Holiday Name</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th style="text-align: right;">Edit/Delete</th>
                 </tr>
                 </thead>
                 <tbody>
